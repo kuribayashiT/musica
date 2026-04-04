@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>410465360441-asccp52bk69ttfljin25hs1qf25uhqau.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.410465360441-asccp52bk69ttfljin25hs1qf25uhqau</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAI4HIRrsbS2exW31mRpOtiz4bRouO-NaQ</string>
+	<key>GCM_SENDER_ID</key>
+	<string>410465360441</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>kuriFCTmusica</string>
+	<key>PROJECT_ID</key>
+	<string>musica-c0858</string>
+	<key>STORAGE_BUCKET</key>
+	<string>musica-c0858.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:410465360441:ios:b1384df330a0a57d</string>
+	<key>DATABASE_URL</key>
+	<string>https://musica-c0858.firebaseio.com</string>
+	<key>ADMOB_APP_ID</key>
+	<string>ca-app-pub-1929244717899448~8036734015</string>
+</dict>
+</plist>

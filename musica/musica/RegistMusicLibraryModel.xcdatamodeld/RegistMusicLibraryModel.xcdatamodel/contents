@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="12141" systemVersion="17C88" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="MusicLibraryModel" representedClassName="MusicLibraryModel" syncable="YES" codeGenerationType="class">
+        <attribute name="creationDate" optional="YES" attributeType="Date" usesScalarValueType="NO" syncable="YES"/>
+        <attribute name="icomColorName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="iconName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="indicatoryNum" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="lastModifiedDate" optional="YES" attributeType="Date" usesScalarValueType="NO" syncable="YES"/>
+        <attribute name="musicLibraryName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="trackNum" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <relationship name="musicModel" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MusicModel" syncable="YES"/>
+    </entity>
+    <entity name="MusicModel" representedClassName="MusicModel" syncable="YES" codeGenerationType="class">
+        <attribute name="albumTitle" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="artist" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="artworkData" optional="YES" attributeType="Binary" syncable="YES"/>
+        <attribute name="indicatoryNum" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="lyric" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="musicLibraryName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="trackTitle" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="url" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="MVModel" representedClassName="MVModel" syncable="YES" codeGenerationType="class">
+        <attribute name="indicatoryNum" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="musicLibraryName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="thumbnailUrl" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="videoID" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="videoTime" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="videoTitle" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="SettingStatus" representedClassName="SettingStatus" syncable="YES" codeGenerationType="class">
+        <attribute name="displayContentsNum" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="latestCancelVersion" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="MusicLibraryModel" positionX="-153" positionY="-153" width="128" height="165"/>
+        <element name="MusicModel" positionX="-434" positionY="-66" width="128" height="165"/>
+        <element name="MVModel" positionX="-27" positionY="81" width="128" height="135"/>
+        <element name="SettingStatus" positionX="-27" positionY="81" width="128" height="75"/>
+    </elements>
+</model>

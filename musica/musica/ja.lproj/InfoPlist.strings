@@ -1,0 +1,12 @@
+/* 
+  InfoPlist.strings
+  musica
+
+  Created by 栗林貴大 on 2019/10/15.
+  Copyright © 2019 K.T. All rights reserved.
+*/
+"NSAppleMusicUsageDescription" = "音楽再生時に使用します。";
+"NSCalendarsUsageDescription" = "カレンダーにアクセスします。";
+"NSCameraUsageDescription" = "スキャン対象の写真を撮影するため、カメラを使用します。";
+"NSPhotoLibraryUsageDescription" = "写真を保存します。";
+"NSUserTrackingUsageDescription" = "表示するキャンペーンの向上に役立ちます！";

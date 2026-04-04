@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="12141" systemVersion="16E195" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Music" representedClassName="Music" syncable="YES" codeGenerationType="class">
+        <attribute name="albumName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="artist" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="attribute" optional="YES" syncable="YES"/>
+        <attribute name="attribute1" optional="YES" syncable="YES"/>
+        <attribute name="existFlg" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="lyric" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="musicLibraryName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="trackname" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="url" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="MusicLibrary" representedClassName="MusicLibrary" syncable="YES" codeGenerationType="class">
+        <attribute name="musiclibraryname" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="musicdata" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Music" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="Music" positionX="-63" positionY="-18" width="128" height="180"/>
+        <element name="MusicLibrary" positionX="-54" positionY="45" width="128" height="75"/>
+    </elements>
+</model>

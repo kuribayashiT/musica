@@ -1,0 +1,433 @@
+/* 
+  Localizable.strings
+  musica
+
+  Created by 栗林貴大 on 2019/09/02. 
+  Copyright © 2019 K.T. All rights reserved.
+*/
+/*******************************************************************
+ 共通
+ *******************************************************************/
+// アラート
+"btn_yes" = "はい";
+"btn_no" = "いいえ";
+"btn_ok" = "OK";
+"btn_cancel" = "キャンセル";
+"btn_success" = "成功！";
+"btn_failure" = "失敗・・・";
+"btn_delete" = "削除";
+"btn_msg" = "メッセージ";
+"btn_edit" = "編集";
+"btn_close" = "閉じる";
+
+// お気に入り
+"okiniiri_longtap" = "長押しでお気に入り登録ができます";
+
+// エラー
+"err" = "エラー";
+"err_nocontents" = "web上に、まだ動画のコンテンツは無いようです。";
+"network_err_msg" = "ネットワークの状態が悪いか、サーバーがメンテナンス中のようです。時間をあけてアクセスしてみてください。";
+
+//　PUSHタイトル
+"push_title" = "お知らせ";
+
+// アプリ誘導
+"app_intro_title" = "この機能をもっと便利にご利用いただけるアプリがあります。";
+"app_intro_body_scancamera" = "「翻訳スキャンカメラアプリ」をインストールしますか？\n・スキャン結果の履歴管理　etc\n";
+
+// レビュー誘導
+"review_app_title" = "いつもご利用いただき、誠にありがとうございます。";
+"review_app_body" = "今後のサービス改善の為、よかったらAppstoreにてレビュー頂けますとありがたいです。。。";
+"review_app_yes" = "レビューする";
+"review_app_no" = "レビューしない";
+"review_app_layter" = "後でする";
+
+// 課金誘導
+"kakin_app_title" = "広告表示なしでアプリを利用しませんか？";
+"kakin_app_body" = "毎月たったのジュース2本分で、快適にアプリをご利用いただけます！（スキャン機能/翻訳機能以外の広告が全て削除されます！）";
+"kakin_app_yes" = "詳しく見てみる！";
+"kakin_app_stay" = "考えておく";
+"kakin_app_no" = "やめとく(このダイアログはもう表示しない)";
+
+//　アップデート関連
+"update_newver_force_title" = "新しいバージョンがリリースされています";
+"update_newver_force_body" = "アプリのアップデートをお願いいたします。";
+"update_newver_title" = "新しいバージョンがリリースされています";
+"update_newver_body" = "アプリのアップデートを行いますか？";
+
+// 許諾
+"plist_camera_title" = "カメラへのアクセス許可";
+"plist_camera_body" = "このアプリはカメラへのアクセス許可がありません。設定よりアクセスを許可してください。";
+
+// 紹介
+"intro_message" = "music Application \nitunes.apple.com/jp/app/apple-store/id1288959420";
+
+// Push
+"local_push_ranking_title" ="今週のランキングが更新されました！";
+"local_push_ranking_body" ="わーい！＼(^o^)／";
+
+// Firebase向け
+"firebase_local_country" ="ja";
+"youtube_local_country" ="jp";
+/*******************************************************************
+ 設定画面Tab
+*******************************************************************/
+"setting" = "設定";
+"setting_recommend_app" = "おすすめアプリ";
+"setting_help" = "ヘルプ";
+"setting_about_ad" = "広告について";
+"setting_about_app" = "アプリについて";
+"setting_ad" = "スポンサー広告";
+"debug_log" = "ログ出力";
+
+// デザインテーマ名
+"design_theme_setting_title" = "デザインテーマ";
+"design_theme_setting_body" = "アプリのカラーテーマを設定します";
+"design_theme_old" = "旧デザイン";
+"design_theme_pop" = "ポップ";
+"design_theme_popred" = "ホワイト(ライトブルー)";
+"design_theme_sharpblue" = "ホワイト(ブラック)";
+"design_theme_sharpred" = "ホワイト(ダークブルー)";
+"design_theme_sharpnomal" = "ホワイト(ダークレッド)";
+"design_theme_sharpdark" = "ダークブルー";
+"design_theme_sharpblack" = "ブラック";
+"design_theme_now" = "ダークレッド";
+"design_theme_setting_comp" = "デザイン設定を変更しました";
+
+// アプリについて
+"app_info" = "アプリ情報";
+"app_management" = "APP 管理";
+"app_oss" = "オープンソースライセンス";
+"app_review" = "アプリをレビューする";
+"app_introduction" = "アプリを友達に紹介";
+
+// おすすめアプリ
+"recommended_app_todolist" = "todolist";
+"recommended_app_todolist_title" = "ToDo リスト";
+"recommended_app_todolist_des" = "タスク管理の決定版！シンプルかつパワフルなToDoリストアプリです。";
+"recommended_app_scancamera" = "scancamera";
+"recommended_app_scancamera_title" = "翻訳スキャンカメラ";
+"recommended_app_scancamera_des" = "文字をカメラでスキャンしてそのまま翻訳できる便利なやつです。";
+"recommended_app_mr_stick" = "mr_stick";
+"recommended_app_mr_stick_title" = "Mr STICK";
+"recommended_app_mr_stick_des" = "暇つぶしアクションゲームです。奥が深い。";
+"recommended_app_nanopita" = "nanopita";
+"recommended_app_nanopita_title" = "ナノピタッ";
+"recommended_app_nanopita_des" = "ストップウォッチでよくやる、ジャスト○秒で止めるゲームです。ナノ秒単位でぜひ。";
+
+// 関連サイト
+"homepage_musicahoutouse" = "使い方";
+"homepage_musica" = "musicA 公式";
+"homepage_pp" = "利用規約/プライバシーポリシー";
+"to_homepage_musica" = "musicA 公式サイトへ";
+
+// 問い合わせ
+"qa" = "FAQ";
+"qa_request" = "改善要望、リクエストを送る";
+"qa_report" = "お問い合わせ、違反報告";
+
+// 設定項目
+"setting_item_resultnum" = "検索結果/ランキング表示数";
+"setting_item_resultnum_des" = "検索結果/ランキング表示数を設定します。";
+"setting_item_help_des" = "HELPの表示";
+"setting_item_cashclear" = "キャッシュのクリア";
+"setting_item_cashclear_des" = "youtubeのエラーの一部を解決します。";
+"setting_item_adclear" = "広告の削除";
+"setting_item_adclear_des" = "毎月のお支払い(月額200円)は自動更新となります。広告を削除しますか？";
+"setting_item_cashclear_alert" = "キャッシュをクリアします";
+"setting_item_cashclear_alert_des" = "Youtubeの動画再生時に、キャッシュが原因でエラーになることがあります。キャッシュを削除することで、再生できるようになることがあります。";
+"setting_item_helpappear" = "「？」ボタンの表示/非表示を設定します。";
+"setting_item_push" = "プッシュ通知設定";
+"setting_item_kakinkaijo" = "課金の解除";
+"setting_item_design" = "デザイン設定";
+
+// 問い合わせメール
+"mail_title_req" = "改善要望、リクエスト";
+"mail_title_faq" = "お問い合わせ、違反報告";
+
+// 秘密の項目
+"setting_secret_item_title" = "この項目は滅多に出ません。バグですw";
+"setting_secret_item_body" = "アプリをご利用いただき、ありがとうございます！";
+
+/*******************************************************************
+ 検索Tab
+ *******************************************************************/
+"search" = "検索";
+"search_janre_setting_title" = "検索動画の種別";
+"search_janre_setting_body" = "検索動画の種別を設定します";
+
+// 検索ジャンル
+"search_janre_sougou" = "総合";
+"search_janre_eigaanime" = "映画とアニメ";
+"search_janre_norimono" = "車と乗り物";
+"search_janre_music" = "音楽";
+"search_janre_animal" = "ペットと動物";
+"search_janre_sports" = "スポーツ";
+"search_janre_tripevent" = "旅行/イベント";
+"search_janre_game" = "ゲーム";
+"search_janre_blog" = "ブログ";
+"search_janre_comedy" = "コメディー";
+"search_janre_entertainment" = "エンタメ";
+"search_janre_news" = "ニュース";
+"search_janre_howto" = "ハウツー";
+"search_janre_education" = "教育";
+"search_janre_technology" = "科学と技術";
+"search_janre_society" = "社会";
+"search_janre_anime" = "アニメ";
+"search_janre_entertainment" = "エンタメ";
+"search_janre_movietrailer" = "映画予告";
+
+// 検索文言
+"search_word_blank" = "";
+
+"search_recommend_mv_message" = "人気の動画をPick Up!!";
+"search_recommend_mv_tapped_message" = "最近最もユーザーに再生されている動画一覧です";
+"search_recommend_wards" = "急上昇ワード";
+"youtube_server_quota_err" = "ただいまサーバーがアクセス負荷で接続できません。時間をおいて再度お試しください。";
+/*******************************************************************
+ Home Tab
+ *******************************************************************/
+"home_rename_btn" = "名前";
+"home_tutorial_label" = "音楽ライブラリを追加しよう!!";
+"home_tutorial_label_tapped" = "「＋」をタップして、音楽ライブラリを作成してみよう！";
+"home_addtrack_btn" = "曲を追加";
+"home_deletetrack_btn" = "削除";
+// 歌詞の文字サイズ
+"moji_size_0" = "文字:極小";
+"moji_size_1" = "文字:小";
+"moji_size_2" = "文字:中";
+"moji_size_3" = "文字:大";
+"moji_size_4" = "文字:特大";
+"moji_size_5" = "文字:巨大";
+"moji_size_setting_title" = "歌詞の表示サイズ設定";
+"moji_size_setting_body" = "歌詞の文字サイズを設定します";
+
+// 歌詞登録
+"lyric_regist_msg_library" = "ライブラリ:";
+"lyric_regist_msg_track" = "\n曲名:";
+"lyric" = "歌詞";
+
+// 音楽ライブラリ作成、編集、削除
+"musiclibrary_selected_track_num" = "曲選択中";
+"musiclibrary_edit" = "ライブラリ名の編集";
+"musiclibrary_editname" = "MusicLibrary名の編集が完了しました";
+"musiclibrary_err_nomusic" = "音楽がありません";
+"musiclibrary_err_album_nomusic" = "このアルバムには、登録可能な音楽が一つもありません";
+"musiclibrary_err_playlist_nomusic" = "このプレイリストには、登録可能な音楽が一つもありません";
+"musiclibrary_delete_conform_title" = "本当に削除してもよろしいですか？";
+"musiclibrary_delete_conform_body" = "ライブラリを削除すると、復旧ができなくなります。また、曲ごとに登録している歌詞も削除されてしまいます。";
+"musiclibrary_delete_msg" = "音楽ライブラリを削除しました";
+"musiclibrary_delete_track_msg" = "ライブラリから音楽を削除しました";
+"musictrack_delete_conform_title" = "曲に登録している歌詞も削除されてしまいます。";
+"musictrack_howto_download" = "ダウンロード方法";
+"musictrack_howto_drm" = "DRMコンテンツとその解除方法について";
+
+// お気に入り動画
+"okiniiri_failure_playmv" = "動画の再生に失敗しました。";
+"okiniiri_cantplaymv" = "プレイリスト再生が禁止されている動画です。\n動画をサイト上にて個別再生します。";
+"okiniiri_redo" = "もう一度試してみる";
+"okiniiri_failure_setspeed" = "再生速度の設定に失敗しました";
+"okiniiri_incompatible_speed1" = "この動画は再生速度[×";
+"okiniiri_incompatible_speed2" = "]の設定に非対応かもです...";
+"okiniiri_incompatible_speed2_setneer" = "]の設定に非対応かもです...\n※一番近い[×";
+"okiniiri_setspeed" = "]に設定しました。";
+"okiniiri_err_incompatible_spped" = "エラーです。動画が速度変更に対応してないかもです。";
+"okiniiri_err_network" = "ネットワークの接続が不安定なようです";
+
+//　音楽ライブラリ登録
+"musiclibrary_select_fromalbum" = "アルバムごとに曲を選択して下さい！";
+"musiclibrary_select_library" = "ライブラリごとに曲を選択して下さい！";
+
+// 音楽再生
+"musiclibrary_not_play" = "Not playing";
+"musiclibrary_err_cantplay_title" = "こいつは再生できないのです...";
+"musiclibrary_err_cantplay_nodownload" = "この曲は、ご利用の端末に曲のデータがダウンロードされていないため、本アプリで再生する事ができません。\n標準のミュージックアプリまたは、iTunes Store から曲をダウンロードして頂くことで再生出来るようになります！";
+"musiclibrary_err_cantplay" = "音楽の再生ができません";
+"musiclibrary_err_cantplay_nowedit" = "player編集中は、音楽の再生ができません。「編集完了」をタップして、編集モードを完了して下さい。";
+"musiclibrary_err_cantregister_title" = "この音楽は登録できません...";
+"musiclibrary_err_cantregister_body" = "端末内にこの音楽のデータがありません。\n標準のミュージックアプリまたは、iTunes Store から曲をダウンロードして頂くことで再生出来るようになります！";
+"musiclibrary_err_cantregister_title_drm" = "この音楽は登録できません...";
+"musiclibrary_err_cantregister_body_drm" = "この曲はDRMコンテンツのため再生および登録ができません。再生するためには、DRMを解除する必要があります。（解除後は登録が可能です！）";
+
+// 音楽プレイヤー
+"musiclibrary_play_section_label" = "区間再生";
+"musiclibrary_play_section_repeat_setting" = "再生区間設定";
+"musiclibrary_play_section_repeat_setting_comp" = "設定完了";
+"musiclibrary_fast_display_tuto" = "長押しで、曲の並べ替えができます。";
+
+// 歌詞編集
+"musiclibrary_lylic_regist_title" = "この内容で、歌詞を更新してもよろしいですか？";
+"musiclibrary_lylic_regist_success" = "歌詞が更新されました。";
+"musiclibrary_lylic_regist_failure" = "歌詞の更新が失敗しました。";
+"musiclibrary_lylic_copy" = "コピーして閉じる";
+"musiclibrary_scan_text" = "確認できた文字列です";
+
+// TOP画面
+"musiclibrary_regist_comp_toast" = "音楽ライブラリの登録が完了しました！";
+"musiclibrary_err_cant_delete" = "削除できません";
+"musiclibrary_err_cant_delete_okiniiri" = "「お気に入り動画」は消すことができません";
+
+// MusicLibraly登録画面
+"musiclibrary_regist_comp_title" = "MusicLibarary登録完了";
+"musiclibrary_regist_comp_body" = "お疲れ様でした！";
+"musiclibrary_regist_err" = "MusicLibararyの登録に失敗しました。";
+"musiclibrary_regist_err_humei" = "不明なエラーです。時間をおいて試してみてください。";
+"musiclibrary_regist_err_noname_title" = "名前が空です。。。";
+"musiclibrary_regist_err_noname_body" = "MusicLibraryの名前をつけて下さい。";
+"musiclibrary_regist_err_noselect_title" = "何も選択されていません";
+"musiclibrary_regist_err_noselect_body" = "ひとつ以上音楽を選択して下さい";
+"musiclibrary_regist_err_samename_title" = "既に同じ名前のMusicLibraryが存在します";
+"musiclibrary_regist_err_samename_body" = "登録するMusicLibrary名を変更して下さい";
+"library_resist_name_placeholder" = "ライブラリ名を入力して下さい";
+
+// Youtube再生画面
+"okiniiri_regist" = "「お気に入り動画」に追加";
+"okiniiri_delete" = "「お気に入り動画」から削除";
+"okiniiri_regist_title" = "お気に入りに追加";
+"okiniiri_regist_body" = "この動画をお気に入りに追加しますか？";
+"okiniiri_delete_title" = "お気に入りから削除";
+"okiniiri_delete_title" = "この動画をお気に入りから削除しますか？";
+"okiniiri_regist_comp_title" = "登録完了";
+"okiniiri_regist_comp_body" = "「お気に入り動画」に追加しました";
+"okiniiri_delete_comp_title" = "削除完了";
+"okiniiri_delete_comp_body" = "「お気に入り動画」から削除しました";
+
+// テキスト画面
+"musiclibrary_err_network_title" = "ネットワークエラー";
+"musiclibrary_err_network_body" = "ネットワークが接続されていることを確認してください。";
+
+// 画面内文言
+"home_okiniiri_title" = "お気に入り動画";
+"home_okiniiri" = "お気に入り動画"; // DB登録のため、変えられない
+"home_track_num" = "曲数　:";
+"home_mv_num" = "動画数:";
+"home_edit_comp" = "編集完了";
+
+// HELP
+"home_help_title" = "このアプリの使い方";
+"home_help_body" = "このアプリの使い方をざっくり説明いたします";
+"home_help_nolook" =  "見ない";
+"home_help_look" = "見る";
+"home_help_1" = "ここはMVが流れます。";
+"home_help_2" = "ここから、登録した「お気に入りの動画」が観れます。";
+"home_help_3" = "「お気に入りの動画」はここで検索した動画や・・・";
+"home_help_4" = "ランキングで観れる動画を登録できます。";
+"home_help_5" = "「お気に入りの動画」以外にも、作成した音楽ライブラリもここに表示されます。";
+"home_help_6" = "音楽ライブラリの作成はこの「＋」ボタンからできます。";
+"home_help_7" = "ちなみに、この「？」ボタンで今の説明がまた見れます。";
+"home_help_8" = "その他わからないことは、「オプション」タブの「使い方」を見てみてください。\nでは！(^o^)ノシ";
+"home_help_9" = "ここで音楽ライブラリの作成ができるよ！";
+
+"home_tutorial_mv_message" = "お気に入り動画を登録してみよう!!";
+"home_tutorial_tapped_message" = "ランキングや検索タブからお気に入り動画を登録しよう！";
+
+// How To Download
+"how_to_download_page1" = "ダウンロードは、iPhone/iPadに元から入っている「ミュージック」アプリ、もしくは「iTunes Store」のアプリから行えます。";
+"how_to_download_page2" = "「ミュージック」アプリでは、ダウンロードしたい曲をライブラリから探し出し、雲のマークをタップすればダウンロードができます。\n※ダウンロード後は、このアプリをタスクキルしてから再度起動しなおして下さい。";
+"how_to_download_page3" = "「iTunes Store」アプリからは、[その他]タブから、[ダウンロード]もしくは、「購入済み」⇨「ミュージック」⇨「このiPhone上に無いアイテム」からダウンロードが可能です。.\n※ダウンロード後は、このアプリをタスクキルしてから再度起動しなおして下さい。";
+/*******************************************************************
+ ランキング Tab
+ *******************************************************************/
+// 国の設定
+"ranking_default_settings" = "jp";
+"ranking_default_settings_" = "ja";
+"ranking_change_country_title" = "ランキングの国を変更";
+"ranking_change_country_body" = "チャートの国を変更します";
+
+// 国
+"ranking_country_jp" =  "日本";
+"ranking_country_ame" = "アメリカ";
+"ranking_country_trk" = "トルコ";
+"ranking_country_egi" = "イギリス";
+"ranking_country_kan" = "韓国";
+"ranking_country_tyu" = "中国";
+"ranking_country_tai" =  "タイ";
+"ranking_country_spe" = "スペイン";
+
+// 動画について
+"ranking_neer_mv" = "の関連動画";
+"ranking_more_look" = "もっと見る";
+
+/*******************************************************************
+ Text Tab
+ *******************************************************************/
+"trans_tutorial" = "textTabTutorial";
+// 画面内文言
+"trans_title" = "テキストスキャンと翻訳";
+"trans_btn_clear" = "クリア";
+"trans_btn_lyric_regist" = "歌詞登録";
+
+// 翻訳言語
+"trans_lang_jp" = "日本語";
+"trans_lang_en" = "英語";
+"trans_lang_ch" = "中国語";
+"text_share" = "シェア";
+
+// 翻訳機能
+"text_moreuse" = "便利に使う";
+"text_selectlang_title" = "翻訳する言語";
+"text_selectlang_body" = "翻訳する言語を設定します";
+
+// HELP
+"text_help_title" = "スキャン機能/翻訳機能の使い方";
+"text_help_body" = "スキャン機能と、翻訳機能の使い方を説明致します";
+"text_help_nolook" = "見ない";
+"text_help_look" = "両方見る";
+"text_help_look_scan" = "スキャン機能だけ見る";
+"text_help_look_trans" = "翻訳機能だけ見る";
+"text_help_1" = "スキャン機能を使うことで、テキストを読み込むことができます。";
+"text_help_2" = "端末に保存されている画像からスキャンする時はココ！";
+"text_help_3" = "新たに画像を撮影する時はココをタップ！";
+"text_help_4" = "スキャン中の画像はココで確認ができます。";
+"text_help_5" = "スキャン結果は、テキストエリアに吐き出されます。\nなお、スキャン中の待ち時間には、広告が表示される事がありますのでご了承下さい。";
+"text_help_6" = "スキャン結果は、テキストエリアに吐き出されます。\nなお、スキャン中の待ち時間には、広告が表示される事がありますのでご了承下さい。\nでは！(^o^)ノシ";
+"text_help_7" = "テキストエリアに表示されている文字列は、色んな言語に翻訳することができます。（回数制限あり。）\n※回数制限に達した場合は、動画広告を見たり、広告をタップ頂くだけで制限が解除されます。";
+"text_help_8" = "スキャン結果は、テキストエリアに吐き出されます。\nなお、スキャン中の待ち時間には、広告が表示される事がありますのでご了承下さい。";
+"text_help_9" = "テキストエリアに表示されている文字列は、「翻訳結果」に切り替えるだけで、テキストの翻訳ができます。（回数制限あり。）\nまた、「原文」に切り替えると元に戻ります。\n※回数制限に達した場合は、動画広告を見たり、広告をタップ頂くだけで制限が解除されます。";
+"text_help_10" = "テキストエリアに表示されている文字列は、「翻訳結果」に切り替えるだけで、テキストの翻訳ができます。\nまた、「原文」に切り替えると元に戻ります。";
+"text_help_11" = "「翻訳結果」に切り替えるだけで、テキストを翻訳します。\nまた、「原文」に切り替えると元に戻ります。";
+"text_help_12" = "スキャン結果は、テキストエリアに吐き出されます。\nなお、スキャン中の待ち時間には、広告が表示される事がありますのでご了承下さい。";
+"text_help_13" = "翻訳する言語はここから選べます。\nいろんな言語があるので、色々試してみて下さい！\nでは！(^o^)ノシ";
+"text_help_14" = "(^o^)ノシ";
+
+// エラー
+"text_err_network" = "オフラインでは、この機能は使用できません。";
+"text_err_notextorigin" = "「原文」がありません。";
+"text_err_unsupported_title" = "この機能はお使いの端末では使えません";
+"text_err_unsupported_body" = "iOS10以上出ないとこの機能は使用できません。端末をアップデートして下さい。";
+"text_err_textnum_title" = "文字数制限エラー";
+"text_err_textnum_body1" = "翻訳できる文字数は、ただいま";
+"text_err_textnum_body2" = "です。もう少し短い文章にして下さい。\n ※現在はの文字数は";
+"text_err_textnum_body3" = "です";
+"text_err_usecount_title" = "翻訳回数の上限に達しました";
+"text_err_usecount_body" = "今から表示される広告を最後まで視聴頂くことで、引き続き無料で翻訳機能をご利用頂けます！";
+"text_err_usecount_body_tap" = "今から表示される広告をタップ頂くことで、引き続き無料で翻訳機能をご利用頂けます！";
+"text_err_nolookad" = "今はやめとく";
+"text_err_trans_failure" = "ERR:翻訳に失敗しました。";
+"text_err_failure" = "失敗しました。";
+"text_err_scan_failure_title" = "スキャンに失敗しました。。。";
+"text_err_scan_failure_body" = "スキャンに失敗しました。。。端末の電波状況を確認して下さい。";
+"text_err_scan_nochara" = "画像から文字を検出できませんでした。。。";
+"text_err_scan_retry" = "もう一度撮る";
+
+/*******************************************************************
+ 広告
+ *******************************************************************/
+"rewordad_title" = "一定時間広告を非表示にできます。";
+"rewordad_body_Or" = "もしくは、";
+"rewordad_body_AD" = "「広告を最後までご視聴頂く」";
+"rewordad_body_Twitter" = "「このアプリを紹介頂く」";
+"rewordad_body_Review" = "「レビューして頂く」";
+"rewordad_base" = "と、今から3時間「テキスト」タブ以外の全ての広告を非表示にできます。";
+"rewordad_body_Review_End" = "\n※今後も無料でアプリを提供できますよう、レビュー頂く際は星5を頂けますと幸いです。";
+"rewordad_look_AD" = "広告を最後まで見る";
+"rewordad_look_Twitter" = "Twitterで紹介する";
+"rewordad_look_Review" = "レビューする";
+"rewordad_nolook" = "Pro版を見てみる";
+/*******************************************************************
+ 課金
+ *******************************************************************/
+"kakin_restore" = "復元に成功しました";
+"kakin_restore_fail_title" = "復元に失敗しました";
+"kakin_restore_fail_body" = "現在ストアにてログインされているAppleIDから、購入履歴が見つかりませんでした。" ;
+"kakin_rule" = "☆「ホーム」タブ\n・画面上部に表示されるMV広告\n・音楽再生リストなどの各画面のバナー広告\n・お気に入り動画再生時に時々出てくる全画面広告\n☆「ランキング」タブ\n・画面上部に表示されるMV広告\n・関連動画一覧内に表示されるMV広告\n☆「検索」タブ\n・画面上部に表示されるMV広告\n・関連動画一覧内に表示されるMV広告\n・検索時に時々出てくる全画面広告\n☆「オプション」タブ\n・MV広告\n※「テキスト」タブ以外の広告は全て削除対象となります。\n--以下、必ずお読み下さい--\n!!注意!!\n・Youtube動画自体に広告が挿入されているものは削除が不可となります。\n・「テキスト」タブのスキャン機能および、翻訳機能実行時の広告は、サーバー負荷軽減のため削除が負荷となります。\nあらかじめご了承ください。\n\n◇「自動継続課金」について\n期限が切れる24時間以内に自動更新の解除をされない場合、\"契約期間が自動更新\"されます。\n自動更新の課金は、期限が切れる24時間以内に行われます。\n\n◇契約期間の確認と解約\n契約期間の確認と解約は、端末の設定->iTunes StoreとApp Store -> Apple IDをタップ -> Apple ID を表示 -> 登録 -> musicA から行えます。\n※「登録」がない場合は、自動更新の登録はされていません。\n\n◇購入情報の復元\n機種変更時には、購入状態を無料で復元できます。\n購入時と同じApple IDで端末にログインして、「過去の購入から復元する」ボタンを押して下さい。\n\n◇注意点\n・課金された方の解約は、上記以外の方法では行えません。\n・当月分のキャンセルについては受け付けておりません。\n・iTunesアカウントを経由して課金されます。\n\n◇利用規約・プライバシーポリシー\n(リンク:https://www.ios-app-develop.com/blank-8)\n第三者に個人を特定できる情報を提供することはありません。\n個人情報の管理には細心の注意を払い、以下に掲げた通りに扱います。\n\n・サポート時\n個人を特定できる情報は一切送信されません。\n解析のための端末種類/OSバージョンのみがサポートメールに記載されます。\n\n・データ解析\nアプリの利便性向上のために、不具合発生時はデータ解析を行っております。\nここで開発者が扱うデータは、個人を特定できるようなものは含まれません。\n\n◇免責事項\n利用上の不具合、不都合に関しては可能な限りサポートを行っておりますが、利用者が本アプリを利用して生じた損害に対しては開発元は責任を負わないものとします。";

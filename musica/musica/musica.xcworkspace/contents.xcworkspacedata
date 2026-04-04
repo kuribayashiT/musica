@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <Group
+      location = "container:"
+      name = "models">
+      <FileRef
+         location = "group:MusicLibraryModel+CoreDataProperties.swift">
+      </FileRef>
+      <FileRef
+         location = "group:MusicModel+CoreDataClass.swift">
+      </FileRef>
+      <FileRef
+         location = "group:MusicModel+CoreDataProperties.swift">
+      </FileRef>
+      <FileRef
+         location = "group:SettingStatus+CoreDataClass.swift">
+      </FileRef>
+      <FileRef
+         location = "group:SettingStatus+CoreDataProperties.swift">
+      </FileRef>
+      <FileRef
+         location = "group:MVModel+CoreDataClass.swift">
+      </FileRef>
+      <FileRef
+         location = "group:MVModel+CoreDataProperties.swift">
+      </FileRef>
+      <FileRef
+         location = "group:MusicLibraryModel+CoreDataClass.swift">
+      </FileRef>
+   </Group>
+   <FileRef
+      location = "group:musica.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:Pods/Pods.xcodeproj">
+   </FileRef>
+</Workspace>

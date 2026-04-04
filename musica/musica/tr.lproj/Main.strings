@@ -1,0 +1,459 @@
+
+/* Class = "UILabel"; text = "Please shoot so that it is horizontal on  line."; ObjectID = "0fd-06-Mek"; */
+"0fd-06-Mek.text" = "Please shoot so that it is horizontal on  line.";
+
+/* Class = "UILabel"; text = "num"; ObjectID = "1HG-5q-CTU"; */
+"1HG-5q-CTU.text" = "num";
+
+/* Class = "UILabel"; text = "00:00"; ObjectID = "20w-eI-qYM"; */
+"20w-eI-qYM.text" = "00:00";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "2CL-QJ-b4O"; */
+"2CL-QJ-b4O.text" = "Label";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "2y6-Vd-LPZ"; */
+"2y6-Vd-LPZ.text" = "Label";
+
+/* Class = "UIButton"; normalTitle = "Cancel"; ObjectID = "30G-9f-VF9"; */
+"30G-9f-VF9.normalTitle" = "İptal etmek";
+
+/* Class = "UITextView"; text = "\n\nエラーが発生しました。\nインターネット接続がオフラインのようです。\n（端末が機内モードの可能性もあります）"; ObjectID = "3Xr-hV-yRf"; */
+"3Xr-hV-yRf.text" = "\n\nエラーが発生しました。\nインターネット接続がオフライン、もしくはサーバーが混み合っているようです。\n（端末が機内モードの可能性もあります）";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "3dO-Xv-O3E"; */
+"3dO-Xv-O3E.text" = "Label";
+
+/* Class = "UIButton"; normalTitle = "Register"; ObjectID = "3hm-dZ-eTu"; */
+"3hm-dZ-eTu.normalTitle" = "Kayıt ol";
+
+/* Class = "UIButton"; normalTitle = "Select all"; ObjectID = "4Eh-Sy-NzQ"; */
+"4Eh-Sy-NzQ.normalTitle" = "Hepsini seç";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "5rf-ja-aba"; */
+"5rf-ja-aba.text" = "Label";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "67Y-ra-Doo"; */
+"67Y-ra-Doo.text" = "Label";
+
+/* Class = "UILabel"; text = "  Loading..."; ObjectID = "7Wn-xw-FMJ"; */
+"7Wn-xw-FMJ.text" = "  Yükleniyor...";
+
+/* Class = "UIButton"; normalTitle = "Clear"; ObjectID = "7fU-Qp-nOd"; */
+"7fU-Qp-nOd.normalTitle" = "Açık";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "8Vx-2M-cJ3"; */
+"8Vx-2M-cJ3.text" = "Label";
+
+/* Class = "UILabel"; text = "Artist"; ObjectID = "97K-hP-xaY"; */
+"97K-hP-xaY.text" = "Sanatçı";
+
+/* Class = "UILabel"; text = "In the \"Music\" app, find the song you want to download from the library and tap the cloud to download it."; ObjectID = "9D5-cd-Sjm"; */
+"9D5-cd-Sjm.text" = "\"Müzik\" uygulamasında, kütüphaneden indirmek istediğiniz şarkıyı bulun ve indirmek için buluta dokunun.";
+
+/* Class = "UITextView"; text = "--------------------\nReachabilitySwift\n--------------------\nCopyright (c) 2016 Ashley Mills\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n\n--------------------\nSDWebImage\n--------------------\nCopyright (c) 2009-2017 Olivier Poitrey rs@dailymotion.com\n \nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is furnished\nto do so, subject to the following conditions:\n \nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n \nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n\n--------------------\nTesseractOCRiOS\n--------------------\nThe MIT License (MIT)\n\nCopyright (c) 2014 Daniele Galiotto\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\n--------------------\nInstructions\n--------------------\n\nThe MIT License (MIT)\n\n\n\nCopyright (c) 2015, 2016 Frédéric Maquin <fred@ephread.com>\n\n                         and other contributors\n\n\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\n\nof this software and associated documentation files (the \"Software\"), to deal\n\nin the Software without restriction, including without limitation the rights\n\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n\ncopies of the Software, and to permit persons to whom the Software is\n\nfurnished to do so, subject to the following conditions:\n\n\n\nThe above copyright notice and this permission notice shall be included in\n\nall copies or substantial portions of the Software.\n\n\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\n\nTHE SOFTWARE.\n\n\n\n\n--------------------\nRAMAnimatedTabBarController\n--------------------\n\nThe MIT License (MIT)\n\n\n\nCopyright (c) 2014 Ramotion\n\n\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\n\nof this software and associated documentation files (the \"Software\"), to deal\n\nin the Software without restriction, including without limitation the rights\n\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n\ncopies of the Software, and to permit persons to whom the Software is\n\nfurnished to do so, subject to the following conditions:\n\n\n\nThe above copyright notice and this permission notice shall be included in all\n\ncopies or substantial portions of the Software.\n\n\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n\nSOFTWARE.\n"; ObjectID = "9X6-v9-2yf"; */
+"9X6-v9-2yf.text" = "--------------------\nReachabilitySwift\n--------------------\nCopyright (c) 2016 Ashley Mills\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n\n--------------------\nSDWebImage\n--------------------\nCopyright (c) 2009-2017 Olivier Poitrey rs@dailymotion.com\n \nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is furnished\nto do so, subject to the following conditions:\n \nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n \nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n\n--------------------\nTesseractOCRiOS\n--------------------\nThe MIT License (MIT)\n\nCopyright (c) 2014 Daniele Galiotto\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\n--------------------\nInstructions\n--------------------\n\nThe MIT License (MIT)\n\n\n\nCopyright (c) 2015, 2016 Frédéric Maquin <fred@ephread.com>\n\n                         and other contributors\n\n\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\n\nof this software and associated documentation files (the \"Software\"), to deal\n\nin the Software without restriction, including without limitation the rights\n\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n\ncopies of the Software, and to permit persons to whom the Software is\n\nfurnished to do so, subject to the following conditions:\n\n\n\nThe above copyright notice and this permission notice shall be included in\n\nall copies or substantial portions of the Software.\n\n\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\n\nTHE SOFTWARE.\n\n\n\n\n--------------------\nRAMAnimatedTabBarController\n--------------------\n\nThe MIT License (MIT)\n\n\n\nCopyright (c) 2014 Ramotion\n\n\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\n\nof this software and associated documentation files (the \"Software\"), to deal\n\nin the Software without restriction, including without limitation the rights\n\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n\ncopies of the Software, and to permit persons to whom the Software is\n\nfurnished to do so, subject to the following conditions:\n\n\n\nThe above copyright notice and this permission notice shall be included in all\n\ncopies or substantial portions of the Software.\n\n\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n\nSOFTWARE.\n";
+
+/* Class = "UINavigationItem"; title = "Music List"; ObjectID = "9ZA-le-aYd"; */
+"9ZA-le-aYd.title" = "Music List";
+
+/* Class = "UILabel"; text = "1234567890"; ObjectID = "9cF-3W-LXp"; */
+"9cF-3W-LXp.text" = "1234567890";
+
+/* Class = "UILabel"; text = "  Loading..."; ObjectID = "9hy-km-BTM"; */
+"9hy-km-BTM.text" = "  Yükleniyor...";
+
+/* Class = "UILabel"; text = "Section play"; ObjectID = "9tj-e1-JZ0"; */
+"9tj-e1-JZ0.text" = "Bölüm oynatma";
+
+/* Class = "UIButton"; normalTitle = "Close"; ObjectID = "A2u-y1-iL5"; */
+"A2u-y1-iL5.normalTitle" = "Kapat";
+
+/* Class = "UILabel"; text = "00:00"; ObjectID = "B7F-r0-1KX"; */
+"B7F-r0-1KX.text" = "00:00";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "BtR-gq-in3"; */
+"BtR-gq-in3.text" = "Label";
+
+/* Class = "UILabel"; text = "title"; ObjectID = "ChQ-78-Xau"; */
+"ChQ-78-Xau.text" = "title";
+
+/* Class = "UILabel"; text = "TrackTitle"; ObjectID = "CxO-eB-MDf"; */
+"CxO-eB-MDf.text" = "TrackTitle";
+
+/* Class = "UILabel"; text = "Language to translate:"; ObjectID = "DHg-Wp-Kg8"; */
+"DHg-Wp-Kg8.text" = "Çevrilecek dil:";
+
+/* Class = "UISegmentedControl"; DTk-2F-STJ.segmentTitles[0] = "Topic"; ObjectID = "DTk-2F-STJ"; */
+"DTk-2F-STJ.segmentTitles[0]" = "Most Played";
+
+/* Class = "UISegmentedControl"; DTk-2F-STJ.segmentTitles[1] = "TOP"; ObjectID = "DTk-2F-STJ"; */
+"DTk-2F-STJ.segmentTitles[1]" = "Music Video";
+
+/* Class = "UISegmentedControl"; DTk-2F-STJ.segmentTitles[2] = "New"; ObjectID = "DTk-2F-STJ"; */
+"DTk-2F-STJ.segmentTitles[2]" = "Yeni";
+
+/* Class = "UIButton"; normalTitle = "Go to settings app"; ObjectID = "DUv-ri-DzT"; */
+"DUv-ri-DzT.normalTitle" = "Ayarlar uygulamasına git";
+
+/* Class = "UILabel"; text = "Title"; ObjectID = "EhR-I3-RNZ"; */
+"EhR-I3-RNZ.text" = "Title";
+
+/* Class = "UINavigationItem"; title = "Title"; ObjectID = "Eo8-hj-tT3"; */
+"Eo8-hj-tT3.title" = "Title";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "FEq-ke-BJ9"; */
+"FEq-ke-BJ9.text" = "Label";
+
+/* Class = "UIButton"; normalTitle = "Search by artist name"; ObjectID = "FJO-L8-43Z"; */
+"FJO-L8-43Z.normalTitle" = "Sanatçı adına göre ara";
+
+/* Class = "UILabel"; text = "Subtitle"; ObjectID = "G0c-Mn-5Oy"; */
+"G0c-Mn-5Oy.text" = "Subtitle";
+
+/* Class = "UILabel"; text = "1.0.0"; ObjectID = "Gl7-bx-om6"; */
+"Gl7-bx-om6.text" = "1.0.0";
+
+/* Class = "UIButton"; normalTitle = "Determine"; ObjectID = "HOc-e7-5wl"; */
+"HOc-e7-5wl.normalTitle" = "Determine";
+
+/* Class = "UILabel"; text = "Flash"; ObjectID = "Hg8-Gz-dug"; */
+"Hg8-Gz-dug.text" = "Flash";
+
+/* Class = "UILabel"; text = "From the “iTunes Store” app, you can download from [Others] tab, [Download] or “Purchased” ⇨ “Music” ⇨ “Items not on this iPhone”."; ObjectID = "Hhv-0b-wE3"; */
+"Hhv-0b-wE3.text" = "From the “iTunes Store” app, you can download from [Others] tab, [Download] or “Purchased” ⇨ “Music” ⇨ “Items not on this iPhone”.";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "Iyt-cJ-koW"; */
+"Iyt-cJ-koW.text" = "Label";
+
+/* Class = "UINavigationItem"; title = "Library registration"; ObjectID = "JAG-9t-kMA"; */
+"JAG-9t-kMA.title" = "Kütüphane kaydı";
+
+/* Class = "UILabel"; text = "License"; ObjectID = "JdH-MP-oCT"; */
+"JdH-MP-oCT.text" = "Lisans";
+
+/* Class = "UILabel"; text = "1234567890"; ObjectID = "JnE-HX-5x5"; */
+"JnE-HX-5x5.text" = "1234567890";
+
+/* Class = "UIButton"; normalTitle = "English"; ObjectID = "K7w-ff-dEA"; */
+"K7w-ff-dEA.normalTitle" = "English";
+
+/* Class = "UILabel"; text = "動画が見つかりませんでした。他のワードで検索してみてください。(;_;)＜ゴメンネ"; ObjectID = "KT8-Bd-r9F"; */
+"KT8-Bd-r9F.text" = "動画が見つかりませんでした。他のワードで検索してみてください。(;_;)＜ゴメンネ";
+
+/* Class = "UILabel"; text = "wait..."; ObjectID = "Kdh-jV-6Kh"; */
+"Kdh-jV-6Kh.text" = "Bekle...";
+
+/* Class = "UIButton"; normalTitle = "Clear"; ObjectID = "LGM-v0-eVo"; */
+"LGM-v0-eVo.normalTitle" = "Clear";
+
+/* Class = "UILabel"; text = "12345"; ObjectID = "LKY-Kh-7dk"; */
+"LKY-Kh-7dk.text" = "12345";
+
+/* Class = "UILabel"; text = "Could not get music.\nThere may be no music on your device, or your device settings may not allow access to music information."; ObjectID = "Lrp-zU-liS"; */
+"Lrp-zU-liS.text" = "Could not get music.\nThere may be no music on your device, or your device settings may not allow access to music information.";
+
+/* Class = "UIButton"; normalTitle = "Remove Ad"; ObjectID = "NmR-Q9-s1Y"; */
+"NmR-Q9-s1Y.normalTitle" = "Sil reklâm";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "NpP-fz-RW9"; */
+"NpP-fz-RW9.text" = "Label";
+
+/* Class = "UITextView"; text = "\n\nエラーが発生しました。\nインターネット接続がオフラインのようです。\n（端末が機内モードの可能性もあります）"; ObjectID = "NvU-sH-x9S"; */
+"NvU-sH-x9S.text" = "\n\nエラーが発生しました。\nインターネット接続がオフライン、もしくはサーバーが混み合っているようです。\n（端末が機内モードの可能性もあります）";
+
+/* Class = "UITabBarItem"; title = "Text"; ObjectID = "OiA-Lz-fQA"; */
+"OiA-Lz-fQA.title" = "Metin";
+
+/* Class = "UITabBarItem"; title = "Option"; ObjectID = "OiW-0U-3JS"; */
+"OiW-0U-3JS.title" = "Option";
+
+/* Class = "UINavigationItem"; title = "HOME"; ObjectID = "OuC-1e-QZf"; */
+"OuC-1e-QZf.title" = "EV";
+
+/* Class = "UILabel"; text = "Let's add Music Library !!"; ObjectID = "Ovk-ET-Oww"; */
+"Ovk-ET-Oww.text" = "Let's add Music Library !!";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "PNY-nW-xGs"; */
+"PNY-nW-xGs.text" = "Label";
+
+/* Class = "UIButton"; normalTitle = "Privacy Policy"; ObjectID = "PeQ-9U-b3j"; */
+"PeQ-9U-b3j.normalTitle" = "Privacy Policy";
+
+/* Class = "UITabBarItem"; title = "Home"; ObjectID = "Pqh-ob-Rnq"; */
+"Pqh-ob-Rnq.title" = "Ev";
+
+/* Class = "UILabel"; text = "Translation switching:"; ObjectID = "QoO-FR-lKa"; */
+"QoO-FR-lKa.text" = "Çeviri değiştirme:";
+
+/* Class = "UISegmentedControl"; RIe-F3-wEp.segmentTitles[0] = "Auto"; ObjectID = "RIe-F3-wEp"; */
+"RIe-F3-wEp.segmentTitles[0]" = "Oto";
+
+/* Class = "UISegmentedControl"; RIe-F3-wEp.segmentTitles[1] = "ON"; ObjectID = "RIe-F3-wEp"; */
+"RIe-F3-wEp.segmentTitles[1]" = "ON";
+
+/* Class = "UISegmentedControl"; RIe-F3-wEp.segmentTitles[2] = "OFF"; ObjectID = "RIe-F3-wEp"; */
+"RIe-F3-wEp.segmentTitles[2]" = "OFF";
+
+/* Class = "UILabel"; text = "  Loading..."; ObjectID = "SRS-mI-38o"; */
+"SRS-mI-38o.text" = "  Yükleniyor...";
+
+/* Class = "UIButton"; normalTitle = "Close"; ObjectID = "Tcf-XI-MIZ"; */
+"Tcf-XI-MIZ.normalTitle" = "Kapat";
+
+/* Class = "UILabel"; text = "Num:"; ObjectID = "Trw-5Y-nBf"; */
+"Trw-5Y-nBf.text" = "Num:";
+
+/* Class = "UIButton"; normalTitle = "Reset"; ObjectID = "U40-cY-CX3"; */
+"U40-cY-CX3.normalTitle" = "Sıfırla";
+
+/* Class = "UILabel"; text = "Downloading can be done from the \"Music\" app that comes with the iPhone / iPad, or from the iTunes Store app."; ObjectID = "U5s-mF-LF5"; */
+"U5s-mF-LF5.text" = "İndirme işlemi \"Music\" iPhone / iPad ile veya iTunes Store uygulamasından gelir.";
+
+/* Class = "UILabel"; text = "artist"; ObjectID = "Uh1-67-kmx"; */
+"Uh1-67-kmx.text" = "sanatçı";
+
+/* Class = "UILabel"; text = "※After downloading, please kill this app and restart it."; ObjectID = "Uiw-Yw-gWm"; */
+"Uiw-Yw-gWm.text" = "※İndirdikten sonra, lütfen bu uygulamayı öldürün ve yeniden başlatın.";
+
+/* Class = "UIButton"; normalTitle = "再読み込み"; ObjectID = "VCy-vW-60F"; */
+"VCy-vW-60F.normalTitle" = "再読み込み";
+
+/* Class = "UITabBarItem"; title = "Search"; ObjectID = "VG4-RV-CU7"; */
+"VG4-RV-CU7.title" = "Arama";
+
+/* Class = "UILabel"; text = "00:00"; ObjectID = "Vgy-Qy-ESm"; */
+"Vgy-Qy-ESm.text" = "00:00";
+
+/* Class = "UILabel"; text = "✖️"; ObjectID = "X1Q-uD-Ltb"; */
+"X1Q-uD-Ltb.text" = "✖️";
+
+/* Class = "UILabel"; text = "Enhanced scanning and translation functions!\nPlease use it!"; ObjectID = "X56-YK-Tuo"; */
+"X56-YK-Tuo.text" = "Enhanced scanning and translation functions!\nPlease use it!";
+
+/* Class = "UISegmentedControl"; X70-6M-OZ9.segmentTitles[0] = "Album"; ObjectID = "X70-6M-OZ9"; */
+"X70-6M-OZ9.segmentTitles[0]" = "Albüm";
+
+/* Class = "UISegmentedControl"; X70-6M-OZ9.segmentTitles[1] = "Playlist"; ObjectID = "X70-6M-OZ9"; */
+"X70-6M-OZ9.segmentTitles[1]" = "Oynatma Listesi";
+
+/* Class = "UILabel"; text = "Library name:"; ObjectID = "XbA-re-RJ3"; */
+"XbA-re-RJ3.text" = "Kütüphane adı:";
+
+/* Class = "UIButton"; normalTitle = "Deselect all"; ObjectID = "XcB-bH-NXK"; */
+"XcB-bH-NXK.normalTitle" = "Tüm seçimleri kaldır";
+
+/* Class = "UIButton"; normalTitle = "再読み込み"; ObjectID = "Xux-tx-nvN"; */
+"Xux-tx-nvN.normalTitle" = "再読み込み";
+
+/* Class = "UINavigationItem"; title = "Title"; ObjectID = "Y0z-JZ-wPL"; */
+"Y0z-JZ-wPL.title" = "Başlık";
+
+/* Class = "UILabel"; text = "Set the media and Apple Music to “ON” as shown below."; ObjectID = "Ykb-d5-ZFh"; */
+"Ykb-d5-ZFh.text" = "Medya ve Apple Music'i aşağıda gösterildiği gibi “AÇIK” olarak ayarlayın.";
+
+/* Class = "UINavigationItem"; title = "Search"; ObjectID = "Z6C-tI-nau"; */
+"Z6C-tI-nau.title" = "Arama";
+
+/* Class = "UILabel"; text = "Title"; ObjectID = "Zcz-Lu-UyX"; */
+"Zcz-Lu-UyX.text" = "Başlık";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "Zhv-Z7-f6i"; */
+"Zhv-Z7-f6i.text" = "Label";
+
+/* Class = "UILabel"; text = "00"; ObjectID = "ZoD-Ql-hSw"; */
+"ZoD-Ql-hSw.text" = "00";
+
+/* Class = "UILabel"; text = "Favorite video is not registered."; ObjectID = "ZoV-hV-jDp"; */
+"ZoV-hV-jDp.text" = "Favori video kaydedilmedi.";
+
+/* Class = "UILabel"; text = "Album Subtitle Label"; ObjectID = "Zos-fD-BNl"; */
+"Zos-fD-BNl.text" = "Album Subtitle Label";
+
+/* Class = "UISegmentedControl"; aYG-Te-Eky.segmentTitles[0] = "OFF"; ObjectID = "aYG-Te-Eky"; */
+"aYG-Te-Eky.segmentTitles[0]" = "OFF";
+
+/* Class = "UISegmentedControl"; aYG-Te-Eky.segmentTitles[1] = "ON"; ObjectID = "aYG-Te-Eky"; */
+"aYG-Te-Eky.segmentTitles[1]" = "OK";
+
+/* Class = "UILabel"; text = "00:00"; ObjectID = "aaY-hP-65b"; */
+"aaY-hP-65b.text" = "00:00";
+
+/* Class = "UIButton"; normalTitle = "Lyric regist"; ObjectID = "ajH-aa-e3U"; */
+"ajH-aa-e3U.normalTitle" = "Lirik kaydı";
+
+/* Class = "UILabel"; text = "Subtitle"; ObjectID = "bAZ-J3-avz"; */
+"bAZ-J3-avz.text" = "Subtitle";
+
+/* Class = "UILabel"; text = "label"; ObjectID = "bB4-YX-9DQ"; */
+"bB4-YX-9DQ.text" = "label";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "bNt-NN-0h6"; */
+"bNt-NN-0h6.text" = "Label";
+
+/* Class = "UILabel"; text = "wait..."; ObjectID = "cKb-NA-wEl"; */
+"cKb-NA-wEl.text" = "Bekle...";
+
+/* Class = "UILabel"; text = "00:00"; ObjectID = "cbi-h0-d43"; */
+"cbi-h0-d43.text" = "00:00";
+
+/* Class = "UINavigationItem"; title = "Option"; ObjectID = "cky-x3-162"; */
+"cky-x3-162.title" = "Seçenek";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "dgS-mg-0C9"; */
+"dgS-mg-0C9.text" = "Label";
+
+/* Class = "UISegmentedControl"; diY-Ai-DqL.segmentTitles[0] = "Original"; ObjectID = "diY-Ai-DqL"; */
+"diY-Ai-DqL.segmentTitles[0]" = "Orijinal";
+
+/* Class = "UISegmentedControl"; diY-Ai-DqL.segmentTitles[1] = "Translation"; ObjectID = "diY-Ai-DqL"; */
+"diY-Ai-DqL.segmentTitles[1]" = "Tercüme";
+
+/* Class = "UILabel"; text = "If you pay a dozen eggs ($ 1.99) every month, you can remove the following ads."; ObjectID = "dkf-ve-SnE"; */
+"dkf-ve-SnE.text" = "Aylık ödeme (13,99 TL her ay) otomatik olarak yenilenir. Reklamı silmek istiyor musunuz?";
+
+/* Class = "UILabel"; text = "  Loading..."; ObjectID = "eub-wo-sp7"; */
+"eub-wo-sp7.text" = "  Yükleniyor...";
+
+/* Class = "UILabel"; text = "Choose a song for each album!"; ObjectID = "fIe-oO-EeK"; */
+"fIe-oO-EeK.text" = "Her albüm için bir şarkı seçin!";
+
+/* Class = "UILabel"; text = "00:00"; ObjectID = "fiw-s4-rwT"; */
+"fiw-s4-rwT.text" = "00:00";
+
+/* Class = "UITextView"; text = "\n\nエラーが発生しました。\nインターネット接続がオフラインのようです。\n（端末が機内モードの可能性もあります）"; ObjectID = "flW-pL-V8l"; */
+"flW-pL-V8l.text" = "\n\nエラーが発生しました。\nインターネット接続がオフライン、もしくはサーバーが混み合っているようです。\n（端末が機内モードの可能性もあります）";
+
+/* Class = "UITextView"; text = "An error has occurred.\nIt looks like your internet connection is offline.\n(The device may be in airplane mode)"; ObjectID = "g1m-dW-vsH"; */
+"g1m-dW-vsH.text" = "An error has occurred.\nIt looks like your internet connection is offline.\n(The device may be in airplane mode)";
+
+/* Class = "UIButton"; normalTitle = "Allow access"; ObjectID = "g7X-RZ-MKf"; */
+"g7X-RZ-MKf.normalTitle" = "Erişime izin vermek";
+
+/* Class = "UILabel"; text = "00:00"; ObjectID = "gVd-Da-kgM"; */
+"gVd-Da-kgM.text" = "00:00";
+
+/* Class = "UILabel"; text = "  Loading..."; ObjectID = "glZ-bz-tFX"; */
+"glZ-bz-tFX.text" = "  Yükleniyor...";
+
+/* Class = "UIButton"; normalTitle = "再読み込み"; ObjectID = "grr-PC-G9B"; */
+"grr-PC-G9B.normalTitle" = "再読み込み";
+
+/* Class = "UITabBarItem"; title = "Ranking"; ObjectID = "h1g-NE-7Cj"; */
+"h1g-NE-7Cj.title" = "Sıralama";
+
+/* Class = "UITabBarItem"; title = "Item"; ObjectID = "hBm-UD-46S"; */
+"hBm-UD-46S.title" = "Item";
+
+/* Class = "UIButton"; normalTitle = "Oversized"; ObjectID = "hCa-zu-75N"; */
+"hCa-zu-75N.normalTitle" = "büyük boy";
+
+/* Class = "UILabel"; text = "New!"; ObjectID = "hGW-Ng-sem"; */
+"hGW-Ng-sem.text" = "Yeni!";
+
+/* Class = "UILabel"; text = "Album Title Label"; ObjectID = "hHM-cr-KB1"; */
+"hHM-cr-KB1.text" = "Album Title Label";
+
+/* Class = "UITabBarItem"; title = "Item"; ObjectID = "hIJ-AG-da4"; */
+"hIJ-AG-da4.title" = "Item";
+
+/* Class = "UIButton"; normalTitle = "Add to \"Favorite Video\""; ObjectID = "hJs-qY-4Uj"; */
+"hJs-qY-4Uj.normalTitle" = "\"Favori Video\"klasörüne ekle";
+
+/* Class = "UITextView"; text = "☆ \"Home\" tab\n・ MV advertisement displayed at the top of the screen\n・ Banner advertisement on each screen such as music playlist\n・ Full screen advertisements that sometimes appear when playing your favorite videos\n☆ Ranking tab\n・ MV advertisement displayed at the top of the screen\n・ MV advertisement displayed in related video list\n☆ \"Search\" tab\n・ MV advertisement displayed at the top of the screen\n・ MV advertisement displayed in related video list\n・ Full screen advertisements that sometimes appear during search\n☆ \"Options\" tab\n・ MV advertisement\n* All advertisements other than the “Text” tab are subject to deletion.\n--Please read below--\n!!Note!!\n・ You cannot delete videos that have advertisements inserted into the Youtube video itself.\n・ Advertising during scanning of the “Text” tab and translation function execution will be a burden to reduce server load.\nPlease note.\n\n◇ About “automatic continuous billing”\nIf the automatic renewal is not canceled within 24 hours, the contract period will be automatically renewed.\nYou will be charged for auto-renewal within 24 hours of expiration.\n\n◇ Confirmation and cancellation of contract period\nYou can check and cancel the contract period from Device Settings-> iTunes Store and App Store-> Tap Apple ID-> Display Apple ID-> Register-> musicA.\n* If there is no \"Register\", automatic update is not registered.\n\n◇ Restore purchase information\nWhen changing models, the purchase status can be restored free of charge.\nLog in to the device with the same Apple ID as when you purchased and press the “Restore from previous purchases” button.\n\n◇ Notes\n・ Cancellation for those who have been charged cannot be made by any other means.\n・ We do not accept cancellations for the current month.\n・ You will be charged via your iTunes account.\n\n◇ Terms of Use / Privacy Policy\n(Link: https://www.ios-app-develop.com/blank-8)\nWe do not provide personally identifiable information to third parties.\nPay close attention to the management of personal information and treat it as listed below.\n\n・ When supporting\nNo personally identifiable information will be sent.\nOnly the device type / OS version for analysis is included in the support email.\n\n・ Data analysis\nIn order to improve the convenience of the app, data analysis is performed when a problem occurs.\nData handled by developers here does not include personally identifiable data.\n\n◇ Disclaimer\nAlthough we provide support for problems and inconveniences as much as possible, the developer will not be liable for damages caused by users using this application."; ObjectID = "han-UX-fZu"; */
+"han-UX-fZu.text" = "☆ \"Home\" tab\n・ MV advertisement displayed at the top of the screen\n・ Banner advertisement on each screen such as music playlist\n・ Full screen advertisements that sometimes appear when playing your favorite videos\n☆ Ranking tab\n・ MV advertisement displayed at the top of the screen\n・ MV advertisement displayed in related video list\n☆ \"Search\" tab\n・ MV advertisement displayed at the top of the screen\n・ MV advertisement displayed in related video list\n・ Full screen advertisements that sometimes appear during search\n☆ \"Options\" tab\n・ MV advertisement\n* All advertisements other than the “Text” tab are subject to deletion.\n--Please read below--\n!!Note!!\n・ You cannot delete videos that have advertisements inserted into the Youtube video itself.\n・ Advertising during scanning of the “Text” tab and translation function execution will be a burden to reduce server load.\nPlease note.\n\n◇ About “automatic continuous billing”\nIf the automatic renewal is not canceled within 24 hours, the contract period will be automatically renewed.\nYou will be charged for auto-renewal within 24 hours of expiration.\n\n◇ Confirmation and cancellation of contract period\nYou can check and cancel the contract period from Device Settings-> iTunes Store and App Store-> Tap Apple ID-> Display Apple ID-> Register-> musicA.\n* If there is no \"Register\", automatic update is not registered.\n\n◇ Restore purchase information\nWhen changing models, the purchase status can be restored free of charge.\nLog in to the device with the same Apple ID as when you purchased and press the “Restore from previous purchases” button.\n\n◇ Notes\n・ Cancellation for those who have been charged cannot be made by any other means.\n・ We do not accept cancellations for the current month.\n・ You will be charged via your iTunes account.\n\n◇ Terms of Use / Privacy Policy\n(Link: https://www.ios-app-develop.com/blank-8)\nWe do not provide personally identifiable information to third parties.\nPay close attention to the management of personal information and treat it as listed below.\n\n・ When supporting\nNo personally identifiable information will be sent.\nOnly the device type / OS version for analysis is included in the support email.\n\n・ Data analysis\nIn order to improve the convenience of the app, data analysis is performed when a problem occurs.\nData handled by developers here does not include personally identifiable data.\n\n◇ Disclaimer\nAlthough we provide support for problems and inconveniences as much as possible, the developer will not be liable for damages caused by users using this application.";
+
+/* Class = "UILabel"; text = "Push settings can be set from the Settings app.\n\nPlease go to the settings app from the button below and make settings."; ObjectID = "hre-cJ-yOk"; */
+"hre-cJ-yOk.text" = "Push ayarları Ayarlar uygulamasından ayarlanabilir.\n\nLütfen aşağıdaki düğmeden ayarlar uygulamasına gidin ve ayarları yapın.";
+
+/* Class = "UILabel"; text = "Title"; ObjectID = "i8C-7f-Okj"; */
+"i8C-7f-Okj.text" = "Title";
+
+/* Class = "UILabel"; text = "※After downloading, please kill this app and restart it"; ObjectID = "i9Z-Pa-fG7"; */
+"i9Z-Pa-fG7.text" = "※Aindirdikten sonra, lütfen bu uygulamayı öldürün ve yeniden başlatın";
+
+/* Class = "UILabel"; text = "AlbumTitle"; ObjectID = "iag-5r-5Hm"; */
+"iag-5r-5Hm.text" = "Albüm başlığı";
+
+/* Class = "UIButton"; normalTitle = "Use without looking"; ObjectID = "jeh-r8-3tn"; */
+"jeh-r8-3tn.normalTitle" = "Bakmadan kullanın";
+
+/* Class = "UINavigationItem"; title = "Track List"; ObjectID = "kC9-Kk-xnB"; */
+"kC9-Kk-xnB.title" = "Parça Listesi";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "kSe-p1-dCY"; */
+"kSe-p1-dCY.text" = "Label";
+
+/* Class = "UILabel"; text = "There seems to be no video content on the web yet."; ObjectID = "llf-hc-REB"; */
+"llf-hc-REB.text" = "Web'de henüz video içeriği yok gibi görünüyor.";
+
+/* Class = "UINavigationItem"; title = "Root View Controller"; ObjectID = "mFg-uK-U2j"; */
+"mFg-uK-U2j.title" = "Root View Controller";
+
+/* Class = "UILabel"; text = "Wait..."; ObjectID = "mtq-gR-MPk"; */
+"mtq-gR-MPk.text" = "Bekle...";
+
+/* Class = "UILabel"; text = "検索ワード："; ObjectID = "nTM-Dq-idK"; */
+"nTM-Dq-idK.text" = "検索ワード：";
+
+/* Class = "UIButton"; normalTitle = "Search by song title"; ObjectID = "nir-Ko-3YZ"; */
+"nir-Ko-3YZ.normalTitle" = "Şarkı adına göre ara";
+
+/* Class = "UIViewController"; title = "HomeAreaViewController"; ObjectID = "o3M-eS-Em5"; */
+"o3M-eS-Em5.title" = "HomeAreaViewController";
+
+/* Class = "UIButton"; normalTitle = "Remove AD"; ObjectID = "oCF-fn-dsP"; */
+"oCF-fn-dsP.normalTitle" = "Sil reklâm";
+
+/* Class = "UIButton"; normalTitle = "Click here for terms of service and privacy policy"; ObjectID = "onx-0T-eiR"; */
+"onx-0T-eiR.normalTitle" = "Hizmet şartları ve gizlilik politikası için burayı tıklayın";
+
+/* Class = "UIButton"; normalTitle = "See how to use"; ObjectID = "p5B-N9-CHS"; */
+"p5B-N9-CHS.normalTitle" = "Nasıl kullanılacağını görün";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "pgl-os-7Xa"; */
+"pgl-os-7Xa.text" = "Label";
+
+/* Class = "UILabel"; text = "999999999999999999999999999"; ObjectID = "rAO-ja-HfD"; */
+"rAO-ja-HfD.text" = "999999999999999999999999999";
+
+/* Class = "UIButton"; normalTitle = "General"; ObjectID = "rUG-fu-UiP"; */
+"rUG-fu-UiP.normalTitle" = "Genel";
+
+/* Class = "UILabel"; text = "100%"; ObjectID = "rZZ-9Y-sah"; */
+"rZZ-9Y-sah.text" = "100%";
+
+/* Class = "UILabel"; text = "100%"; ObjectID = "rg9-pn-FuO"; */
+"rg9-pn-FuO.text" = "100%";
+
+/* Class = "UIButton"; normalTitle = "Restore"; ObjectID = "rmR-Dr-gD9"; */
+"rmR-Dr-gD9.normalTitle" = "Onarmak";
+
+/* Class = "UILabel"; text = "✖️"; ObjectID = "t69-2G-7Aw"; */
+"t69-2G-7Aw.text" = "✖️";
+
+/* Class = "UISegmentedControl"; tek-io-lXL.segmentTitles[0] = "Thumbnail"; ObjectID = "tek-io-lXL"; */
+"tek-io-lXL.segmentTitles[0]" = "görüntü";
+
+/* Class = "UISegmentedControl"; tek-io-lXL.segmentTitles[1] = "Lyric"; ObjectID = "tek-io-lXL"; */
+"tek-io-lXL.segmentTitles[1]" = "lirik";
+
+/* Class = "UIButton"; normalTitle = "Delete the above ads"; ObjectID = "uIl-tE-13G"; */
+"uIl-tE-13G.normalTitle" = "Yukarıdaki reklamları silin";
+
+/* Class = "UILabel"; text = "※Click here if you have paid with another terminal↓"; ObjectID = "wab-rW-GKA"; */
+"wab-rW-GKA.text" = "※Başka bir terminalle ödeme yaptıysanız burayı tıklayın↓";
+
+/* Class = "UISegmentedControl"; wqi-il-2th.segmentTitles[0] = "Favorite videos"; ObjectID = "wqi-il-2th"; */
+"wqi-il-2th.segmentTitles[0]" = "Favori videolar";
+
+/* Class = "UISegmentedControl"; wqi-il-2th.segmentTitles[1] = "Search word"; ObjectID = "wqi-il-2th"; */
+"wqi-il-2th.segmentTitles[1]" = "Kelime ara";
+
+/* Class = "UIButton"; normalTitle = "Register"; ObjectID = "xdu-02-z89"; */
+"xdu-02-z89.normalTitle" = "Kayıt ol";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "zoU-mH-9iq"; */
+"zoU-mH-9iq.text" = "Label";
+
+/* Class = "UIButton"; normalTitle = "Reload"; ObjectID = "zwQ-wp-slT"; */
+"zwQ-wp-slT.normalTitle" = "Reload";
