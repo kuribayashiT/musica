@@ -12,7 +12,7 @@ import GoogleMobileAds
 class SettingADTableViewCell: UITableViewCell {
 
     @IBOutlet weak var ADView: UIView!
-    @IBOutlet weak var bannerView: GADBannerView!
+    @IBOutlet weak var bannerView: BannerView!
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code

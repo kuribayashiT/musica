@@ -17,7 +17,7 @@ class musicLyricEditViewController: UIViewController , UITextViewDelegate{
     /*
      ボタン関連
      */
-    @IBOutlet weak var bannerView: GADBannerView!
+    @IBOutlet weak var bannerView: BannerView!
     @IBOutlet weak var keyBoardClouseBtn: UIButton!
     @IBOutlet weak var textScrollView: UIScrollView!
     @IBOutlet weak var LyricTextView: UIView!

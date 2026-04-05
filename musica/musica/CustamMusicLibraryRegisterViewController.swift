@@ -12,14 +12,14 @@ import AVFoundation
 import CoreData
 import GoogleMobileAds
 
-class CustamMusicLibraryRegisterViewController: UIViewController , GADInterstitialDelegate, UITableViewDataSource, UITableViewDelegate ,MPMediaPickerControllerDelegate {
+class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDataSource, UITableViewDelegate ,MPMediaPickerControllerDelegate, FullScreenContentDelegate {
     
     @IBOutlet weak var registBtnBtmMargin: NSLayoutConstraint!
     @IBOutlet weak var waitView: UIVisualEffectView!
     @IBOutlet weak var keyBoardClouseBtn: UIButton!
     @IBOutlet weak var selectedTrackDataTableView: UITableView!
     @IBOutlet weak var registMusicLibrayBtn: UIButton!
-    var interstitial: GADInterstitial!
+    var interstitial: InterstitialAd?
     var selectedAlbumDataList: [AlbumData] = []
     var selectedTrackDataList: [TrackData] = []
     var chechNumCount : Int = 0
@@ -185,7 +185,7 @@ class CustamMusicLibraryRegisterViewController: UIViewController , GADInterstiti
 //        waitIngcator.type = INGCATOR_TYPE[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
 //        waitIngcator.startAnimating()
         // 広告の準備
-        interstitial = createAndLoadInterstitial()
+        loadInterstitial()
         if #available(iOS 13.0, *) {
             self.isModalInPresentation = false
         }
@@ -389,8 +389,8 @@ class CustamMusicLibraryRegisterViewController: UIViewController , GADInterstiti
             // 選択中の曲を初期化
             selectedTracks = [:]
 
-            if ADApearFlg() && self.interstitial.isReady {
-                self.interstitial.present(fromRootViewController: self)
+            if ADApearFlg() && self.interstitial != nil {
+                self.interstitial?.present(from: self)
             }else{
                 // TOP画面へ遷移
                 if #available(iOS 13.0, *) {
@@ -432,14 +432,15 @@ class CustamMusicLibraryRegisterViewController: UIViewController , GADInterstiti
     /*******************************************************************
      広告取得処理
      *******************************************************************/
-    func createAndLoadInterstitial() -> GADInterstitial {
-        let interstitial = GADInterstitial(adUnitID: ADMOB_INTERSTITIAL_CUSTUM_LIBRARY)
-        interstitial.delegate = self
-        interstitial.load(GADRequest())
-        return interstitial
+    func loadInterstitial() {
+        InterstitialAd.load(with: ADMOB_INTERSTITIAL_CUSTUM_LIBRARY, request: Request()) { [weak self] ad, error in
+            if let error = error { print("Interstitial failed to load: \(error)"); return }
+            self?.interstitial = ad
+            self?.interstitial?.fullScreenContentDelegate = self
+        }
     }
-    func interstitialDidDismissScreen(_ ad: GADInterstitial) {
-        interstitial = createAndLoadInterstitial()
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        loadInterstitial()
         // TOP画面へ遷移
         if #available(iOS 13.0, *) {
             IOS13_RESIST_FLG = true
@@ -448,7 +449,7 @@ class CustamMusicLibraryRegisterViewController: UIViewController , GADInterstiti
             self.navigationController?.popToRootViewController(animated: true)
         }
     }
-    func interstitialWillLeaveApplication(_ ad: GADInterstitial) {
+    func adWillLeaveApplication(_ ad: FullScreenPresentingAd) {
         self.dismiss(animated: true, completion: nil)
         // TOP画面へ遷移
         if #available(iOS 13.0, *) {

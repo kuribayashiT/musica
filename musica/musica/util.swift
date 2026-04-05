@@ -13,6 +13,7 @@ import CoreData
 import Firebase
 import GoogleMobileAds
 import MultiSlider
+import StoreKit
 
 /*******************************************************************
  レイアウトのサイズ
@@ -65,7 +66,7 @@ func getSafeAreaHeghtPlusSafeArea() -> CGFloat {
 var selectMusicView = UIVisualEffectView(effect: UIBlurEffect(style: UIBlurEffect.Style.light))
 var selectMusicViewMakeFlg = false
 let selectMusicLabel: UILabel = UILabel()
-var selectBannerView = GADBannerView(adSize: kGADAdSizeBanner)
+var selectBannerView = BannerView(adSize: AdSizeBanner)
 var IOS13_RESIST_FLG = false
 var RESIST_LIBRARY_COMPLETE_FLG = false
 
@@ -851,7 +852,7 @@ public func setKakinDefault(){
 /*******************************************************************
  広告
  *******************************************************************/
-func removeADAlertApear(vc:UIViewController,rewardedAd: GADRewardedAd?){
+func removeADAlertApear(vc:UIViewController,rewardedAd: RewardedAd?, rewardHandler: @escaping () -> Void = {}){
     // アラートを作成
     var messageBody = ""
     if UserDefaults.standard.object(forKey: "review_done_flg") == nil{
@@ -869,7 +870,7 @@ func removeADAlertApear(vc:UIViewController,rewardedAd: GADRewardedAd?){
     // 選択ボタン作成
     let actionAD = UIAlertAction(title: NSLocalizedString(localText(key:"rewordad_look_AD"), comment: ""), style: UIAlertAction.Style.default, handler: {
         (action: UIAlertAction!) in
-        rewardedAd?.present(fromRootViewController: vc, delegate:vc as! GADRewardedAdDelegate)
+        rewardedAd?.present(from: vc, userDidEarnRewardHandler: rewardHandler)
     })
     let actionTwitter = UIAlertAction(title: NSLocalizedString(localText(key:"rewordad_look_Twitter"), comment: ""), style: UIAlertAction.Style.default, handler: {
         (action: UIAlertAction!) in
@@ -1052,7 +1053,7 @@ func addAD(){
 /*******************************************************************
  Admob
 *******************************************************************/
-func custumLoadBannerAd(bannerView: GADBannerView!,setBannerView:UIView) {
+func custumLoadBannerAd(bannerView: BannerView!,setBannerView:UIView) {
   // Step 2 - Determine the view width to use for the ad width.
   let frame = { () -> CGRect in
     // Here safe area is taken into account, hence the view frame is used
@@ -1065,9 +1066,9 @@ func custumLoadBannerAd(bannerView: GADBannerView!,setBannerView:UIView) {
   }()
   bannerView.translatesAutoresizingMaskIntoConstraints = true
   let viewWidth = frame.size.width
-  bannerView.adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(viewWidth)
+  bannerView.adSize = currentOrientationAnchoredAdaptiveBanner(width: viewWidth)
   BANNERHEIGHT = bannerView.adSize.size.height
-  bannerView.load(GADRequest())
+  bannerView.load(Request())
   bannerView.translatesAutoresizingMaskIntoConstraints = false
 }
 

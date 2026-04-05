@@ -43,7 +43,7 @@ class PopUpAdDialog: UIView {
     }
     @IBAction func closeBtnTapped(_ sender: Any) {
         if adDialogLoader != nil {
-            adDialogLoader.load(GADRequest())
+            adDialogLoader.load(Request())
         }
         self.removeFromSuperview()
     }

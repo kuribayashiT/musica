@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import WebKit
 import SWTableViewCell
 
 class HomeTableViewCell: SWTableViewCell {

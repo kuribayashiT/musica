@@ -258,7 +258,7 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
                 selectBannerView.translatesAutoresizingMaskIntoConstraints = true
                 selectBannerView.layer.position = CGPoint(x:Int(myAppFrameSize.width)/2, y:112)
                 selectBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID
-                selectBannerView.load(GADRequest())
+                selectBannerView.load(Request())
                 selectBannerView.isHidden = false
                 selectBannerView.rootViewController = self
                 

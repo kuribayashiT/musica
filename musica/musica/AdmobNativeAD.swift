@@ -11,7 +11,7 @@ import GoogleMobileAds
 /*******************************************************************
 HOME画面のAD処理
 *******************************************************************/
-extension HomeAreaViewController : GADVideoControllerDelegate , GADUnifiedNativeAdDelegate, GADUnifiedNativeAdLoaderDelegate {
+extension HomeAreaViewController : VideoControllerDelegate , NativeAdDelegate, NativeAdLoaderDelegate {
     
     func createView() -> UIView{
         let view = UIView(frame: CGRect(x: 0, y: 0, width: self.view.bounds.width, height: self.view.bounds.height))
@@ -28,23 +28,23 @@ extension HomeAreaViewController : GADVideoControllerDelegate , GADUnifiedNative
         return view
     }
     
-    func setAdView(_ view: GADUnifiedNativeAdView) {
-        let multipleAdsOptions = GADMultipleAdsAdLoaderOptions()
+    func setAdView(_ view: NativeAdView) {
+        let multipleAdsOptions = MultipleAdsAdLoaderOptions()
         multipleAdsOptions.numberOfAds = 1
-        adLoader = GADAdLoader(adUnitID: ADMOB_NATIVE_ADVANCE, rootViewController: self,
-            adTypes: [GADAdLoaderAdType.unifiedNative],
+        adLoader = AdLoader(adUnitID: ADMOB_NATIVE_ADVANCE, rootViewController: self,
+            adTypes: [AdLoaderAdType.native],
             options: [multipleAdsOptions])
         adLoader.delegate = self
         nativeAdView = view
         nativeAdView.translatesAutoresizingMaskIntoConstraints = true
 
         nativeAdView.frame =  CGRect(x: 0, y: 0 , width: Int(myAppFrameSize.width),height: Int(myAppFrameSize.width) * 11 / 16 )
-        adLoader.load(GADRequest())
+        adLoader.load(Request())
     }
-    func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: GADRequestError) {
+    func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: Error) {
     }
 
-    func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADUnifiedNativeAd) {
+    func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
         nativeAdView.nativeAd = nativeAd
 
         nativeAd.delegate = self
@@ -53,10 +53,11 @@ extension HomeAreaViewController : GADVideoControllerDelegate , GADUnifiedNative
         (nativeAdView.headlineView as? UILabel)?.text = nativeAd.headline
         nativeAdView.mediaView?.mediaContent = nativeAd.mediaContent
 
-        if let controller = nativeAd.videoController, controller.hasVideoContent() {
+        if nativeAd.mediaContent.hasVideoContent {
+          let controller = nativeAd.mediaContent.videoController
           controller.delegate = self
-          controller.setMute(true)
-          controller.play()
+                    controller.isMuted = true
+                    controller.play()
         }
         if let mediaView = nativeAdView.mediaView, nativeAd.mediaContent.aspectRatio > 0 {
           heightConstraint = NSLayoutConstraint(item: mediaView,
@@ -95,22 +96,22 @@ extension HomeAreaViewController : GADVideoControllerDelegate , GADUnifiedNative
 
         myADView.addSubview(nativeAdView)
     }
-    func nativeAdDidRecordImpression(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdDidRecordClick(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillPresentScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillDismissScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdDidDismissScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillLeaveApplication(_ nativeAd: GADUnifiedNativeAd) {}
+    func nativeAdDidRecordImpression(_ nativeAd: NativeAd) {}
+    func nativeAdDidRecordClick(_ nativeAd: NativeAd) {}
+    func nativeAdWillPresentScreen(_ nativeAd: NativeAd) {}
+    func nativeAdWillDismissScreen(_ nativeAd: NativeAd) {}
+    func nativeAdDidDismissScreen(_ nativeAd: NativeAd) {}
+    func nativeAdWillLeaveApplication(_ nativeAd: NativeAd) {}
 }
 /*******************************************************************
 ランキング画面のAD処理
 *******************************************************************/
-extension ITuneRankingViewController : GADVideoControllerDelegate , GADUnifiedNativeAdDelegate, GADUnifiedNativeAdLoaderDelegate {
-    func setAdView(_ view: GADUnifiedNativeAdView,adUnitID: String = "") {
+extension ITuneRankingViewController : VideoControllerDelegate , NativeAdDelegate, NativeAdLoaderDelegate {
+    func setAdView(_ view: NativeAdView,adUnitID: String = "") {
         if adUnitID == ADMOB_NATIVE_ADVANCE_DIALOG_RECOMMEND{
-            let multipleAdsOptions = GADMultipleAdsAdLoaderOptions()
-            adDialogLoader = GADAdLoader(adUnitID: adUnitID, rootViewController: self,
-                adTypes: [GADAdLoaderAdType.unifiedNative],
+            let multipleAdsOptions = MultipleAdsAdLoaderOptions()
+            adDialogLoader = AdLoader(adUnitID: adUnitID, rootViewController: self,
+                adTypes: [AdLoaderAdType.native],
                 options: [multipleAdsOptions])
             if nativeAdDialogView == nil{
                 nativeAdDialogView = view
@@ -120,7 +121,7 @@ extension ITuneRankingViewController : GADVideoControllerDelegate , GADUnifiedNa
             nativeAdDialogView!.translatesAutoresizingMaskIntoConstraints = true
             nativeAdDialogView?.frame = CGRect(x: 0, y: 0 , width: myAppFrameSize.width - 32 ,height:(myAppFrameSize.width - 32) * 15/32 + 70)
             adDialogLoader.delegate = self
-            adDialogLoader.load(GADRequest())
+            adDialogLoader.load(Request())
         }else if adUnitID == ADMOB_NATIVE_ADVANCE_RANKING{
             let ImageV = UIImageView()
             ImageV.contentMode = .center
@@ -129,23 +130,23 @@ extension ITuneRankingViewController : GADVideoControllerDelegate , GADUnifiedNa
             ImageV.image = UIImage(named: "homeicon_720")
             myADView.backgroundColor = darkModeNaviWhiteUIcolor()
             myADView.addSubview(ImageV)
-            let multipleAdsOptions = GADMultipleAdsAdLoaderOptions()
+            let multipleAdsOptions = MultipleAdsAdLoaderOptions()
             multipleAdsOptions.numberOfAds = 1
-            adHederLoader = GADAdLoader(adUnitID: adUnitID, rootViewController: self,
-                adTypes: [GADAdLoaderAdType.unifiedNative],
+            adHederLoader = AdLoader(adUnitID: adUnitID, rootViewController: self,
+                adTypes: [AdLoaderAdType.native],
                 options: [multipleAdsOptions])
             adHederLoader.delegate = self
             nativeAdView = view
             nativeAdView.translatesAutoresizingMaskIntoConstraints = true
 
             nativeAdView.frame =  CGRect(x: 0, y: 0 , width: Int(myAppFrameSize.width),height: Int(myAppFrameSize.width) * 11 / 16 )
-            adHederLoader.load(GADRequest())
+            adHederLoader.load(Request())
         }
     }
-    func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: GADRequestError) {
+    func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: Error) {
     }
 
-    func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADUnifiedNativeAd) {
+    func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
         print(adLoader.adUnitID)
         if adLoader.adUnitID == ADMOB_NATIVE_ADVANCE_DIALOG_RECOMMEND{
             nativeAd.delegate = self
@@ -191,9 +192,10 @@ extension ITuneRankingViewController : GADVideoControllerDelegate , GADUnifiedNa
             heightConstraint?.isActive = false
             (nativeAdView.headlineView as? UILabel)?.text = nativeAd.headline
             nativeAdView.mediaView?.mediaContent = nativeAd.mediaContent
-            if let controller = nativeAd.videoController, controller.hasVideoContent() {
-              controller.delegate = self
-              controller.setMute(true)
+            if nativeAd.mediaContent.hasVideoContent {
+          let controller = nativeAd.mediaContent.videoController
+          controller.delegate = self
+                        controller.isMuted = true
               controller.play()
             }
             else {
@@ -233,33 +235,34 @@ extension ITuneRankingViewController : GADVideoControllerDelegate , GADUnifiedNa
             nativeAdView.callToActionView?.isUserInteractionEnabled = false
             nativeAdView.frame =  CGRect(x: 0, y: 0 , width: Int(myAppFrameSize.width),height: Int(myAppFrameSize.width) * 11 / 16 )
             myADView.addSubview(nativeAdView)
-            if let controller = nativeAd.videoController, controller.hasVideoContent() {
+            if nativeAd.mediaContent.hasVideoContent {
+          let controller = nativeAd.mediaContent.videoController
                 controller.delegate = self
-                controller.setMute(true)
+                controller.isMuted = true
                 controller.play()
             }
         }
     }
-    func nativeAdDidRecordImpression(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdDidRecordClick(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillPresentScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillDismissScreen(_ nativeAd: GADUnifiedNativeAd) {
-        adHederLoader.load(GADRequest())
-        adDialogLoader.load(GADRequest())
+    func nativeAdDidRecordImpression(_ nativeAd: NativeAd) {}
+    func nativeAdDidRecordClick(_ nativeAd: NativeAd) {}
+    func nativeAdWillPresentScreen(_ nativeAd: NativeAd) {}
+    func nativeAdWillDismissScreen(_ nativeAd: NativeAd) {
+        adHederLoader.load(Request())
+        adDialogLoader.load(Request())
     }
-    func nativeAdDidDismissScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillLeaveApplication(_ nativeAd: GADUnifiedNativeAd) {}
+    func nativeAdDidDismissScreen(_ nativeAd: NativeAd) {}
+    func nativeAdWillLeaveApplication(_ nativeAd: NativeAd) {}
 }
 /*******************************************************************
  ランキング検索結果画面のAD処理
  *******************************************************************/
-extension iTuneRankingContentsListViewController : GADVideoControllerDelegate , GADUnifiedNativeAdDelegate, GADUnifiedNativeAdLoaderDelegate {
-    func setAdView(_ view: GADUnifiedNativeAdView) {
+extension iTuneRankingContentsListViewController : VideoControllerDelegate , NativeAdDelegate, NativeAdLoaderDelegate {
+    func setAdView(_ view: NativeAdView) {
       // Remove the previous ad view.
-        let multipleAdsOptions = GADMultipleAdsAdLoaderOptions()
+        let multipleAdsOptions = MultipleAdsAdLoaderOptions()
         multipleAdsOptions.numberOfAds = 1
-        adLoader = GADAdLoader(adUnitID: ADMOB_NATIVE_ADVANCE_RANKING_CONTENTS, rootViewController: self,
-          adTypes: [GADAdLoaderAdType.unifiedNative],
+        adLoader = AdLoader(adUnitID: ADMOB_NATIVE_ADVANCE_RANKING_CONTENTS, rootViewController: self,
+          adTypes: [AdLoaderAdType.native],
           options: [multipleAdsOptions])
         nativeAdView = view
         nativeAdView.translatesAutoresizingMaskIntoConstraints = true
@@ -267,13 +270,13 @@ extension iTuneRankingContentsListViewController : GADVideoControllerDelegate , 
         nativeAdView.frame =  CGRect(x: 0, y: 0 , width: Int(myAppFrameSize.width),height:90 )
 
         adLoader.delegate = self
-        let req = GADRequest()
+        let req = Request()
         adLoader.load(req)
     }
-    func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: GADRequestError) {
+    func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: Error) {
     }
 
-    func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADUnifiedNativeAd) {
+    func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
         nativeAdView.nativeAd = nativeAd
 
         // Set ourselves as the native ad delegate to be notified of native ad events.
@@ -287,11 +290,12 @@ extension iTuneRankingContentsListViewController : GADVideoControllerDelegate , 
         (nativeAdView.headlineView as? UILabel)?.text = nativeAd.headline
         nativeAdView.mediaView?.mediaContent = nativeAd.mediaContent
 
-        if let controller = nativeAd.videoController, controller.hasVideoContent() {
+        if nativeAd.mediaContent.hasVideoContent {
+          let controller = nativeAd.mediaContent.videoController
           // By acting as the delegate to the GADVideoController, this ViewController receives messages
           // about events in the video lifecycle.
           controller.delegate = self
-          controller.setMute(true)
+          controller.isMuted = true
           controller.play()
 //          videoStatusLabel.text = "Ad contains a video asset."
         }
@@ -340,34 +344,34 @@ extension iTuneRankingContentsListViewController : GADVideoControllerDelegate , 
         myADView.frame =  CGRect(x: 0, y: 0 , width: Int(myAppFrameSize.width),height:90)
         myADView.addSubview(nativeAdView)
     }
-    func nativeAdDidRecordClick(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdDidRecordImpression(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillPresentScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillDismissScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdDidDismissScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillLeaveApplication(_ nativeAd: GADUnifiedNativeAd) {}
+    func nativeAdDidRecordClick(_ nativeAd: NativeAd) {}
+    func nativeAdDidRecordImpression(_ nativeAd: NativeAd) {}
+    func nativeAdWillPresentScreen(_ nativeAd: NativeAd) {}
+    func nativeAdWillDismissScreen(_ nativeAd: NativeAd) {}
+    func nativeAdDidDismissScreen(_ nativeAd: NativeAd) {}
+    func nativeAdWillLeaveApplication(_ nativeAd: NativeAd) {}
 }
 /*******************************************************************
  検索結果画面のAD処理
  *******************************************************************/
-extension SearchViewController : GADVideoControllerDelegate , GADUnifiedNativeAdDelegate, GADUnifiedNativeAdLoaderDelegate {
-    func setAdView(_ view: GADUnifiedNativeAdView ,adUnitID:String) {
+extension SearchViewController : VideoControllerDelegate , NativeAdDelegate, NativeAdLoaderDelegate {
+    func setAdView(_ view: NativeAdView ,adUnitID:String) {
       // Remove the previous ad view.
         if adUnitID == ADMOB_NATIVE_ADVANCE_SEARCH_RECOMMEND{
-            let multipleAdsOptions = GADMultipleAdsAdLoaderOptions()
+            let multipleAdsOptions = MultipleAdsAdLoaderOptions()
             multipleAdsOptions.numberOfAds = 1
-            adCollectLoader = GADAdLoader(adUnitID: adUnitID, rootViewController: self,
-              adTypes: [GADAdLoaderAdType.unifiedNative],
+            adCollectLoader = AdLoader(adUnitID: adUnitID, rootViewController: self,
+              adTypes: [AdLoaderAdType.native],
               options: [multipleAdsOptions])
             nativeAdRecommendView = view
             nativeAdRecommendView.translatesAutoresizingMaskIntoConstraints = true
             
             adCollectLoader.delegate = self
-            adCollectLoader.load(GADRequest())
+            adCollectLoader.load(Request())
         }else if adUnitID == ADMOB_NATIVE_ADVANCE_DIALOG_RECOMMEND{
-            let multipleAdsOptions = GADMultipleAdsAdLoaderOptions()
-            adDialogLoader = GADAdLoader(adUnitID: adUnitID, rootViewController: self,
-                adTypes: [GADAdLoaderAdType.unifiedNative],
+            let multipleAdsOptions = MultipleAdsAdLoaderOptions()
+            adDialogLoader = AdLoader(adUnitID: adUnitID, rootViewController: self,
+                adTypes: [AdLoaderAdType.native],
                 options: [multipleAdsOptions])
             if nativeAdDialogView == nil{
                 nativeAdDialogView = view
@@ -379,14 +383,14 @@ extension SearchViewController : GADVideoControllerDelegate , GADUnifiedNativeAd
             
             nativeAdDialogView?.frame = CGRect(x: 0, y: 0 , width: myAppFrameSize.width - 32 ,height:(myAppFrameSize.width - 32) * 15/32 + 70)
             adDialogLoader.delegate = self
-            let req = GADRequest()
+            let req = Request()
             adDialogLoader.load(req)
         }
     }
-    func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: GADRequestError) {
+    func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: Error) {
     }
 
-    func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADUnifiedNativeAd) {
+    func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
         
         heightConstraint?.isActive = false
         if adLoader.adUnitID == ADMOB_NATIVE_ADVANCE_SEARCH_RECOMMEND{
@@ -466,31 +470,32 @@ extension SearchViewController : GADVideoControllerDelegate , GADUnifiedNativeAd
 //                myADViewDialog.addSubview(nativeAdDialogView)
 //            }
         }
-        if let controller = nativeAd.videoController, controller.hasVideoContent() {
+        if nativeAd.mediaContent.hasVideoContent {
+          let controller = nativeAd.mediaContent.videoController
             controller.delegate = self
-            controller.setMute(true)
-            controller.play()
+            controller.isMuted = true
+                      controller.play()
         }
     }
-    func nativeAdDidRecordClick(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdDidRecordImpression(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillPresentScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillDismissScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdDidDismissScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillLeaveApplication(_ nativeAd: GADUnifiedNativeAd) {
+    func nativeAdDidRecordClick(_ nativeAd: NativeAd) {}
+    func nativeAdDidRecordImpression(_ nativeAd: NativeAd) {}
+    func nativeAdWillPresentScreen(_ nativeAd: NativeAd) {}
+    func nativeAdWillDismissScreen(_ nativeAd: NativeAd) {}
+    func nativeAdDidDismissScreen(_ nativeAd: NativeAd) {}
+    func nativeAdWillLeaveApplication(_ nativeAd: NativeAd) {
         popupView.removeFromSuperview()
     }
 }
 /*******************************************************************
  設定画面のAD処理
  *******************************************************************/
-extension SettingViewController : GADVideoControllerDelegate , GADUnifiedNativeAdDelegate, GADUnifiedNativeAdLoaderDelegate {
-    func setAdView(_ view: GADUnifiedNativeAdView) {
+extension SettingViewController : VideoControllerDelegate , NativeAdDelegate, NativeAdLoaderDelegate {
+    func setAdView(_ view: NativeAdView) {
       // Remove the previous ad view.
-        let multipleAdsOptions = GADMultipleAdsAdLoaderOptions()
+        let multipleAdsOptions = MultipleAdsAdLoaderOptions()
         multipleAdsOptions.numberOfAds = 1
-        adLoader = GADAdLoader(adUnitID: ADMOB_NATIVE_ADVANCE_SETTINGS, rootViewController: self,
-          adTypes: [GADAdLoaderAdType.unifiedNative],
+        adLoader = AdLoader(adUnitID: ADMOB_NATIVE_ADVANCE_SETTINGS, rootViewController: self,
+          adTypes: [AdLoaderAdType.native],
           options: [multipleAdsOptions])
         nativeAdView = view
         nativeAdView.translatesAutoresizingMaskIntoConstraints = true
@@ -498,13 +503,13 @@ extension SettingViewController : GADVideoControllerDelegate , GADUnifiedNativeA
         nativeAdView.frame =  CGRect(x: 0, y: 0 , width: Int(myAppFrameSize.width),height:Int(myAppFrameSize.width) * 11 / 16  )
 
         adLoader.delegate = self
-        let req = GADRequest()
+        let req = Request()
         adLoader.load(req)
     }
-    func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: GADRequestError) {
+    func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: Error) {
     }
 
-    func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADUnifiedNativeAd) {
+    func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
         nativeAdView.nativeAd = nativeAd
 
         // Set ourselves as the native ad delegate to be notified of native ad events.
@@ -521,7 +526,8 @@ extension SettingViewController : GADVideoControllerDelegate , GADUnifiedNativeA
         // Some native ads will include a video asset, while others do not. Apps can use the
         // GADVideoController's hasVideoContent property to determine if one is present, and adjust their
         // UI accordingly.
-        if let controller = nativeAd.videoController, controller.hasVideoContent() {
+        if nativeAd.mediaContent.hasVideoContent {
+          let controller = nativeAd.mediaContent.videoController
           // By acting as the delegate to the GADVideoController, this ViewController receives messages
           // about events in the video lifecycle.
           controller.delegate = self
@@ -574,11 +580,11 @@ extension SettingViewController : GADVideoControllerDelegate , GADUnifiedNativeA
         myADView.frame =  CGRect(x: 0, y: 0 , width: Int(myAppFrameSize.width),height:Int(myAppFrameSize.width) * 11 / 16 )
         myADView.addSubview(nativeAdView)
     }
-    func nativeAdDidRecordClick(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdDidRecordImpression(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillPresentScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillDismissScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdDidDismissScreen(_ nativeAd: GADUnifiedNativeAd) {}
-    func nativeAdWillLeaveApplication(_ nativeAd: GADUnifiedNativeAd) {}
+    func nativeAdDidRecordClick(_ nativeAd: NativeAd) {}
+    func nativeAdDidRecordImpression(_ nativeAd: NativeAd) {}
+    func nativeAdWillPresentScreen(_ nativeAd: NativeAd) {}
+    func nativeAdWillDismissScreen(_ nativeAd: NativeAd) {}
+    func nativeAdDidDismissScreen(_ nativeAd: NativeAd) {}
+    func nativeAdWillLeaveApplication(_ nativeAd: NativeAd) {}
 }
 

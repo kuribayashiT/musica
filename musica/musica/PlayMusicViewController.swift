@@ -12,7 +12,7 @@ import MediaPlayer
 import GoogleMobileAds
 import MultiSlider
 
-class PlayMusicViewController: UIViewController, GADInterstitialDelegate, AVAudioPlayerDelegate , UIPickerViewDelegate, UIPickerViewDataSource ,GADRewardedAdDelegate{
+class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPickerViewDelegate, UIPickerViewDataSource ,FullScreenContentDelegate{
 
     /* ボタン関連 */
     @IBOutlet weak var mojiSizeBtn: UIButton!
@@ -30,9 +30,9 @@ class PlayMusicViewController: UIViewController, GADInterstitialDelegate, AVAudi
     @IBOutlet weak var musicControllerMgn: NSLayoutConstraint!
     @IBOutlet weak var musicControllerView: UIView!
     @IBOutlet weak var musicTitleBar: UINavigationItem!
-    var interstitial: GADInterstitial!
+    var interstitial: InterstitialAd?
     /* レイアウト関連 */
-    @IBOutlet weak var banner: GADBannerView!
+    @IBOutlet weak var banner: BannerView!
     @IBOutlet weak var bannerHeight: NSLayoutConstraint!
     @IBOutlet weak var musicArtViewDefaultHeight: NSLayoutConstraint!
     @IBOutlet weak var musicArtView4InchHeight: NSLayoutConstraint!
@@ -56,7 +56,7 @@ class PlayMusicViewController: UIViewController, GADInterstitialDelegate, AVAudi
     @IBOutlet weak var repeatMinTime: UILabel!
     @IBOutlet weak var repeatMaxTime: UILabel!
     var timer: Timer!
-    var rewardedAd: GADRewardedAd?
+    var rewardedAd: RewardedAd?
     // 総再生数
     var playListNum : Int = 0
     
@@ -211,16 +211,13 @@ class PlayMusicViewController: UIViewController, GADInterstitialDelegate, AVAudi
         // navigationbarの色設定
         setNavigationberStyle(naviBar:self.navigationController!.navigationBar,place:COLOR_THEMA.HOME.rawValue)
         if ADApearFlg() {
-            rewardedAd = GADRewardedAd(adUnitID: ADMOB_REWARD_AD)
-            rewardedAd?.load(GADRequest()) { error in
-                if error != nil {
-                // Handle ad failed to load case.
-                } else {
-                // Ad successfully loaded.
-                }
+            RewardedAd.load(with: ADMOB_REWARD_AD, request: Request()) { [weak self] ad, error in
+                if let error = error { print("RewardedAd failed to load: \(error)"); return }
+                self?.rewardedAd = ad
+                self?.rewardedAd?.fullScreenContentDelegate = self
             }
             // 広告の準備
-            interstitial = createAndLoadInterstitial()
+            loadInterstitial()
             if AD_DISPLAY_MUSICLIBRARYLIST_BANNER {
                 banner.isHidden = false
                 banner.adUnitID = ADMOB_BANNER_ADUNIT_ID
@@ -335,32 +332,34 @@ class PlayMusicViewController: UIViewController, GADInterstitialDelegate, AVAudi
     /*******************************************************************
      広告取得処理
      *******************************************************************/
-    func createAndLoadInterstitial() -> GADInterstitial {
-        let interstitial = GADInterstitial(adUnitID: ADMOB_INTERSTITIAL_LIBRARY)
-        interstitial.delegate = self
-        interstitial.load(GADRequest())
-        return interstitial
-    }
-    func interstitialDidDismissScreen(_ ad: GADInterstitial) {
-        interstitial = createAndLoadInterstitial()
-        if SHUFFLE_FLG {
-            playMusicWrapper(playData: NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum])
-            if audioPlayer != nil {
-                audioPlayer.stop()
-            }
-        }else{
-            playMusicWrapper(playData: NowPlayingMusicLibraryData.trackData[newSelectPlayNum])
-            if audioPlayer != nil {
-                audioPlayer.stop()
-            }
+    func loadInterstitial() {
+        InterstitialAd.load(with: ADMOB_INTERSTITIAL_LIBRARY, request: Request()) { [weak self] ad, error in
+            if let error = error { print("Interstitial failed to load: \(error)"); return }
+            self?.interstitial = ad
+            self?.interstitial?.fullScreenContentDelegate = self
         }
     }
-    func interstitialWillPresentScreen(_ ad: GADInterstitial) {
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        loadInterstitial()
+        RewardedAd.load(with: DEBUG_FLG ? ADMOB_REWARD_TRANS_test : ADMOB_REWARD_AD, request: Request()) { [weak self] ad, error in
+            if let error = error { return }
+            self?.rewardedAd = ad
+            self?.rewardedAd?.fullScreenContentDelegate = self
+        }
+        if SHUFFLE_FLG {
+            playMusicWrapper(playData: NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum])
+            if audioPlayer != nil { audioPlayer.stop() }
+        }else{
+            playMusicWrapper(playData: NowPlayingMusicLibraryData.trackData[newSelectPlayNum])
+            if audioPlayer != nil { audioPlayer.stop() }
+        }
+    }
+    func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
       if audioPlayer != nil {
           audioPlayer.stop()
       }
     }
-    func interstitialWillLeaveApplication(_ ad: GADInterstitial) {
+    func adWillLeaveApplication(_ ad: FullScreenPresentingAd) {
         self.dismiss(animated: true, completion: nil)
     }
     /*******************************************************************
@@ -391,7 +390,15 @@ class PlayMusicViewController: UIViewController, GADInterstitialDelegate, AVAudi
     }
     // 「広告非表示」ボタン
     @IBAction func adRemoveBtnTapped(_ sender: Any) {
-        removeADAlertApear(vc:self,rewardedAd: rewardedAd)
+        removeADAlertApear(vc:self,rewardedAd: rewardedAd) { [weak self] in
+            let now = NSDate()
+            let date1 = NSDate(timeInterval: TimeInterval(60 * 60 * 3), since: now as Date)
+            UserDefaults.standard.set(date1, forKey: "ADdate")
+            UserDefaults.standard.synchronize()
+            deleteAD()
+            self?.loadView()
+            self?.viewDidLoad()
+        }
     }
     // 「再生▶︎/停止■」ボタン
     @IBAction func PlayBtnTapped(_ sender: Any) {
@@ -516,8 +523,8 @@ class PlayMusicViewController: UIViewController, GADInterstitialDelegate, AVAudi
                 musicImageTrans(v1 : self.musicArtWorkImgView, v2 : self.shadowView, type:0)
                 if ADApearFlg() {
                     if interstitial != nil {
-                        if interstitial.isReady {
-                            interstitial.present(fromRootViewController: self)
+                        if interstitial != nil {
+                            interstitial?.present(from: self)
                         }
                     }
                 }
@@ -636,7 +643,7 @@ class PlayMusicViewController: UIViewController, GADInterstitialDelegate, AVAudi
             return
         }
         if ADApearFlg() && AD_DISPLAY_MUSICLIBRARYLIST_BANNER {
-            if rewardedAd!.isReady {
+            if rewardedAd != nil {
                 adRemoveBtn.isHidden = false
             }else{
                 adRemoveBtn.isHidden = true
@@ -822,38 +829,6 @@ class PlayMusicViewController: UIViewController, GADInterstitialDelegate, AVAudi
     /*******************************************************************
      広告関連の処理
      *******************************************************************/
-    func rewardedAd(_ rewardedAd: GADRewardedAd, userDidEarn reward: GADAdReward) {
-        let now = NSDate()
-        let date1 = NSDate(timeInterval: TimeInterval(60 * 60 * Int(truncating: 3)), since: now as Date)
-        UserDefaults.standard.set(date1, forKey: "ADdate")
-        UserDefaults.standard.synchronize()
-        deleteAD()
-        self.loadView()
-        self.viewDidLoad()
-    }
-    func rewardedAdDidDismiss(_ rewardedAd: GADRewardedAd) {
-        if DEBUG_FLG {
-          let _ad = GADRewardedAd(adUnitID: ADMOB_REWARD_TRANS_test)
-          _ad.load(GADRequest())
-        }else{
-          let _ad = GADRewardedAd(adUnitID: ADMOB_REWARD_AD)
-          _ad.load(GADRequest())
-        }
-        if NowPlayingMusicLibraryData.nowPlaying < 0 {
-            return
-        }
-        if SHUFFLE_FLG {
-            playMusicWrapper(playData: NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying])
-            if audioPlayer != nil {
-                audioPlayer.stop()
-            }
-        }else{
-            playMusicWrapper(playData: NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying])
-            if audioPlayer != nil {
-                audioPlayer.stop()
-            }
-        }
-    }
     /*******************************************************************
      画面遷移時処理
      *******************************************************************/

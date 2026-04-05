@@ -34,7 +34,7 @@ class cameraViewController: UIViewController ,AVCapturePhotoCaptureDelegate ,UIC
     var dispatchQueue = DispatchQueue(label: "Dispatch Queue", attributes: [], target: nil)
     
     @IBOutlet weak var waitViewWithAD: UIView!
-    var interstitial: GADInterstitial!
+    var interstitial: InterstitialAd?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -45,9 +45,10 @@ class cameraViewController: UIViewController ,AVCapturePhotoCaptureDelegate ,UIC
         // 広告　dW320H180の生成と表示
         setupFiveSDK()
         // 広告　Admobの生成
-        interstitial = GADInterstitial(adUnitID: "ca-app-pub-1929244717899448/1782653178")
-        let request = GADRequest()
-        interstitial.load(request)
+        InterstitialAd.load(with: "ca-app-pub-1929244717899448/1782653178", request: Request()) { [weak self] ad, error in
+            if let error = error { print("Interstitial load error: \(error)"); return }
+            self?.interstitial = ad
+        }
         // 解像度の設定
         captureSesssion = AVCaptureSession()
         stillImageOutput = AVCapturePhotoOutput()
@@ -186,8 +187,8 @@ class cameraViewController: UIViewController ,AVCapturePhotoCaptureDelegate ,UIC
         Analytics.setUserProperty(String(SCAN_USE_NUM), forName: "スキャン回数")
         if SCAN_AD_INTERVAL != 0 {
             if SCAN_USE_NUM % SCAN_AD_INTERVAL == 0{
-                if interstitial.isReady {
-                    interstitial.present(fromRootViewController: self)
+                if let interstitial = interstitial {
+                    interstitial.present(from: self)
                 } else {
                     print("Admob wasn't ready")
                     // 初期化

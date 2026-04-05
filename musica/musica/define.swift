@@ -836,7 +836,7 @@ var REGIST_CANCEL_FLG = false
 /*----------------------------------------------------------------
  広告関連の設定値
  ----------------------------------------------------------------*/
- var adDialogLoader: GADAdLoader!
+ var adDialogLoader: AdLoader!
 // AdMob広告の読み込み
 // let ADMOB_APPLICATION_ID : String = "ca-app-pub-1929244717899448~8036734015"
 var ADMOB_BANNER_ADUNIT_ID : String = "ca-app-pub-1929244717899448/8743805786"

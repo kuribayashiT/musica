@@ -13,6 +13,8 @@ import UserNotifications
 import SwiftyStoreKit
 import FirebaseMessaging
 import AppTrackingTransparency
+import AdSupport
+import GoogleMobileAds
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate{
@@ -34,8 +36,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
             SETTING_STARTUP_NUM = UserDefaults.standard.integer(forKey: "startUpCount") + 1
             UserDefaults.standard.set(SETTING_STARTUP_NUM, forKey: "startUpCount")
         }
-        GADMobileAds.sharedInstance().applicationMuted = true
-        GADMobileAds.sharedInstance().requestConfiguration.testDeviceIdentifiers = [TEST_DEVICE_iPHPNEX]
+        MobileAds.shared.isApplicationMuted = true
+        MobileAds.shared.requestConfiguration.testDeviceIdentifiers = [TEST_DEVICE_iPHPNEX]
         if UIApplication.shared.applicationIconBadgeNumber > 0 {
             RANKING_PUSH_RECIEVE_FLG = true
             UIApplication.shared.applicationIconBadgeNumber = 0

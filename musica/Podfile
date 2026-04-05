@@ -1,51 +1,39 @@
-# Uncomment the next line to define a global platform for your project
 source 'https://github.com/CocoaPods/Specs.git'
-platform :ios, '11.0'
-#platform :ios, ‘8.0’
+platform :ios, '13.0'
 
 target 'musica' do
-  # Comment the next line if you're not using Swift and don't want to use dynamic frameworks
   use_frameworks!
 
-# Pods for musica
   pod 'YoutubePlayer-in-WKWebView', '~> 0.3.0'
-  pod 'SwiftGifOrigin', '~> 1.6.1'
-  pod 'Alamofire'# , '~> 4.9.1'
+  pod 'Alamofire'
   pod 'SwiftyJSON'
   pod 'SwiftyStoreKit'
   pod 'TransitionableTab'
   pod 'DGElasticPullToRefresh'
   pod 'RAMAnimatedTabBarController'
   pod 'Google-Mobile-Ads-SDK'
-  # pod 'Instructions', :git => 'https://github.com/ephread/Instructions.git',:branch => 'swift5'
-
-  pod 'Instructions', '~> 2.0.0'
-  pod 'ReachabilitySwift', '~> 3'
-  pod 'BubbleTransition', '~> 2.0.0'
+  pod 'Instructions'
+  pod 'ReachabilitySwift'
+  pod 'BubbleTransition'
   pod 'SDWebImage'
-  pod 'Firebase'
   pod 'Firebase/Core'
   pod 'Firebase/RemoteConfig'
   pod 'Firebase/Messaging'
-  pod 'Firebase/AdMob'
   pod 'Firebase/Database'
   pod 'Firebase/Crashlytics'
   pod 'SWTableViewCell', '~> 0.3.7'
   pod 'SlideMenuControllerSwift'
-  pod 'MaioSDK'
   pod 'GoogleMobileAdsMediationMaio'
   pod 'MultiSlider'
-  pod "XCDYouTubeKit", "~> 2.11"
+  pod 'XCDYouTubeKit', '~> 2.11'
   pod 'SwiftEntryKit', '1.2.3'
-  
+
   target 'musicaTests' do
     inherit! :search_paths
-    # Pods for testing
   end
 
   target 'musicaUITests' do
     inherit! :search_paths
-    # Pods for testing
   end
 
 end

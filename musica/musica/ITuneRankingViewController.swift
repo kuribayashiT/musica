@@ -8,25 +8,25 @@
 
 import UIKit
 import SDWebImage
-import ReachabilitySwift
+import Reachability
 import AVFoundation
 import GoogleMobileAds
 import DGElasticPullToRefresh
 import UserNotifications
 
-class ITuneRankingViewController: UIViewController ,UITableViewDelegate,GADInterstitialDelegate, UITableViewDataSource, AVAudioPlayerDelegate, APVAdManagerDelegate ,FADDelegate{
+class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScreenContentDelegate, UITableViewDataSource, AVAudioPlayerDelegate, APVAdManagerDelegate ,FADDelegate{
 
     /*
      広告関連
     */
     @IBOutlet weak var adView: UIView!
-    var adHederLoader: GADAdLoader!
+    var adHederLoader: AdLoader!
     let myADViewDialog: UIView = UIView()
     //var interstitial: GADInterstitial!
-    var nativeAdDialogView: GADUnifiedNativeAdView?
+    var nativeAdDialogView: NativeAdView?
     
     let popupView:PopUpAdDialog = UINib(nibName: "PopUpDialog", bundle: nil).instantiate(withOwner: self,options: nil)[0] as! PopUpAdDialog
-    var nativeAdView: GADUnifiedNativeAdView!
+    var nativeAdView: NativeAdView!
     var heightConstraint : NSLayoutConstraint?
     var size = CGSize()
     let myADView: UIView = UIView()
@@ -35,7 +35,7 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,GADInter
     var aPVAd: UIView = UIView()
     var aPVAdManager: APVAdManager?
     
-    @IBOutlet weak var bannerView: GADBannerView!
+    @IBOutlet weak var bannerView: BannerView!
     /*
      ボタン関連
      */
@@ -63,7 +63,7 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,GADInter
     /*
      オフライン検知
      */
-    let reachability = Reachability()!
+    let reachability = try! Reachability()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -87,7 +87,7 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,GADInter
             iTunesRankingTableView.dg_addPullToRefreshWithActionHandler({ [weak self] () -> Void in
                 self?.seachYouTubeVideoInformation(viewMode : (self?.selectViewModeBtn.selectedSegmentIndex)!, waitMode: false)
                 self?.iTunesRankingTableView.dg_stopLoading()
-                self?.adHederLoader.load(GADRequest())
+                self?.adHederLoader.load(Request())
                 }, loadingView: loadingView)
         }
         
@@ -158,10 +158,10 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,GADInter
             bannerView.isHidden = true
         }
         let nibObjectsDialog = Bundle.main.loadNibNamed("PopUpAdView", owner: nil, options: nil)
-        let adViewDialog = (nibObjectsDialog?.first as? GADUnifiedNativeAdView)!
+        let adViewDialog = (nibObjectsDialog?.first as? NativeAdView)!
         setAdView(adViewDialog,adUnitID: ADMOB_NATIVE_ADVANCE_DIALOG_RECOMMEND)
         let nibObjects = Bundle.main.loadNibNamed("UnifiedNativeAdView", owner: nil, options: nil)
-        let adView = (nibObjects?.first as? GADUnifiedNativeAdView)!
+        let adView = (nibObjects?.first as? NativeAdView)!
         setAdView(adView,adUnitID: ADMOB_NATIVE_ADVANCE_RANKING)
         iTunesRankingTableView.reloadData()
         // バックグラウンドでも再生できるカテゴリに設定する
@@ -410,7 +410,7 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,GADInter
      *******************************************************************/
     // 選択が変更された際の処理
     @IBAction func selectViewModeBtnTapped(_ sender: Any) {
-        self.adHederLoader.load(GADRequest())
+        self.adHederLoader.load(Request())
         if UserDefaults.standard.object(forKey: "rankingLookCount") == nil{
             UserDefaults.standard.set(RANKING_LOOK_NUM, forKey: "rankingLookCount")
         }else{
@@ -432,7 +432,7 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,GADInter
     }
     // 再読み込みボタンが押された際の処理
     @IBAction func reloadBtnTapped(_ sender: Any) {
-        self.adHederLoader.load(GADRequest())
+        self.adHederLoader.load(Request())
         seachYouTubeVideoInformation(viewMode : selectViewModeBtn.selectedSegmentIndex, waitMode: true)
     }
     

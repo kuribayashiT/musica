@@ -22,8 +22,8 @@ class SettingViewController: UIViewController , UITableViewDataSource, UITableVi
      */
     @IBOutlet weak var adView: UIView!
     @IBOutlet weak var adminBtn: UIButton!
-    var adLoader: GADAdLoader!
-    var nativeAdView: GADUnifiedNativeAdView!
+    var adLoader: AdLoader!
+    var nativeAdView: NativeAdView!
     let myADView: UIView = UIView()
     var heightConstraint : NSLayoutConstraint?
     var subContentView = UIView()
@@ -103,7 +103,7 @@ class SettingViewController: UIViewController , UITableViewDataSource, UITableVi
             settingSectionTitle = settingSectionTitle_mukakin
             settingSectionData = settingSectionData_mukakin
             let nibObjects = Bundle.main.loadNibNamed("UnifiedNativeAdView", owner: nil, options: nil)
-            let adView = (nibObjects?.first as? GADUnifiedNativeAdView)!
+            let adView = (nibObjects?.first as? NativeAdView)!
             setAdView(adView)
         }
         table.reloadData()
@@ -237,7 +237,7 @@ class SettingViewController: UIViewController , UITableViewDataSource, UITableVi
                     // AdMobバナー広告の読み込み
                     cell.bannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID
                     cell.bannerView.rootViewController = self
-                    let requestBanner = GADRequest()
+                    let requestBanner = Request()
                     cell.bannerView.isHidden = false
                     cell.bannerView.load(requestBanner)
                     return cell

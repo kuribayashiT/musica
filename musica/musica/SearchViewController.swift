@@ -10,14 +10,14 @@ import UIKit
 import GoogleMobileAds
 import SDWebImage
 import AVFoundation
-import ReachabilitySwift
+import Reachability
 import CoreData
 import DGElasticPullToRefresh
 import Firebase
 import XCDYouTubeKit
 import WebKit
 
-class SearchViewController: UIViewController , UISearchBarDelegate  ,GADNativeExpressAdViewDelegate,APVAdManagerDelegate, NAAdViewDelegate{
+class SearchViewController: UIViewController , UISearchBarDelegate  ,APVAdManagerDelegate, NAAdViewDelegate{
 
     @IBOutlet weak var recommendMVViewHeight: NSLayoutConstraint!
     @IBOutlet weak var youtubeWebView: UIView!
@@ -43,17 +43,17 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,GADNativeEx
      広告周り
      */
     let popupView:PopUpAdDialog = UINib(nibName: "PopUpDialog", bundle: nil).instantiate(withOwner: self,options: nil)[0] as! PopUpAdDialog
-    var adCollectLoader: GADAdLoader!
-    //var adDialogLoader: GADAdLoader!
-    var nativeAdView: GADUnifiedNativeAdView!
-    var nativeAdRecommendView: GADUnifiedNativeAdView!
-    var nativeAdDialogView: GADUnifiedNativeAdView!
+    var adCollectLoader: AdLoader!
+    //var adDialogLoader: AdLoader!
+    var nativeAdView: NativeAdView!
+    var nativeAdRecommendView: NativeAdView!
+    var nativeAdDialogView: NativeAdView!
     let myADView: UIView = UIView()
     let myADViewRecomend: UIView = UIView()
     let myADViewDialog: UIView = UIView()
     var heightConstraint : NSLayoutConstraint?
     var size = CGSize()
-    @IBOutlet weak var bannerView: GADBannerView!
+    @IBOutlet weak var bannerView: BannerView!
     var adStartPosition = 0
     var adInterval = 0
     var insertADFlg : Bool = false
@@ -93,7 +93,7 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,GADNativeEx
     /*
      オフライン検知
      */
-    let reachability = Reachability()!
+    let reachability = try! Reachability()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -228,9 +228,9 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,GADNativeEx
         categoryIDBtn.tintColor = UIColor.darkGray
         
         let nibObjectsCollect = Bundle.main.loadNibNamed("UnifiedNativeAdViewAboutRecommend", owner: nil, options: nil)
-        let adViewCollect = (nibObjectsCollect?.first as? GADUnifiedNativeAdView)!
+        let adViewCollect = (nibObjectsCollect?.first as? NativeAdView)!
         let nibObjectsDialog = Bundle.main.loadNibNamed("PopUpAdView", owner: nil, options: nil)
-        let adViewDialog = (nibObjectsDialog?.first as? GADUnifiedNativeAdView)!
+        let adViewDialog = (nibObjectsDialog?.first as? NativeAdView)!
         setAdView(adViewCollect,adUnitID: ADMOB_NATIVE_ADVANCE_SEARCH_RECOMMEND)
         setAdView(adViewDialog,adUnitID: ADMOB_NATIVE_ADVANCE_DIALOG_RECOMMEND)
         
@@ -635,7 +635,7 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,GADNativeEx
         if ArrayName == "addItemsArray" {
             while index < addItemsArray.count {
                 let nibObjects = Bundle.main.loadNibNamed("UnifiedNativeAdViewInTableCell", owner: nil, options: nil)
-                let adView = (nibObjects?.first as? GADUnifiedNativeAdView)!
+                let adView = (nibObjects?.first as? NativeAdView)!
                 let adFlg = adView
                 addItemsArray.insert(adFlg as AnyObject, at: index)
                 index += adInterval
@@ -643,7 +643,7 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,GADNativeEx
         } else if ArrayName == "addItemsInfoArray" {
             while index < addItemsInfoArray.count {
                 let nibObjects = Bundle.main.loadNibNamed("UnifiedNativeAdViewInTableCell", owner: nil, options: nil)
-                let adView = (nibObjects?.first as? GADUnifiedNativeAdView)!
+                let adView = (nibObjects?.first as? NativeAdView)!
                 let adFlg = adView
                 addItemsInfoArray.insert(adFlg as AnyObject, at: index)
                 index += adInterval

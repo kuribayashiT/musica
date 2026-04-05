@@ -7,17 +7,18 @@
 //
 
 import UIKit
+import AdSupport
 import CoreData
 import MediaPlayer
 import AVFoundation
 import GoogleMobileAds
-import ReachabilitySwift
+import Reachability
 import YoutubePlayer_in_WKWebView
 import Firebase
 import XCDYouTubeKit
 import AVKit
 
-class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPickerViewDataSource ,GADInterstitialDelegate ,UITabBarDelegate,AVPlayerViewControllerDelegate{
+class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPickerViewDataSource ,FullScreenContentDelegate ,UITabBarDelegate,AVPlayerViewControllerDelegate{
     
     let volumeControl = MPVolumeView(frame: CGRect(x: 0, y: 0, width: 120, height: 120))
 
@@ -49,7 +50,7 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
     var _prevTime : CMTime = CMTime.zero
     var YOUTUBE_ONERROR_FLG = false
     // AD
-    var interstitial: GADInterstitial!
+    var interstitial: InterstitialAd?
     var youtubeVideoIdList : [String] = []
     var shuffleVideoIdList : [String] = []
     var youtubePlaylistVideoIDs = ""
@@ -58,7 +59,7 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
     var FROM_AD_FLG = false
     
     // オフライン検知
-    let reachability = Reachability()!
+    let reachability = try! Reachability()
     // timer
     var nowVideo: XCDYouTubeVideo = XCDYouTubeVideo()
     
@@ -169,7 +170,7 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
         // オフラインチェック
         checkOffline()
         // 広告の準備
-        interstitial = createAndLoadInterstitial()
+        loadInterstitial()
         // 設定状態反映
         switch repeatMVState {
         case REPEAT_STATE_NONE:
@@ -511,12 +512,10 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
                     self.waitView.isHidden = true
                 }
                 if AD_DISPLAY_YOUTUBE_CONTENTS != false{
-                    if interstitial != nil {
-                        if interstitial.isReady && nowViewDeirectionPort {
-                            youtubeVideoView.pauseVideo()
-                            FROM_AD_FLG = true
-                            interstitial.present(fromRootViewController: self)
-                        }
+                    if let interstitial = interstitial, nowViewDeirectionPort {
+                        youtubeVideoView.pauseVideo()
+                        FROM_AD_FLG = true
+                        interstitial.present(from: self)
                     }
                 }
             }else{
@@ -794,24 +793,28 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
     /*******************************************************************
      広告（Admob）の処理
      *******************************************************************/
-    func interstitialDidDismissScreen(_ ad: GADInterstitial){
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         if YOUTUBE_PLAYER_FLG {
             if AVPlayerViewControllerManager.shared.controller.player != nil {
                 AVPlayerViewControllerManager.shared.controller.player?.play()
                 AVPlayerViewControllerManager.shared.controller.player?.rate = nowRate
             }
-        }else{
+        } else {
             youtubeVideoView.playVideo()
         }
-        interstitial = createAndLoadInterstitial()
+        loadInterstitial()
     }
-    func createAndLoadInterstitial() -> GADInterstitial {
-        let interstitial = GADInterstitial(adUnitID: ADMOB_INTERSTITIAL_MV)
-        interstitial.delegate = self
-        interstitial.load(GADRequest())
-        return interstitial
+    func loadInterstitial() {
+        InterstitialAd.load(with: ADMOB_INTERSTITIAL_MV, request: Request()) { [weak self] ad, error in
+            if let error = error {
+                print("Failed to load interstitial: \(error.localizedDescription)")
+                return
+            }
+            self?.interstitial = ad
+            self?.interstitial?.fullScreenContentDelegate = self
+        }
     }
-    func interstitialWillLeaveApplication(_ ad: GADInterstitial) {
+    func adWillDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         self.dismiss(animated: true, completion: nil)
     }
     /*******************************************************************
@@ -886,12 +889,10 @@ extension YoutubePlayViewController: WKYTPlayerViewDelegate {
         case WKYTPlayerState.ended:
             if AD_DISPLAY_YOUTUBE_CONTENTS_NUM != 0 {
                 if AD_DISPLAY_YOUTUBE_CONTENTS != false{
-                    if interstitial != nil {
-                        if interstitial.isReady && nowViewDeirectionPort {
-                            youtubeVideoView.pauseVideo()
-                            FROM_AD_FLG = true
-                            interstitial.present(fromRootViewController: self)
-                        }
+                    if let interstitial = interstitial, nowViewDeirectionPort {
+                        youtubeVideoView.pauseVideo()
+                        FROM_AD_FLG = true
+                        interstitial.present(from: self)
                     }
                 }
             }

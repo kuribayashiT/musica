@@ -11,11 +11,10 @@ import MediaPlayer
 import AVFoundation
 import CoreData
 import GoogleMobileAds
-import SwiftGifOrigin
 import SWTableViewCell
 import SwiftEntryKit
 
-class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate ,MPMediaPickerControllerDelegate, AVAudioPlayerDelegate,GADInterstitialDelegate, SWTableViewCellDelegate{
+class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate ,MPMediaPickerControllerDelegate, AVAudioPlayerDelegate, SWTableViewCellDelegate, FullScreenContentDelegate{
 
     /*
      ボタン関連
@@ -30,8 +29,8 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     /*
      広告関連
      */
-    @IBOutlet weak var bannerView: GADBannerView!
-    var interstitial: GADInterstitial!
+    @IBOutlet weak var bannerView: BannerView!
+    var interstitial: InterstitialAd?
 
     /*
      音楽・table関連
@@ -238,7 +237,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
             miniPlayerReload()
         }
         // 広告の準備
-        interstitial = createAndLoadInterstitial()
+        loadInterstitial()
     }
     
     override func didReceiveMemoryWarning() {
@@ -528,8 +527,8 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
             // 広告出現頻度
             if forceADFlg || MUSIC_LIBRARY_TO_PLAYVIEW % MUSIC_LIBRARY_AD_INTERVAL == 0{
                 if interstitial != nil {
-                    if interstitial.isReady {
-                        interstitial.present(fromRootViewController: self)
+                    if interstitial != nil {
+                        interstitial?.present(from: self)
                         forceADFlg = false
                         UserDefaults.standard.set(forceADFlg, forKey: "accesMusicLibraryToPlayViewForceAD")
                     }else{
@@ -556,16 +555,17 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     /*******************************************************************
      広告取得処理
      *******************************************************************/
-    func createAndLoadInterstitial() -> GADInterstitial {
-        let interstitial = GADInterstitial(adUnitID: ADMOB_INTERSTITIAL_LIBRARY)
-        interstitial.delegate = self
-        interstitial.load(GADRequest())
-        return interstitial
+    func loadInterstitial() {
+        InterstitialAd.load(with: ADMOB_INTERSTITIAL_LIBRARY, request: Request()) { [weak self] ad, error in
+            if let error = error { print("Interstitial failed to load: \(error)"); return }
+            self?.interstitial = ad
+            self?.interstitial?.fullScreenContentDelegate = self
+        }
     }
-    func interstitialDidDismissScreen(_ ad: GADInterstitial) {
-        interstitial = createAndLoadInterstitial()
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        loadInterstitial()
     }
-    func interstitialWillLeaveApplication(_ ad: GADInterstitial) {
+    func adWillLeaveApplication(_ ad: FullScreenPresentingAd) {
         self.dismiss(animated: true, completion: nil)
     }
     /*******************************************************************

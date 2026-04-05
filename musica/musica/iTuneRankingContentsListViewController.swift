@@ -10,7 +10,7 @@ import UIKit
 import GoogleMobileAds
 import SDWebImage
 import CoreData
-import ReachabilitySwift
+import Reachability
 import RAMAnimatedTabBarController
 import WebKit
 
@@ -22,11 +22,11 @@ class iTuneRankingContentsListViewController: UIViewController{
     @IBOutlet weak var youtubeWebView: UIView!
     private var webView: WKWebView!
     // 広告周り
-    var adLoader: GADAdLoader!
+    var adLoader: AdLoader!
     let myADView: UIView = UIView()
-    var nativeAdView: GADUnifiedNativeAdView!
+    var nativeAdView: NativeAdView!
     var heightConstraint : NSLayoutConstraint?
-    var interstitial: GADInterstitial!
+    var interstitial: InterstitialAd?
     @IBOutlet weak var iTunesImgView: UIImageView!
     @IBOutlet weak var iTunesTitle: UILabel!
     @IBOutlet weak var iTunesArtist: UILabel!
@@ -45,7 +45,7 @@ class iTuneRankingContentsListViewController: UIViewController{
     var searchArtist : String = ""
     var searchWord : String = ""
     var searchTitleWord : String = ""
-    let reachability = Reachability()!
+    let reachability = try! Reachability()
     @objc dynamic var itemsArray = [AnyObject]()
     @objc dynamic var itemsInfoArray = [AnyObject]()
     var addItemsArray = [AnyObject]()
@@ -62,7 +62,7 @@ class iTuneRankingContentsListViewController: UIViewController{
         super.viewDidLoad()
 
         let nibObjects = Bundle.main.loadNibNamed("UnifiedNativeAdViewInTableCell", owner: nil, options: nil)
-        let adView = (nibObjects?.first as? GADUnifiedNativeAdView)!
+        let adView = (nibObjects?.first as? NativeAdView)!
         setAdView(adView)
         
         // 自身の変数 test を監視対象として登録

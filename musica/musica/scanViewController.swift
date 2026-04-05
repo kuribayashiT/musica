@@ -12,11 +12,11 @@ import Alamofire
 import Instructions
 import SwiftyJSON
 import BubbleTransition
-import ReachabilitySwift
+import Reachability
 import RAMAnimatedTabBarController
 import Firebase
 
-class scanViewController: UIViewController ,CoachMarksControllerDataSource, CoachMarksControllerDelegate, UIImagePickerControllerDelegate,UINavigationControllerDelegate,MaioDelegate,GADInterstitialDelegate,GADRewardBasedVideoAdDelegate,FADDelegate{
+class scanViewController: UIViewController ,CoachMarksControllerDataSource, CoachMarksControllerDelegate, UIImagePickerControllerDelegate,UINavigationControllerDelegate,FullScreenContentDelegate,FADDelegate{
     
     @IBOutlet weak var langwaitView: UIView!
     @IBOutlet weak var helpBtn: UIBarButtonItem!
@@ -47,14 +47,14 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     var color = UIColor.lightGray
     var toLangCode = Int()
     let jsonEncoder = JSONEncoder()
-    var interstitial: GADInterstitial!
+    var interstitial: InterstitialAd?
     var interstitial_five : FADInterstitial!
     var transSuccessFlg = false
     
     /*
      オフライン検知
      */
-    let reachability = Reachability()!
+    let reachability = try! Reachability()
     
     /*
      チュートリアル
@@ -82,8 +82,8 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        Maio.setAdTestMode(DEBUG_FLG)
-        Maio.start(withMediaId: MAIO_APP_ID, delegate: self)
+        // Maio.setAdTestMode disabled - use mediation
+        // Maio.start disabled - use mediation
         
         waitView.isHidden = true
         helpBtn.isEnabled = true
@@ -141,14 +141,12 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         )
         // 広告の準備
         setupFiveSDK()
-        interstitial = GADInterstitial(adUnitID: ADMOB_INTERSTITIAL_SCAN_OR_TRANS)
+        InterstitialAd.load(with: ADMOB_INTERSTITIAL_SCAN_OR_TRANS, request: Request()) { [weak self] ad, error in
+                if let error = error { print("Error: \(error)"); return }
+                self?.interstitial = ad
+                self?.interstitial?.fullScreenContentDelegate = self
+            }
         interstitial_five = FADInterstitial(slotId: "252628")
-        let request = GADRequest()
-        interstitial.load(request)
-        interstitial.delegate = self
-        GADRewardBasedVideoAd.sharedInstance().delegate = self
-        GADRewardBasedVideoAd.sharedInstance().load(GADRequest(),
-                                                    withAdUnitID: ADMOB_REWARD_TRANS)
         interstitial_five?.delegate = self
         if (interstitial_five?.state != kFADStateLoaded) {
             FADSettings.enableLoading(true)// interstitialの生成と表示
@@ -495,8 +493,8 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         if SCAN_AD_INTERVAL != 0{
             if SCAN_USE_NUM % SCAN_AD_INTERVAL == 0{
                 // 広告表示
-                if interstitial.isReady {
-                    interstitial.present(fromRootViewController: self)
+                if let interstitial = interstitial {
+                    interstitial.present(from: self)
                 } else {
                     print("Admob wasn't ready")
                     // 初期化
@@ -761,26 +759,13 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         // 広告表示
         if TRANS_REWARD_COUNT < 1{
             self.transSegment.selectedSegmentIndex = BEFORE_TRANS
-            if GADRewardBasedVideoAd.sharedInstance().isReady {
-                let alertController = UIAlertController(title: localText(key:"text_err_usecount_title"),message: localText(key:"text_err_usecount_body"), preferredStyle: UIAlertController.Style.alert)
-                let okAction = UIAlertAction(title: localText(key:"btn_ok"), style: UIAlertAction.Style.default){ (action: UIAlertAction) in
-                    GADRewardBasedVideoAd.sharedInstance().present(fromRootViewController: self)
-                    self.FROM_TRAND_AD = true
-                }
-                let cancelButton = UIAlertAction(title: localText(key:"text_err_nolookad"), style: UIAlertAction.Style.default){ (action: UIAlertAction) in
-                    self.waitView.isHidden = true
-                    self.helpBtn.isEnabled = true
-                    self.FROM_TRAND_AD = false
-                    return
-                }
-                alertController.addAction(okAction)
-                alertController.addAction(cancelButton)
-                present(alertController,animated: true,completion: nil)
+            if false { // Rewarded ad removed (GADRewardBasedVideoAd no longer available)
+                // reward video was available here
             }else{
-                if interstitial.isReady {
+                if let interstitial = interstitial {
                     let alertController = UIAlertController(title: localText(key:"text_err_usecount_title"),message: localText(key:"text_err_usecount_body_tap"), preferredStyle: UIAlertController.Style.alert)
                     let okAction = UIAlertAction(title: localText(key:"btn_ok"), style: UIAlertAction.Style.default){ (action: UIAlertAction) in
-                        self.interstitial.present(fromRootViewController: self)
+                        interstitial.present(from: self)
                         self.FROM_TRAND_AD = true
                     }
                     let cancelButton = UIAlertAction(title: localText(key:"text_err_nolookad"), style: UIAlertAction.Style.default){ (action: UIAlertAction) in
@@ -809,10 +794,10 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
                         alertController.addAction(cancelButton)
                         present(alertController,animated: true,completion: nil)
                     }else{
-                        if Maio.canShow(atZoneId: MAIO_ZONEID_REWARD) {
+                        if false { // Maio direct API removed
                             let alertController = UIAlertController(title: localText(key:"text_err_usecount_title"),message: localText(key:"text_err_usecount_body"), preferredStyle: UIAlertController.Style.alert)
                             let okAction = UIAlertAction(title: localText(key:"btn_ok"), style: UIAlertAction.Style.default){ (action: UIAlertAction) in
-                                Maio.show(atZoneId: MAIO_ZONEID_REWARD)
+                                // Maio.show removed
                             }
                             let cancelButton = UIAlertAction(title: localText(key:"text_err_nolookad"), style: UIAlertAction.Style.default){ (action: UIAlertAction) in
                                 self.transSegment.selectedSegmentIndex = BEFORE_TRANS
@@ -1315,7 +1300,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     /*******************************************************************
      広告（Admob と Five）の処理
      *******************************************************************/
-    func interstitialWillLeaveApplication(_ ad: GADInterstitial){
+    func adWillDismissFullScreenContent(_ ad: FullScreenPresentingAd){
         if self.FROM_TRAND_AD {
             ADMOB_REWARD_RECEIVED = true
             TRANS_REWARD_COUNT = TRANS_REWARD_COUNT + 3//Int(reward.amount)
@@ -1328,153 +1313,6 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             self.helpBtn.isEnabled = false
             self.FROM_TRAND_AD = false
             self.tlansLation()
-        }
-    }
-    func rewardBasedVideoAdDidClose(_ rewardBasedVideoAd: GADRewardBasedVideoAd) {
-        GADRewardBasedVideoAd.sharedInstance().load(GADRequest(),
-                                                    withAdUnitID: ADMOB_REWARD_TRANS)
-        // 報酬を受け取った場合は、ここは通らないようにしたい
-        if ADMOB_REWARD_RECEIVED {
-//            self.transSegment.selectedSegmentIndex = AFTER_TRANS
-//            self.waitView.isHidden = false
-//            self.helpBtn.isEnabled = false
-            //self.tlansLation()
-            ADMOB_REWARD_RECEIVED = false
-        }else{
-            self.waitView.isHidden = true
-            self.helpBtn.isEnabled = true
-
-            if EDIT_FLG {
-                // 元に戻す
-                if LATEST_LYRIC_RESULT_TEXT == "" {
-                    LYRIC_RESULT_TEXT = LATEST_LYRIC_RESULT_TEXT
-                }else{
-                    LYRIC_RESULT_TEXT = resultTextView.text
-                }
-                if LYRIC_RESULT_TEXT != ""{
-                    resultTextView.text = LYRIC_RESULT_TEXT
-                }
-            }else{
-                // 元に戻す
-                if LATEST_RESULT_TEXT != "" {
-                    RESULT_TEXT = LATEST_RESULT_TEXT
-                }else{
-                    RESULT_TEXT = resultTextView.text
-                }
-                if RESULT_TEXT != ""{
-                    resultTextView.text = RESULT_TEXT
-                }
-            }
-//
-//            if EDIT_FLG {
-//                // 元に戻す
-//                if LATEST_LYRIC_RESULT_TEXT == "" {
-//                    LYRIC_RESULT_TEXT = LATEST_LYRIC_RESULT_TEXT
-//                }else{
-//                    LYRIC_RESULT_TEXT = resultTextView.text
-//                }
-//            }else{
-//                // 元に戻す
-//                if LATEST_RESULT_TEXT != "" {
-//                    RESULT_TEXT = LATEST_RESULT_TEXT
-//                }else{
-//                    RESULT_TEXT = resultTextView.text
-//                }
-//            }
-            self.transSegment.selectedSegmentIndex = BEFORE_TRANS
-        }
-    }
-    func rewardBasedVideoAd(_ rewardBasedVideoAd: GADRewardBasedVideoAd,
-                            didRewardUserWith reward: GADAdReward) {
-        
-        ADMOB_REWARD_RECEIVED = true
-        TRANS_REWARD_COUNT = TRANS_REWARD_COUNT + Int(truncating: reward.amount)
-        if TRANS_REWARD_COUNT < -5 {
-            TRANS_REWARD_COUNT = -5
-        }
-        UserDefaults.standard.set(TRANS_REWARD_COUNT, forKey: "transCount")
-        self.transSegment.selectedSegmentIndex = AFTER_TRANS
-        self.waitView.isHidden = false
-        self.helpBtn.isEnabled = false
-        self.tlansLation()
-    }
-    
-    func rewardBasedVideoAdDidReceive(_ rewardBasedVideoAd:GADRewardBasedVideoAd) {
-        print("Reward based video ad is received.")
-    }
-    
-    func rewardBasedVideoAdDidOpen(_ rewardBasedVideoAd: GADRewardBasedVideoAd) {
-        print("Opened reward based video ad.")
-    }
-
-    
-    func rewardBasedVideoAdDidStartPlaying(_ rewardBasedVideoAd: GADRewardBasedVideoAd) {
-        print("Reward based video ad started playing.")
-    }
-    
-    func rewardBasedVideoAdDidCompletePlaying(_ rewardBasedVideoAd: GADRewardBasedVideoAd) {
-        print("Reward based video ad has completed.")
-    }
-    func rewardBasedVideoAdWillLeaveApplication(_ rewardBasedVideoAd: GADRewardBasedVideoAd) {
-        print("Reward based video ad will leave application.")
-        
-    }
-    
-    func rewardBasedVideoAd(_ rewardBasedVideoAd: GADRewardBasedVideoAd,
-                            didFailToLoadWithError error: Error) {
-        print("Reward based video ad failed to load.")
-    }
-    // maio
-    //- (void)maioDidClickAd:(NSString *)zoneId;
-    func maioDidClickAd(_ zoneId: String) {
-        if zoneId == MAIO_ZONEID_INTERSTISHAL{
-            MAIO_TAP_FLG = true
-        }
-        MAIO_TAP_FLG = true
-    }
-    func maioDidCloseAd(_ zoneId: String) {
-        // 広告がクリックされた際に呼び出される処理
-        if zoneId == MAIO_ZONEID_INTERSTISHAL{
-            if MAIO_TAP_FLG {
-                TRANS_REWARD_COUNT = TRANS_REWARD_COUNT + TRAN_AD_INTERVAL
-                if TRANS_REWARD_COUNT < -5 {
-                    TRANS_REWARD_COUNT = -5
-                }
-                UserDefaults.standard.set(TRANS_REWARD_COUNT, forKey: "transCount")
-                self.waitView.isHidden = false
-                self.FROM_TRAND_AD = false
-                self.tlansLation()
-            }else{
-                self.transSegment.selectedSegmentIndex = BEFORE_TRANS
-            }
-        }
-        if MAIO_TAP_FLG {
-            TRANS_REWARD_COUNT = TRANS_REWARD_COUNT + TRAN_AD_INTERVAL
-            if TRANS_REWARD_COUNT < -5 {
-                TRANS_REWARD_COUNT = -5
-            }
-            UserDefaults.standard.set(TRANS_REWARD_COUNT, forKey: "transCount")
-            self.waitView.isHidden = false
-            self.FROM_TRAND_AD = false
-            self.tlansLation()
-        }
-        MAIO_TAP_FLG = false
-    }
-//    - (void)maioDidFinishAd:(NSString *)zoneId playtime:(NSInteger)playtime skipped:(BOOL)skipped rewardParam:(NSString *)rewardParam;
-    func maioDidFinishAd(_ zoneId: String, playtime: Int, skipped:Bool, rewardParam:String){
-        // 広告視聴完了の際に呼び出される処理
-        if zoneId == MAIO_ZONEID_REWARD{
-            ADMOB_REWARD_RECEIVED = true
-            TRANS_REWARD_COUNT = TRANS_REWARD_COUNT + Int(3)
-            if TRANS_REWARD_COUNT < -5 {
-                TRANS_REWARD_COUNT = -5
-            }
-            UserDefaults.standard.set(TRANS_REWARD_COUNT, forKey: "transCount")
-            self.waitView.isHidden = true
-            self.tlansLation()
-            self.transSegment.selectedSegmentIndex = AFTER_TRANS
-        }else{
-            
         }
     }
     

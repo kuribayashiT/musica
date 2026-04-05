@@ -11,7 +11,7 @@ import CoreData
 import AVFoundation
 import GoogleMobileAds
 
-class PlayMVViewController: UIViewController ,GADInterstitialDelegate,UICollectionViewDelegateFlowLayout {
+class PlayMVViewController: UIViewController ,UICollectionViewDelegateFlowLayout, FullScreenContentDelegate {
 
     /*
      ボタン関連
@@ -21,8 +21,8 @@ class PlayMVViewController: UIViewController ,GADInterstitialDelegate,UICollecti
     /*
      お気に入りCollectionView関連
      */
-    @IBOutlet weak var bannerView: GADBannerView!
-    var interstitial: GADInterstitial!
+    @IBOutlet weak var bannerView: BannerView!
+    var interstitial: InterstitialAd?
     @IBOutlet weak var OKINIIRICollectionView: UICollectionView!
     @IBOutlet weak var OKINIIRIEmptyView: UIView!
     var cellSize = CGSize()
@@ -83,7 +83,7 @@ class PlayMVViewController: UIViewController ,GADInterstitialDelegate,UICollecti
         
         selectMusicView.isHidden = true
         // 広告の準備
-        interstitial = createAndLoadInterstitial()
+        loadInterstitial()
         
         // バックグラウンドでも再生を続けるための設定
         let audioSession = AVAudioSession.sharedInstance()
@@ -131,7 +131,7 @@ class PlayMVViewController: UIViewController ,GADInterstitialDelegate,UICollecti
         if youtubeVideoIdList.count == 0 {
             OKINIIRIEmptyView.isHidden = false
             bannerView.isHidden = true
-            bannerView.adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(0)
+            bannerView.adSize = currentOrientationAnchoredAdaptiveBanner(width: 0)
         }else{
             OKINIIRIEmptyView.isHidden = true
             if ADApearFlg(){
@@ -141,7 +141,7 @@ class PlayMVViewController: UIViewController ,GADInterstitialDelegate,UICollecti
                 custumLoadBannerAd(bannerView: self.bannerView,setBannerView:self.view)
             }else{
                 bannerView.isHidden = true
-                bannerView.adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(10)
+                bannerView.adSize = currentOrientationAnchoredAdaptiveBanner(width: 10)
             }
         }
         OKINIIRICollectionView.reloadData()
@@ -365,8 +365,8 @@ class PlayMVViewController: UIViewController ,GADInterstitialDelegate,UICollecti
             if MV_PLAY_NUM % AD_DISPLAY_YOUTUBE_CONTENTS_NUM == 0{
                 if AD_DISPLAY_YOUTUBE_CONTENTS != false{
                     if interstitial != nil {
-                        if interstitial.isReady {
-                            interstitial.present(fromRootViewController: self)
+                        if interstitial != nil {
+                            interstitial?.present(from: self)
                         }
                     }
                 }
@@ -403,16 +403,17 @@ class PlayMVViewController: UIViewController ,GADInterstitialDelegate,UICollecti
     /*******************************************************************
      広告（Admob）の処理
      *******************************************************************/
-    func interstitialDidDismissScreen(_ ad: GADInterstitial){
-        interstitial = createAndLoadInterstitial()
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd){
+        loadInterstitial()
     }
-    func createAndLoadInterstitial() -> GADInterstitial {
-        let interstitial = GADInterstitial(adUnitID: ADMOB_INTERSTITIAL_MV)
-        interstitial.delegate = self
-        interstitial.load(GADRequest())
-        return interstitial
+    func loadInterstitial() {
+        InterstitialAd.load(with: ADMOB_INTERSTITIAL_MV, request: Request()) { [weak self] ad, error in
+            if let error = error { print("Interstitial failed to load: \(error)"); return }
+            self?.interstitial = ad
+            self?.interstitial?.fullScreenContentDelegate = self
+        }
     }
-    func interstitialWillLeaveApplication(_ ad: GADInterstitial) {
+    func adWillLeaveApplication(_ ad: FullScreenPresentingAd) {
         self.dismiss(animated: true, completion: nil)
     }
 }

@@ -15,13 +15,12 @@ import GoogleMobileAds
 import Instructions
 import DGElasticPullToRefresh
 import SDWebImage
-import SwiftGifOrigin
 import SWTableViewCell
 import Firebase
 import YoutubePlayer_in_WKWebView
 
 
-class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableViewDelegate ,MPMediaPickerControllerDelegate, AVAudioPlayerDelegate ,  CoachMarksControllerDataSource, CoachMarksControllerDelegate, APVAdManagerDelegate,FADDelegate, SWTableViewCellDelegate ,GADRewardedAdDelegate{
+class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableViewDelegate ,MPMediaPickerControllerDelegate, AVAudioPlayerDelegate ,  CoachMarksControllerDataSource, CoachMarksControllerDelegate, APVAdManagerDelegate,FADDelegate, SWTableViewCellDelegate ,FullScreenContentDelegate{
     /*
      チュートリアル
      */
@@ -44,8 +43,8 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     var subContentView = UIView()
     var aPVAd: UIView = UIView(frame: CGRect(x:0,y: 100,width: 320,height: 180))
     var aPVAdManager: APVAdManager?
-    var adLoader: GADAdLoader!
-    var nativeAdView: GADUnifiedNativeAdView!
+    var adLoader: AdLoader!
+    var nativeAdView: NativeAdView!
     var heightConstraint : NSLayoutConstraint?
     
     /*
@@ -71,7 +70,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     var registBtnCell = 0
     var playedFlg = false
     var ADwaitView = UIView()
-    var rewardedAd: GADRewardedAd?
+    var rewardedAd: RewardedAd?
     var remoteConfig: RemoteConfig!
     let mMusicController = MusicController()    
     override func viewDidLoad() {
@@ -136,7 +135,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
             musictableview.dg_addPullToRefreshWithActionHandler({ [weak self] () -> Void in
                 self?.musictableview.reloadData()
                 self?.musictableview.dg_stopLoading()
-                self?.adLoader.load(GADRequest())
+                self?.adLoader.load(Request())
                 }, loadingView: loadingView)
             musictableview.dg_setPullToRefreshFillColor(UIColor(red: 1.0, green: 0.6, blue: 0.0, alpha: 0.5))
             musictableview.dg_setPullToRefreshBackgroundColor(musictableview.backgroundColor!)
@@ -200,7 +199,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
         }
         
         let nibObjects = Bundle.main.loadNibNamed("UnifiedNativeAdView", owner: nil, options: nil)
-        let adView = (nibObjects?.first as? GADUnifiedNativeAdView)!
+        let adView = (nibObjects?.first as? NativeAdView)!
         setAdView(adView)
         if rewardADBtn != nil {
             if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue{
@@ -228,13 +227,10 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
         }else{
             KAKIN_FLG = UserDefaults.standard.bool(forKey: "kakin")
         }
-        rewardedAd = GADRewardedAd(adUnitID: ADMOB_REWARD_AD)
-        rewardedAd?.load(GADRequest()) { error in
-            if error != nil {
-            // Handle ad failed to load case.
-            } else {
-            // Ad successfully loaded.
-            }
+        RewardedAd.load(with: ADMOB_REWARD_AD, request: Request()) { [weak self] ad, error in
+            if let error = error { print("RewardedAd failed to load: \(error)"); return }
+            self?.rewardedAd = ad
+            self?.rewardedAd?.fullScreenContentDelegate = self
         }
         
         //timer処理
@@ -774,7 +770,15 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
      ボタンタップ時処理
      *******************************************************************/
     @IBAction func rewardADBtnTapped(_ sender: Any) {
-        removeADAlertApear(vc:self,rewardedAd: rewardedAd)
+        removeADAlertApear(vc:self,rewardedAd: rewardedAd) { [weak self] in
+            let now = NSDate()
+            let date1 = NSDate(timeInterval: TimeInterval(60 * 60 * 3), since: now as Date)
+            UserDefaults.standard.set(date1, forKey: "ADdate")
+            UserDefaults.standard.synchronize()
+            deleteAD()
+            self?.loadView()
+            self?.viewDidLoad()
+        }
     }
     // 「音楽ライブラリを作成する」ボタンタップ時
     @IBAction func makeMusicLibraryBtnTapped(_ sender: Any) {
@@ -875,7 +879,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     func checkRewardAD(){
         if ADApearFlg() {
             navigationItem.leftBarButtonItems = [rewardADAre] // crash
-            if rewardedAd!.isReady {
+            if rewardedAd != nil {
                 rewardADBtn.isHidden = false
             }else{
                 rewardADBtn.isHidden = true
@@ -887,23 +891,12 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     /*---------------------
      ADMOB Reward delegate
      --------------------*/
-    func rewardedAd(_ rewardedAd: GADRewardedAd, userDidEarn reward: GADAdReward) {
-        let now = NSDate()
-        let date1 = NSDate(timeInterval: TimeInterval(60 * 60 * Int(truncating: 3)), since: now as Date)
-        UserDefaults.standard.set(date1, forKey: "ADdate")
-        UserDefaults.standard.synchronize()
-        deleteAD()
-        self.loadView()
-        self.viewDidLoad()
-    }
-    func rewardedAdDidDismiss(_ rewardedAd: GADRewardedAd) {
-      if DEBUG_FLG {
-          let _ad = GADRewardedAd(adUnitID: ADMOB_REWARD_TRANS_test)
-          _ad.load(GADRequest())
-      }else{
-          let _ad = GADRewardedAd(adUnitID: ADMOB_REWARD_AD)
-          _ad.load(GADRequest())
-      }
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        RewardedAd.load(with: DEBUG_FLG ? ADMOB_REWARD_TRANS_test : ADMOB_REWARD_AD, request: Request()) { [weak self] ad, error in
+            if let error = error { print("RewardedAd reload failed: \(error)"); return }
+            self?.rewardedAd = ad
+            self?.rewardedAd?.fullScreenContentDelegate = self
+        }
     }
     func adViewDidFail(toLoad view: AmazonAdView!, withError: AmazonAdError!) -> Void {
         Swift.print("Ad Failed to load. Error code \(withError.errorCode): \(String(describing: withError.errorDescription))")

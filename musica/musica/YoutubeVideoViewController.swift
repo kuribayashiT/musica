@@ -10,7 +10,7 @@ import UIKit
 import WebKit
 import GoogleMobileAds
 import CoreData
-import ReachabilitySwift
+import Reachability
 import AVFoundation
 import MediaPlayer
 
@@ -23,7 +23,7 @@ class YoutubeVideoViewController: UIViewController, AVAudioPlayerDelegate ,WKNav
     // Youtube再生
     @IBOutlet weak var waitView: UIVisualEffectView!
     var youtubeVideoWebView = WKWebView()
-    let reachability = Reachability()!
+    let reachability = try! Reachability()
     // お気に入り動画に追加ボタン
     @IBOutlet weak var addOKINIIRIBtn: UIButton!
     var addFlg : Bool = true
