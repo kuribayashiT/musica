@@ -44,7 +44,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     var FROM_TRAND_AD = false
     let transition = BubbleTransition()
     var textAreaEditHeihgt:CGFloat = 0
-    var color = UIColor.lightGray
+    var color = AppColor.inactive
     var toLangCode = Int()
     let jsonEncoder = JSONEncoder()
     var interstitial: InterstitialAd?
@@ -87,10 +87,10 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         
         waitView.isHidden = true
         helpBtn.isEnabled = true
-        langSelectBtn.layer.borderColor = UIColor.darkGray.cgColor
-        clearOrShareBtn.layer.borderColor = UIColor.darkGray.cgColor
-        registerBtn.layer.borderColor = UIColor.darkGray.cgColor
-        resetBtn.layer.borderColor = UIColor.darkGray.cgColor
+        langSelectBtn.layer.borderColor = AppColor.textSecondary.cgColor
+        clearOrShareBtn.layer.borderColor = AppColor.textSecondary.cgColor
+        registerBtn.layer.borderColor = AppColor.textSecondary.cgColor
+        resetBtn.layer.borderColor = AppColor.textSecondary.cgColor
         // チュートリアル
         self.coachMarksController.dataSource = self
         coachMarksController.overlay.blurEffectStyle = UIBlurEffect.Style(rawValue: 2) // ボカシ具合
@@ -181,7 +181,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
                 self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
                 self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
             }
-            color = UIColor(red: 1.0, green: 0.0, blue: 0.0, alpha: 1.0)
+            color = AppColor.destructive
             // 既存の歌詞をセット
             if LYRIC_RESULT_TEXT == ""{
                 switch transSegment.selectedSegmentIndex {
@@ -245,7 +245,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
                 self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SCAN.rawValue]
             }
         
-            color = UIColor(red: 1.0, green: 0.0, blue: 0.0, alpha: 1.0)
+            color = AppColor.destructive
             self.navigationItem.title = localText(key:"trans_title")
             
             switch transSegment.selectedSegmentIndex {
@@ -273,7 +273,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             //cameraBtn.backgroundColor = UIColor(red: 0.0, green: 0.5, blue: 1.0, alpha: 1.0)
         } else {
             // iOS9以前の場合
-            cameraBtn.backgroundColor = UIColor.lightGray
+            cameraBtn.backgroundColor = AppColor.inactive
         }
         NotificationCenter.default.addObserver(self, selector: #selector(self.reachabilityChanged),name: ReachabilityChangedNotification,object: reachability)
         do{
@@ -1292,7 +1292,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
         }
         
-        coachViews.bodyView.nextLabel.textColor = UIColor(red: 0.8, green: 0.0, blue: 0.4, alpha: 1.0)
+        coachViews.bodyView.nextLabel.textColor = AppColor.accent
         
         return (bodyView: coachViews.bodyView, arrowView: coachViews.arrowView)
     }
@@ -1393,13 +1393,13 @@ extension scanViewController : UIViewControllerTransitioningDelegate{
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         transition.transitionMode = .present
         transition.startingPoint = CGPoint(x:myAppFrameSize.width / 2 ,y:myAppFrameSize.height - cameraBtn.center.y + (cameraBtn.frame.height / 4))
-        transition.bubbleColor = UIColor.black
+        transition.bubbleColor = AppColor.overlay
         return transition
     }
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         transition.transitionMode = .dismiss
         transition.startingPoint =  CGPoint(x:myAppFrameSize.width / 2 ,y:myAppFrameSize.height - cameraBtn.center.y + (cameraBtn.frame.height / 4))
-        transition.bubbleColor = UIColor.black
+        transition.bubbleColor = AppColor.overlay
         return transition
     }
     

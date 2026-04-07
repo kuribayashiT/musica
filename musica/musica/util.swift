@@ -93,14 +93,19 @@ extension CALayer {
         self.borderColor = color.cgColor
     }
 }
-func setNavigationberStyle(naviBar:UINavigationBar,place:Int){
-    naviBar.isTranslucent = true
-    naviBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][place]
-    //バーアイテムカラー
-    naviBar.tintColor = UIColor.white
-    naviBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][place]]
-    naviBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][place]
-
+func setNavigationberStyle(naviBar:UINavigationBar, place:Int){
+    let appearance = UINavigationBarAppearance()
+    appearance.configureWithOpaqueBackground()
+    appearance.backgroundColor        = AppColor.navigationBackground
+    appearance.titleTextAttributes    = AppFont.navigationTitleAttributes(color: AppColor.navigationForeground)
+    appearance.largeTitleTextAttributes = [
+        .foregroundColor: AppColor.navigationForeground,
+        .font: AppFont.largeTitle
+    ]
+    naviBar.standardAppearance   = appearance
+    naviBar.scrollEdgeAppearance = appearance
+    naviBar.compactAppearance    = appearance
+    naviBar.tintColor            = AppColor.navigationForeground
 }
 // Dark Mode対応 - Navigation Color
 func darkModeNaviWhiteUIcolor() -> UIColor{

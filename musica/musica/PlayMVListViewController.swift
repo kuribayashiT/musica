@@ -149,18 +149,18 @@ class PlayMVViewController: UIViewController ,UICollectionViewDelegateFlowLayout
     func makeEditBtn() -> UIBarButtonItem{
         let button = UIButton(type: UIButton.ButtonType.system)
         button.frame.size = CGSize(width: 80, height: 30)
-        button.setTitleColor(UIColor.darkGray, for: UIControl.State.normal)
+        button.setTitleColor(AppColor.textSecondary, for: UIControl.State.normal)
         if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue {
             button.layer.borderWidth = 1.0
-            button.layer.borderColor = UIColor.darkGray.cgColor
+            button.layer.borderColor = AppColor.textSecondary.cgColor
         }else{
             button.layer.borderWidth = 0
             button.layer.borderColor = UIColor.clear.cgColor
         }
         button.layer.cornerRadius = 5
-        button.backgroundColor = UIColor.white
+        button.backgroundColor = AppColor.surface
         button.addTarget(self, action: #selector(self.editDoneBtnTapped), for: UIControl.Event.touchUpInside)
-        button.titleLabel?.font =  UIFont.systemFont(ofSize: 13 ,weight: UIFont.Weight.regular)
+        button.titleLabel?.font =  AppFont.footnote
         button.setTitle(localText(key:"btn_edit"), for: UIControl.State.normal)
         let barButton = UIBarButtonItem(customView: button)
         return barButton
@@ -445,9 +445,9 @@ extension PlayMVViewController: UICollectionViewDataSource {
             cell.youtubeVideoTitle.font = UIFont(name: "Thonburi", size: 7)
         }
         // 画像の表示調整
-        cell.youtubeVideoThumbnail.backgroundColor = UIColor.black
+        cell.youtubeVideoThumbnail.backgroundColor = AppColor.surface
         cell.youtubeVideoThumbnail.contentMode = .scaleAspectFit
-        cell.youtubeVideoThumbnail.layer.borderColor = UIColor.black.cgColor
+        cell.youtubeVideoThumbnail.layer.borderColor = AppColor.border.cgColor
         //imgUrlStringをNSURL型に変換
         let imgUrl: NSURL = NSURL(string: youtubeVideoThumbnailUrl[(indexPath as NSIndexPath).row])!
         //画像データに変換
@@ -474,7 +474,7 @@ extension PlayMVViewController: UICollectionViewDataSource {
             editDoneBtn.title = localText(key:"btn_edit")
             let bn = editDoneBtn.customView! as! UIButton
             bn.setTitle(editDoneBtn.title, for: .normal)
-            editDoneBtn.setTitleTextAttributes([NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: 18)], for: UIControl.State.normal)
+            editDoneBtn.setTitleTextAttributes([NSAttributedString.Key.font: AppFont.title2], for: UIControl.State.normal)
             cell.deleteBtn.tag = (indexPath as NSIndexPath).row
             cell.deleteBtn.isHidden = true
         }else{
@@ -488,7 +488,7 @@ extension PlayMVViewController: UICollectionViewDataSource {
             editDoneBtn.title = localText(key:"home_edit_comp")
             let bn = editDoneBtn.customView! as! UIButton
             bn.setTitle(editDoneBtn.title, for: .normal)
-            editDoneBtn.setTitleTextAttributes([NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: 18)], for: UIControl.State.normal)
+            editDoneBtn.setTitleTextAttributes([NSAttributedString.Key.font: AppFont.title2], for: UIControl.State.normal)
             MV_SORT_ORDER_EDIT_FLG = true
         }
         return cell

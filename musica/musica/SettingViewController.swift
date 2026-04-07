@@ -227,7 +227,7 @@ class SettingViewController: UIViewController , UITableViewDataSource, UITableVi
                     ImageV.contentMode = .center
                     ImageV.frame =  CGRect(x: 0, y: 2 , width: Int(myAppFrameSize.width),height: Int(myAppFrameSize.width) * 11 / 16 )
     
-                    ImageV.backgroundColor = UIColor.white
+                    ImageV.backgroundColor = AppColor.surface
                     ImageV.image = UIImage(named: "homeicon_720")
                     cell.contentView.addSubview(myADView)
                     return cell

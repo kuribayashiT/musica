@@ -283,7 +283,7 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
                 //NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
                 self.navigationController?.navigationBar.isUserInteractionEnabled = false
                 self.navigationController?.interactivePopGestureRecognizer!.isEnabled = false
-                self.navigationController?.navigationBar.tintColor = UIColor.lightGray
+                self.navigationController?.navigationBar.tintColor = AppColor.inactive
                 self.waitView.alpha = 1.0
 
             }, completion:{ finished in

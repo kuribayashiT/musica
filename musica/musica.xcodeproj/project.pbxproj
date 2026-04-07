@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AAAAAA0000000002AAAAAA01 /* AppColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAA0000000001AAAAAA01 /* AppColor.swift */; };
+		AAAAAA0000000002AAAAAA02 /* AppFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAA0000000001AAAAAA02 /* AppFont.swift */; };
 		0C052EC921DA129100EDC8D0 /* CBAutoScrollLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 0C052EC821DA129100EDC8D0 /* CBAutoScrollLabel.m */; };
 		0C07C1461F24959A0033E368 /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0C07C1451F24959A0033E368 /* MessageUI.framework */; };
 		0C07C1481F24FB1B0033E368 /* SettingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C07C1471F24FB1B0033E368 /* SettingTableViewCell.swift */; };
@@ -124,7 +126,6 @@
 			remoteGlobalIDString = 0CC5920B1EA37E6D00BD5A82;
 			remoteInfo = musica;
 		};
-
 		B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4 /* Pods.xcodeproj */;
@@ -132,10 +133,11 @@
 			remoteGlobalIDString = D068F84CC529DE323FD3DE21279E48C8;
 			remoteInfo = "Pods-musica";
 		};
-		/* End PBXContainerItemProxy section */
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4 /* Pods.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Pods.xcodeproj; path = Pods/Pods.xcodeproj; sourceTree = "<group>"; };
+		AAAAAA0000000001AAAAAA01 /* AppColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColor.swift; sourceTree = "<group>"; };
+		AAAAAA0000000001AAAAAA02 /* AppFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFont.swift; sourceTree = "<group>"; };
 		0025313EAF3AECFBFD289E96 /* Pods-musicaTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-musicaTests.release.xcconfig"; path = "Target Support Files/Pods-musicaTests/Pods-musicaTests.release.xcconfig"; sourceTree = "<group>"; };
 		04CEBF1CB4DB63D661E7ED7B /* Pods_musicaTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_musicaTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0C052EC721DA129000EDC8D0 /* CBAutoScrollLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CBAutoScrollLabel.h; sourceTree = "<group>"; };
@@ -255,6 +257,7 @@
 		6BADFB06CDC5B483557F75C4 /* Pods-musicaTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-musicaTests.debug.xcconfig"; path = "Target Support Files/Pods-musicaTests/Pods-musicaTests.debug.xcconfig"; sourceTree = "<group>"; };
 		6C1FB35A96DEA9FEAF8AD42B /* Pods_musica.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_musica.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D80474C73C3E3C989F857A8 /* Pods-musicaUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-musicaUITests.release.xcconfig"; path = "Target Support Files/Pods-musicaUITests/Pods-musicaUITests.release.xcconfig"; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4 /* Pods.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Pods.xcodeproj; path = Pods/Pods.xcodeproj; sourceTree = "<group>"; };
 		BF9862B196B85C662F61F2E5 /* Pods-musica.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-musica.debug.xcconfig"; path = "Target Support Files/Pods-musica/Pods-musica.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -434,6 +437,7 @@
 		0CC5920E1EA37E6D00BD5A82 /* musica */ = {
 			isa = PBXGroup;
 			children = (
+				AAAAAA0000000003AAAAAA01 /* Theme */,
 				0C052EC721DA129000EDC8D0 /* CBAutoScrollLabel.h */,
 				0C052EC821DA129100EDC8D0 /* CBAutoScrollLabel.m */,
 				0CA391D2200A4A8700E1C8DB /* musica.entitlements */,
@@ -572,6 +576,16 @@
 				6D80474C73C3E3C989F857A8 /* Pods-musicaUITests.release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+
+		AAAAAA0000000003AAAAAA01 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				AAAAAA0000000001AAAAAA01 /* AppColor.swift */,
+				AAAAAA0000000001AAAAAA02 /* AppFont.swift */,
+			);
+			path = Theme;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -941,6 +955,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AAAAAA0000000002AAAAAA01 /* AppColor.swift in Sources */,
+				AAAAAA0000000002AAAAAA02 /* AppFont.swift in Sources */,
 				0CA7DAD124D304C8003BF76F /* SettingViewController.swift in Sources */,
 				0C6B70E72287386C006D6AD6 /* RemoveADViewController.swift in Sources */,
 				0CA27E7E1F5A68F500E1C01B /* OKINIIRICollectionViewCell.swift in Sources */,
@@ -1032,13 +1048,12 @@
 			target = 0CC5920B1EA37E6D00BD5A82 /* musica */;
 			targetProxy = 0CC5922E1EA37E6D00BD5A82 /* PBXContainerItemProxy */;
 		};
-
 		C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Pods-musica";
 			targetProxy = B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5 /* PBXContainerItemProxy */;
 		};
-		/* End PBXTargetDependency section */
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		0C77C4A4231D555200C589B5 /* Localizable.strings */ = {
@@ -1226,13 +1241,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = musica/musica.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4.1.9;
 				DEVELOPMENT_TEAM = SCU9EZ2EKX;
 				ENABLE_BITCODE = NO;
-				
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/musica",
@@ -1260,13 +1273,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = musica/musica.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4.1.9;
 				DEVELOPMENT_TEAM = SCU9EZ2EKX;
 				ENABLE_BITCODE = NO;
-				
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/musica",

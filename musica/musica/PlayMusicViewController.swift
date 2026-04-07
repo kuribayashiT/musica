@@ -71,7 +71,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         backButton.title = " "
         self.navigationItem.backBarButtonItem = backButton
         MusicArtWorkView.isHidden = false
-        LyricTextView.font = UIFont.boldSystemFont(ofSize: CGFloat(SETTING_LYRIC_SIZE_NUM_ARRAY[SETTING_LYRIC_SIZE_NUM]))
+        LyricTextView.font = AppFont.lyric(sizeIndex: SETTING_LYRIC_SIZE_NUM)
         mojiSizeBtn.setTitle(SETTING_LYRIC_SIZE_NAME_ARRAY[SETTING_LYRIC_SIZE_NUM], for: .normal)
         mojiSizeBtn.isHidden = true
         musicArtWorkImgView.clipsToBounds = true
@@ -80,7 +80,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         shadowView.layer.shadowRadius = 10
         shadowView.layer.cornerRadius = 5
         shadowView.backgroundColor = darkModeIconBlackUIcolor()
-        musicArtWorkImgView.backgroundColor = UIColor.black
+        musicArtWorkImgView.backgroundColor = AppColor.playerBackground
         musicArtWorkImgView.layer.cornerRadius = 5
         speedPicker.delegate = self
         speedPicker.dataSource = self
@@ -137,7 +137,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             // 音楽コントローラー/広告のレイアウト
             adRemoveBtn.isHidden = true
             banner.isHidden = false
-            banner.backgroundColor = UIColor.black
+            banner.backgroundColor = AppColor.playerBackground
             var OS11upFlg = false
             if #available(iOS 11.0, *){
                 // iOS11 以降の場合
@@ -234,7 +234,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         // 音楽再生
         if SHUFFLE_FLG == false {
             shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            shuffleBtn.tintColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 0.7)
+            shuffleBtn.tintColor = AppColor.inactive
             if audioPlayer == nil {
 /*!DEBUG!*/     playMusicWrapper(playData: NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum])
             }else{
@@ -263,7 +263,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
 /*!DEBUG!*/ playMusicWrapper(playData: NowPlayingMusicLibraryData.trackData[newSelectPlayNum])
         }else{
             shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            shuffleBtn.tintColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
+            shuffleBtn.tintColor = AppColor.accent
             if audioPlayer == nil {
                 playMusicWrapper(playData: NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum])
             }else{
@@ -468,7 +468,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         if SHUFFLE_FLG {
             SHUFFLE_FLG = false
             shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            shuffleBtn.tintColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 0.7)
+            shuffleBtn.tintColor = AppColor.inactive
             for i in 0...NowPlayingMusicLibraryData.trackData.count - 1 {
                 if NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying].url == NowPlayingMusicLibraryData.trackData[i].url{
                     NowPlayingMusicLibraryData.nowPlaying = i
@@ -479,7 +479,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         }else{
             SHUFFLE_FLG = true
             shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            shuffleBtn.tintColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
+            shuffleBtn.tintColor = AppColor.accent
             for i in 0...NowPlayingMusicLibraryData.trackDataShuffled.count - 1 {
                 if NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying].url == NowPlayingMusicLibraryData.trackDataShuffled[i].url{
                     NowPlayingMusicLibraryData.nowPlaying = i
@@ -745,8 +745,8 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
          if sectionRepeatEditFlg {
              musicProgressSlider.isEnabled = false
              multiRepeatSlider.disabledThumbIndices = []
-             multiRepeatSlider.outerTrackColor = UIColor.white
-             multiRepeatSlider.tintColor = UIColor.darkGray
+             multiRepeatSlider.outerTrackColor = AppColor.surface
+             multiRepeatSlider.tintColor = AppColor.textSecondary
          }else{
              musicProgressSlider.isEnabled = true
              multiRepeatSlider.disabledThumbIndices = [0,1]
@@ -813,16 +813,16 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         switch nowSegment {
         case REPEAT_STATE_NONE:
             repeatBtn.setImage(UIImage(named: "repeat")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            repeatBtn.tintColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 0.7)
+            repeatBtn.tintColor = AppColor.inactive
         case REPEAT_STATE_ALL:
             repeatBtn.setImage(UIImage(named: "repeat")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            repeatBtn.tintColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
+            repeatBtn.tintColor = AppColor.accent
         case REPEAT_STATE_ONE:
             repeatBtn.setImage(UIImage(named: "repeat1")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            repeatBtn.tintColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
+            repeatBtn.tintColor = AppColor.accent
         default:
             repeatBtn.setImage(UIImage(named: "repeat")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            repeatBtn.tintColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 0.7)
+            repeatBtn.tintColor = AppColor.inactive
         }
         repeatState = nowSegment
     }

@@ -149,10 +149,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
         Analytics.setUserProperty(String(SCAN_USE_NUM), forName: "スキャン回数")
         Analytics.setUserProperty(String(TRANS_USE_NUM), forName: "翻訳回数")
 
-        // カラーテーマ設定
-        if UserDefaults.standard.object(forKey: "colorthema") != nil{
-            NOW_COLOR_THEMA = UserDefaults.standard.integer(forKey: "colorthema")
-        }
+        // カラーテーマ設定（AppTheme で一元管理）
+        AppTheme.restoreFromUserDefaults()
 
         if UserDefaults.standard.object(forKey: "transCount") == nil{
             UserDefaults.standard.set(TRANS_REWARD_COUNT, forKey: "transCount")

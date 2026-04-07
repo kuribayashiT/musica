@@ -92,7 +92,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         autoScrollTrackTitleLebel.pauseInterval = 1;                          // スクロール前の一時停止時間
         autoScrollTrackTitleLebel.scrollSpeed = 50.0;                         // スクロール速度
         autoScrollTrackTitleLebel.fadeLength = 10.0;                          // 左端と右端のフェードの長さ
-        autoScrollTrackTitleLebel.font = UIFont.boldSystemFont(ofSize: 16)
+        autoScrollTrackTitleLebel.font = AppFont.miniPlayerTitle
 
         
         
@@ -291,16 +291,16 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     func makeEditBtn() -> UIBarButtonItem{
         let button = UIButton(type: UIButton.ButtonType.system)
         button.frame.size = CGSize(width: 80, height: 30)
-        button.setTitleColor(UIColor.darkGray, for: UIControl.State.normal)
+        button.setTitleColor(AppColor.textSecondary, for: UIControl.State.normal)
         if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue {
             button.layer.borderWidth = 1.0
-            button.layer.borderColor = UIColor.darkGray.cgColor
+            button.layer.borderColor = AppColor.textSecondary.cgColor
         }else{
             button.layer.borderWidth = 0
             button.layer.borderColor = UIColor.clear.cgColor
         }
         button.layer.cornerRadius = 5
-        button.backgroundColor = UIColor.white
+        button.backgroundColor = AppColor.surface
         button.addTarget(self, action: #selector(self.editDoneBtnTapped), for: UIControl.Event.touchUpInside)
         //button.titleLabel?.font =  UIFont.systemFont(ofSize: 13 ,weight: UIFont.Weight.ultraLight)
         button.setTitle(NAVUGATION_BTN_EDIT_END, for: UIControl.State.normal)
@@ -311,18 +311,18 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     func makeAddTrackBtn() -> UIBarButtonItem{
         let button = UIButton(type: UIButton.ButtonType.system)
         button.frame.size = CGSize(width: 80, height: 30)
-        button.setTitleColor(UIColor.darkGray, for: UIControl.State.normal)
+        button.setTitleColor(AppColor.textSecondary, for: UIControl.State.normal)
         if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue {
             button.layer.borderWidth = 1.0
-            button.layer.borderColor = UIColor.darkGray.cgColor
+            button.layer.borderColor = AppColor.textSecondary.cgColor
         }else{
             button.layer.borderWidth = 0
             button.layer.borderColor = UIColor.clear.cgColor
         }
         button.layer.cornerRadius = 5
-        button.backgroundColor = UIColor.white
+        button.backgroundColor = AppColor.surface
         button.addTarget(self, action: #selector(self.addTrack), for: UIControl.Event.touchUpInside)
-        button.titleLabel?.font =  UIFont.systemFont(ofSize: 13 ,weight: UIFont.Weight.regular)
+        button.titleLabel?.font =  AppFont.footnote
         button.setTitle(localText(key:"home_addtrack_btn"), for: UIControl.State.normal)
         let barButton = UIBarButtonItem(customView: button)
         nowBarBtn = 0
@@ -341,7 +341,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         // テーブルにmusicのデータを表示する
         let playData = displayMusicLibraryData.trackData[(indexPath as NSIndexPath).row]
         cell.trackTitleLabel.text = playData.title
-        cell.trackTitleLabel.font = UIFont.boldSystemFont(ofSize: 15)
+        cell.trackTitleLabel.font = AppFont.headline
         cell.albumTitleLabel.text = playData.artist
         cell.trackNumLabel.text = String( indexPath.row + 1 )
         
@@ -433,8 +433,8 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     // 右からのスワイプ時のボタンの定義
     func getRightUtilityButtonsToCell()-> NSArray {
         let utilityButtons: NSMutableArray = NSMutableArray()
-        utilityButtons.add(addUtilityButtonWithColor(color: UIColor.lightGray, icon:UIImage(named: "edit")!))
-        utilityButtons.add(addUtilityButtonWithColor(color: UIColor(red: 1.0, green: 0.0, blue: 0.0, alpha: 0.8), icon:UIImage(named: "delete")!))
+        utilityButtons.add(addUtilityButtonWithColor(color: AppColor.inactive, icon:UIImage(named: "edit")!))
+        utilityButtons.add(addUtilityButtonWithColor(color: AppColor.destructive, icon:UIImage(named: "delete")!))
         return utilityButtons
     }
     // ボタンの追加(なんかObj-CのNSMutableArray拡張ヘッダーが上手く反映できてないので)

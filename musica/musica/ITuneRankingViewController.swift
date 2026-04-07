@@ -81,9 +81,9 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
         // tableViewカスタマイズ
         if #available(iOS 11.0, *) {
             let loadingView = DGElasticPullToRefreshLoadingViewCircle()
-            reloadBtn.setTitleColor(UIColor.lightGray, for: .highlighted)
+            reloadBtn.setTitleColor(AppColor.inactive, for: .highlighted)
             // PullToRefresh
-            loadingView.tintColor = UIColor.white
+            loadingView.tintColor = AppColor.navigationForeground
             iTunesRankingTableView.dg_addPullToRefreshWithActionHandler({ [weak self] () -> Void in
                 self?.seachYouTubeVideoInformation(viewMode : (self?.selectViewModeBtn.selectedSegmentIndex)!, waitMode: false)
                 self?.iTunesRankingTableView.dg_stopLoading()

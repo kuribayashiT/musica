@@ -122,7 +122,7 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,APVAdManage
          */
         if #available(iOS 11.0, *) {
             let loadingView = DGElasticPullToRefreshLoadingViewCircle()
-            loadingView.tintColor = UIColor.white
+            loadingView.tintColor = AppColor.navigationForeground
                 searchResultTableView.dg_addPullToRefreshWithActionHandler({ [weak self] () -> Void in
                     getRecommendMV(collect:self!.recommendMVCollectView)
                     getRecommendWard(collect:self!.recommendWardCollectView)
@@ -140,9 +140,9 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,APVAdManage
         seachTextField.showsSearchResultsButton = false
         seachTextField.placeholder = localText(key:"search")
         seachTextField.showsCancelButton = true
-        seachTextField.tintColor = UIColor.red
-        reloadBtn.setTitleColor(UIColor.lightGray, for: .highlighted)
-        categoryIDBtn.tintColor = UIColor.blue
+        seachTextField.tintColor = AppColor.accent
+        reloadBtn.setTitleColor(AppColor.inactive, for: .highlighted)
+        categoryIDBtn.tintColor = AppColor.accent
         searchResultTableView.isEditing = false
         // キーボードの「閉じる」ボタン作成
         let kbToolBar = UIToolbar(frame: CGRect(x: 0, y: 0, width: 320, height: 40))
@@ -225,7 +225,7 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,APVAdManage
         
         searchResultTableView.dg_setPullToRefreshFillColor(NAVIGATION_PTR_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SEARCH.rawValue])
         searchResultTableView.dg_setPullToRefreshBackgroundColor(searchResultTableView.backgroundColor!)
-        categoryIDBtn.tintColor = UIColor.darkGray
+        categoryIDBtn.tintColor = AppColor.textSecondary
         
         let nibObjectsCollect = Bundle.main.loadNibNamed("UnifiedNativeAdViewAboutRecommend", owner: nil, options: nil)
         let adViewCollect = (nibObjectsCollect?.first as? NativeAdView)!
@@ -244,7 +244,7 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,APVAdManage
         recommendSearchWdView.isHidden = judgeDisplayRecommendWard(flg:true)
         if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue {
             categoryIDBtn.layer.borderWidth = 1
-            categoryIDBtn.layer.borderColor = UIColor.darkGray.cgColor
+            categoryIDBtn.layer.borderColor = AppColor.textSecondary.cgColor
         }else{
             categoryIDBtn.layer.borderWidth = 0
             categoryIDBtn.layer.borderColor = UIColor.clear.cgColor
@@ -766,12 +766,12 @@ extension SearchViewController :  UICollectionViewDelegate,UICollectionViewDataS
                 // 初期化
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "mvAD", for: indexPath)
                 cell.layer.shadowOffset = CGSize(width: 0.0, height: 2.0)
-                cell.layer.shadowColor = UIColor.black.cgColor
+                cell.layer.shadowColor = AppColor.shadow.cgColor
                 cell.layer.shadowOpacity = 0.6
                 cell.layer.shadowRadius = 3
                 myADViewRecomend.layer.cornerRadius = 12
                 let bgView = UIView()
-                //bgView.backgroundColor = UIColor.lightGray
+                //bgView.backgroundColor = AppColor.inactive
                 //cell.frame = CGRect(x: 0, y: 0 , width: 150 ,height:174)
                 bgView.frame = CGRect(x: 4, y: 16 , width: 142 ,height:142)
                 bgView.layer.cornerRadius = 12

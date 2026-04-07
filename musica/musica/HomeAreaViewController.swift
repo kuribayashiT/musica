@@ -131,7 +131,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
         // PullToRefresh時の処理登録
         if #available(iOS 11.0, *) {
             let loadingView = DGElasticPullToRefreshLoadingViewCircle()
-            loadingView.tintColor = UIColor.white
+            loadingView.tintColor = AppColor.navigationForeground
             musictableview.dg_addPullToRefreshWithActionHandler({ [weak self] () -> Void in
                 self?.musictableview.reloadData()
                 self?.musictableview.dg_stopLoading()
@@ -204,10 +204,10 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
         if rewardADBtn != nil {
             if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue{
                 rewardADBtn.layer.borderWidth = 1
-                rewardADBtn.layer.borderColor = UIColor.darkGray.cgColor
-                rewardADBtn.setTitleColor(UIColor(red: 0.0, green: 0.64, blue: 1.0, alpha: 1.0), for: .normal)
+                rewardADBtn.layer.borderColor = AppColor.textSecondary.cgColor
+                rewardADBtn.setTitleColor(AppColor.accent, for: .normal)
             }else{
-                rewardADBtn.setTitleColor(UIColor(red: 0.0, green: 0.64, blue: 1.0, alpha: 1.0), for: .normal)
+                rewardADBtn.setTitleColor(AppColor.accent, for: .normal)
                 rewardADBtn.layer.borderWidth = 0
                 rewardADBtn.layer.borderColor = UIColor.clear.cgColor
             }
@@ -279,18 +279,18 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     func makeEditBtn() -> UIBarButtonItem{
         let button = UIButton(type: UIButton.ButtonType.system)
         button.frame.size = CGSize(width: 80, height: 30)
-        button.setTitleColor(UIColor.darkGray, for: UIControl.State.normal)
+        button.setTitleColor(AppColor.textSecondary, for: UIControl.State.normal)
         if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.BLACK.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue {
             button.layer.borderWidth = 1.0
-            button.layer.borderColor = UIColor.darkGray.cgColor
+            button.layer.borderColor = AppColor.textSecondary.cgColor
         }else{
             button.layer.borderWidth = 0
             button.layer.borderColor = UIColor.clear.cgColor
         }
         button.layer.cornerRadius = 5
-        button.backgroundColor = UIColor.white
+        button.backgroundColor = AppColor.surface
         button.addTarget(self, action: #selector(self.editDoneBtnTapped), for: UIControl.Event.touchUpInside)
-        button.titleLabel?.font =  UIFont.systemFont(ofSize: 13 ,weight: UIFont.Weight.regular)
+        button.titleLabel?.font =  AppFont.footnote
         button.setTitle(localText(key:"home_edit_comp"), for: UIControl.State.normal)
         let barButton = UIBarButtonItem(customView: button)
         nowBarBtn = 1
@@ -466,7 +466,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
             }else if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue {
                 cell.registerBtn.backgroundColor = BLACK
             }else{
-                cell.registerBtn.backgroundColor = UIColor(red: 194/255, green: 47/255, blue: 101/255, alpha: 1.0)
+                cell.registerBtn.backgroundColor = AppColor.accent
             }
             tableView.tableFooterView = UIView()
             cell.separatorInset = UIEdgeInsets.init(top: 0, left: myAppFrameSize.width, bottom: 0, right: 0)
@@ -646,8 +646,8 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     // tableのButtonを拡張 -右からのスワイプ時のボタンの定義
     func getRightUtilityButtonsToCell()-> NSArray {
         let utilityButtons: NSMutableArray = NSMutableArray()
-        utilityButtons.add(addUtilityButtonWithColor(color: UIColor.lightGray, icon:UIImage(named: "rename")!))
-        utilityButtons.add(addUtilityButtonWithColor(color: UIColor(red: 1.0, green: 0.0, blue: 0.0, alpha: 0.8), icon:UIImage(named: "delete")!))
+        utilityButtons.add(addUtilityButtonWithColor(color: AppColor.inactive, icon:UIImage(named: "rename")!))
+        utilityButtons.add(addUtilityButtonWithColor(color: AppColor.destructive, icon:UIImage(named: "delete")!))
         return utilityButtons
     }
     // ボタンの追加(なんかObj-CのNSMutableArray拡張ヘッダーが上手く反映できてないので)
@@ -943,7 +943,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     }
     // 動画の再生準備完了通知です。
     func onReady(toPlayAd ad: APVAdManager!, for nativeAd: APVNativeAd!) {
-        myADView.backgroundColor = UIColor.lightGray
+        myADView.backgroundColor = AppColor.inactive
         myADView.addSubview(aPVAd)
         ad.showAd(for: aPVAd)
 
@@ -1010,7 +1010,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
             coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
         }
     
-        coachViews.bodyView.nextLabel.textColor = UIColor(red: 0.8, green: 0.0, blue: 0.4, alpha: 1.0)
+        coachViews.bodyView.nextLabel.textColor = AppColor.accent
         
         return (bodyView: coachViews.bodyView, arrowView: coachViews.arrowView)
     }
