@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CCCCCC0000000002CCCCCC01 /* SpeedSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCCCC0000000001CCCCCC01 /* SpeedSheetViewController.swift */; };
+		CCCCCC0000000002CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCCCC0000000001CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift */; };
 		AAAAAA0000000002AAAAAA01 /* AppColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAA0000000001AAAAAA01 /* AppColor.swift */; };
 		AAAAAA0000000002AAAAAA02 /* AppFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAA0000000001AAAAAA02 /* AppFont.swift */; };
 		0C052EC921DA129100EDC8D0 /* CBAutoScrollLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 0C052EC821DA129100EDC8D0 /* CBAutoScrollLabel.m */; };
@@ -136,6 +138,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CCCCCC0000000001CCCCCC01 /* SpeedSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedSheetViewController.swift; sourceTree = "<group>"; };
+		CCCCCC0000000001CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayMusicViewControllerPlayerUI.swift; sourceTree = "<group>"; };
 		AAAAAA0000000001AAAAAA01 /* AppColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColor.swift; sourceTree = "<group>"; };
 		AAAAAA0000000001AAAAAA02 /* AppFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFont.swift; sourceTree = "<group>"; };
 		0025313EAF3AECFBFD289E96 /* Pods-musicaTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-musicaTests.release.xcconfig"; path = "Target Support Files/Pods-musicaTests/Pods-musicaTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -437,6 +441,8 @@
 		0CC5920E1EA37E6D00BD5A82 /* musica */ = {
 			isa = PBXGroup;
 			children = (
+				CCCCCC0000000001CCCCCC01 /* SpeedSheetViewController.swift */,
+				CCCCCC0000000001CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift */,
 				AAAAAA0000000003AAAAAA01 /* Theme */,
 				0C052EC721DA129000EDC8D0 /* CBAutoScrollLabel.h */,
 				0C052EC821DA129100EDC8D0 /* CBAutoScrollLabel.m */,
@@ -955,6 +961,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CCCCCC0000000002CCCCCC01 /* SpeedSheetViewController.swift in Sources */,
+				CCCCCC0000000002CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift in Sources */,
 				AAAAAA0000000002AAAAAA01 /* AppColor.swift in Sources */,
 				AAAAAA0000000002AAAAAA02 /* AppFont.swift in Sources */,
 				0CA7DAD124D304C8003BF76F /* SettingViewController.swift in Sources */,

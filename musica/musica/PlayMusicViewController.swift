@@ -103,6 +103,9 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             LyricView.effect = UIBlurEffect(style: .light)
             LyricBGView.isHidden = false
         }
+
+        // ── デザインシステム適用・プリセット速度UI追加 ──
+        setupPlayerUI()
     }
     override func viewDidAppear(_ animated: Bool) {
         if topViewController(controller: getForegroundViewController()) is PlayMusicViewController {
@@ -231,6 +234,10 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         repeatSwitch.selectedSegmentIndex = sectionRepeatStatus
         liricImgStateSegment(nowSegment : LYRIC_IMG_SEGMENT_STATE)
         repeatImgStateSegment(nowSegment : repeatState)
+        // 速度プリセットUI・状態ラベルの復元
+        restoreSpeedUI()
+        updateShuffleLabel()
+        updateRepeatLabel()
         // 音楽再生
         if SHUFFLE_FLG == false {
             shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
@@ -469,6 +476,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             SHUFFLE_FLG = false
             shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
             shuffleBtn.tintColor = AppColor.inactive
+            updateShuffleLabel()
             for i in 0...NowPlayingMusicLibraryData.trackData.count - 1 {
                 if NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying].url == NowPlayingMusicLibraryData.trackData[i].url{
                     NowPlayingMusicLibraryData.nowPlaying = i
@@ -480,6 +488,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             SHUFFLE_FLG = true
             shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
             shuffleBtn.tintColor = AppColor.accent
+            updateShuffleLabel()
             for i in 0...NowPlayingMusicLibraryData.trackDataShuffled.count - 1 {
                 if NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying].url == NowPlayingMusicLibraryData.trackDataShuffled[i].url{
                     NowPlayingMusicLibraryData.nowPlaying = i
@@ -825,6 +834,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             repeatBtn.tintColor = AppColor.inactive
         }
         repeatState = nowSegment
+        updateRepeatLabel()
     }
     /*******************************************************************
      広告関連の処理
