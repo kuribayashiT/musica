@@ -210,6 +210,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
             settingSectionTitle = settingSectionTitle_mukakin
             addAD()
         }
+        // シミュレータ用デモデータのシード（実機では何もしない）
+        DemoDataSeeder.seedIfNeeded(appDelegate: self)
+
         // CoreDataのマイグレーション
         var _: NSPersistentStoreCoordinator = {
             let coordinator = NSPersistentStoreCoordinator(managedObjectModel: (managedObjectModel))
