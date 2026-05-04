@@ -14,6 +14,17 @@ import Firebase
 import GoogleMobileAds
 import MultiSlider
 import StoreKit
+import WebKit
+
+// MARK: - Debug Logging
+// Release ビルドでは何も出力しない。print() の代わりに dlog() を使うこと。
+@inline(__always)
+func dlog(_ items: Any..., separator: String = " ", terminator: String = "\n") {
+#if DEBUG
+    let output = items.map { "\($0)" }.joined(separator: separator)
+    print(output, terminator: terminator)
+#endif
+}
 
 /*******************************************************************
  レイアウトのサイズ
@@ -87,6 +98,13 @@ let IPHONEXSMAX_HEIGHT  = 896
 /*******************************************************************
  レイアウトの色
  *******************************************************************/
+final class LargeTitleNavigationController: UINavigationController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        navigationBar.prefersLargeTitles = true
+    }
+}
+
 extension CALayer {
     
     func setBorderIBColor(color: UIColor!) -> Void{
@@ -177,8 +195,8 @@ func showCamereAlert() {
    alert.addAction(UIAlertAction(title :localText(key:"setting"), style: .default, handler: {(action: UIAlertAction!) ->Void in
    if let url = NSURL(string: UIApplication.openSettingsURLString) {
        UIApplication.shared.open(url as URL,options: [:],completionHandler: nil)
-       print("URL設定完了")}else{
-       print("アラート失敗")
+       dlog("URL設定完了")}else{
+       dlog("アラート失敗")
        }
    }
    ))
@@ -237,7 +255,7 @@ class MusicController{
         }
         // エラーチェック
         if let error = audioError {
-            print("Error \(error.localizedDescription)")
+            dlog("Error \(error.localizedDescription)")
             return error.localizedDescription
         
         }else{
@@ -261,7 +279,7 @@ class MusicController{
         }
         // エラーチェック
         if let error = audioError {
-            print("Error \(error.localizedDescription)")
+            dlog("Error \(error.localizedDescription)")
             return error.localizedDescription
             
         }else{
@@ -285,6 +303,14 @@ class MusicController{
         }else{
             return [0.0,1.0]
         }
+    }
+    // 区間リピートON/OFFを保存
+    public func setSectionRepeatEnabled(url: URL, isEnabled: Bool) {
+        UserDefaults.standard.set(isEnabled, forKey: url.absoluteString + "_sectionRepeatOn")
+    }
+    // 区間リピートON/OFFを取得
+    public func getSectionRepeatEnabled(url: URL) -> Bool {
+        return UserDefaults.standard.bool(forKey: url.absoluteString + "_sectionRepeatOn")
     }
     // Command
     public func commandAllEnabled(){
@@ -643,110 +669,120 @@ func nowLogTime() -> String { /* 2018-04-30 19:33:32.265253+0900 */
  共通トースト処理
  *******************************************************************/
 // 共通トースト
-func showToastMsg(messege:String,time:Double,tab:Int,setVc:UIViewController? = nil,Hposi:CGFloat = 0){
-    var toastLabel = UILabel()
-    let toasWidth = CGFloat(310)//myAppFrameSize.width - 32
-    let height = navigationBarHeight + statusBarHeight + 4 + Hposi
-    if Int(myAppFrameSize.height) == IPHONE_5_HEIGHT || Int(myAppFrameSize.height) == IPHONE_6_HEIGHT || Int(myAppFrameSize.height) == IPHONE_8PLUS_HEIGHT {
-        toastLabel = UILabel(frame: CGRect(x:((getForegroundViewController().view.bounds.width-toasWidth)/2),
-                                           y:height,//navigationBarHeight + statusBarHeight + 4,
-                                               width:toasWidth,
-                                               height:28))
-    }else{
-        toastLabel = UILabel(frame: CGRect(x:((getForegroundViewController().view.bounds.width-toasWidth)/2),
-                                           y:height,//navigationBarHeight + statusBarHeight + 4,
-                                           width:toasWidth,
-                                           height:28))
+// MARK: - Modern Toast (blur pill design)
+
+/// ブラー背景のモダントーストを表示する共通関数
+private func _presentToast(message: String, displayTime: Double, posY: CGFloat, multiline: Bool) {
+    let vc = getForegroundViewController()
+    let toastWidth: CGFloat = 300
+    let toastHeight: CGFloat = multiline ? 52 : 40
+    let radius: CGFloat = toastHeight / 2
+
+    // --- 影用ラッパー (clipsToBounds=false で影を出す) ---
+    let wrapper = UIView()
+    wrapper.backgroundColor = .clear
+    wrapper.layer.shadowColor = UIColor.black.cgColor
+    wrapper.layer.shadowOpacity = 0.22
+    wrapper.layer.shadowRadius  = 16
+    wrapper.layer.shadowOffset  = CGSize(width: 0, height: 6)
+    wrapper.layer.shadowPath = UIBezierPath(
+        roundedRect: CGRect(x: 0, y: 0, width: toastWidth, height: toastHeight),
+        cornerRadius: radius).cgPath
+    wrapper.frame = CGRect(
+        x: (vc.view.bounds.width - toastWidth) / 2,
+        y: posY,
+        width: toastWidth,
+        height: toastHeight)
+
+    // --- ブラービュー ---
+    let blur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
+    blur.frame = CGRect(x: 0, y: 0, width: toastWidth, height: toastHeight)
+    blur.layer.cornerRadius = radius
+    blur.clipsToBounds = true
+    wrapper.addSubview(blur)
+
+    // --- 半透明オーバーレイ (ブラーの上に少し色を乗せてコントラスト確保) ---
+    let overlay = UIView(frame: blur.bounds)
+    overlay.backgroundColor = UIColor.black.withAlphaComponent(0.12)
+    overlay.isUserInteractionEnabled = false
+    blur.contentView.addSubview(overlay)
+
+    // --- テキストラベル ---
+    let label = UILabel()
+    label.text = message
+    label.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
+    label.textColor = .white
+    label.textAlignment = .center
+    label.numberOfLines = multiline ? 2 : 1
+    label.adjustsFontSizeToFitWidth = true
+    label.minimumScaleFactor = 0.8
+    label.frame = CGRect(x: 16, y: 0, width: toastWidth - 32, height: toastHeight)
+    blur.contentView.addSubview(label)
+
+    // --- アニメーション ---
+    wrapper.alpha = 0
+    wrapper.transform = CGAffineTransform(scaleX: 0.84, y: 0.84)
+    vc.view.addSubview(wrapper)
+
+    UIView.animate(
+        withDuration: 0.42,
+        delay: 0,
+        usingSpringWithDamping: 0.68,
+        initialSpringVelocity: 0.4,
+        options: [.allowUserInteraction]
+    ) {
+        wrapper.alpha = 1
+        wrapper.transform = .identity
+    } completion: { _ in
+        UIView.animate(
+            withDuration: 0.28,
+            delay: displayTime,
+            options: [.curveEaseIn, .allowUserInteraction]
+        ) {
+            wrapper.alpha = 0
+            wrapper.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        } completion: { _ in
+            wrapper.removeFromSuperview()
+        }
     }
-    var toastBGColor:UIColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][tab]
-    if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue {
-        toastBGColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][tab]
-    }
-    toastLabel.backgroundColor = toastBGColor.withAlphaComponent(0.9)
-    toastLabel.textColor = UIColor.white
-    toastLabel.textAlignment = .center;
-    toastLabel.font = UIFont.boldSystemFont(ofSize: 12)
-    toastLabel.text = messege
-    toastLabel.alpha = 0.0
-    toastLabel.layer.cornerRadius = 14;
-    toastLabel.clipsToBounds  =  true
-    getForegroundViewController().view.addSubview(toastLabel)
-    DispatchQueue.main.asyncAfter(deadline: .now() , execute: {
-        UIView.animate(withDuration: 0.1, delay: 0.1, options: .curveEaseOut, animations: {
-            toastLabel.alpha = 1.0
-        }, completion: {(isCompleted) in
-            UIView.animate(withDuration: 0.3, delay: time, options: .curveEaseOut, animations: {
-                toastLabel.alpha = 0.0
-            }, completion: {(isCompleted) in
-                toastLabel.removeFromSuperview()
-            })
-        })
-    })
 }
-func showBigToastMsg(messege:String,time:Double,tab:Int,setVc:UIViewController? = nil,Hposi:CGFloat = 0){
-    var toastLabel = UILabel()
-    let toasWidth = CGFloat(310)//myAppFrameSize.width - 32
-    let height = navigationBarHeight + statusBarHeight + 4 + Hposi
-    if Int(myAppFrameSize.height) == IPHONE_5_HEIGHT || Int(myAppFrameSize.height) == IPHONE_6_HEIGHT || Int(myAppFrameSize.height) == IPHONE_8PLUS_HEIGHT {
-        toastLabel = UILabel(frame: CGRect(x:((getForegroundViewController().view.bounds.width-toasWidth)/2),
-                                           y:height,//navigationBarHeight + statusBarHeight + 4,
-                                               width:toasWidth,
-                                               height:40))
-    }else{
-        toastLabel = UILabel(frame: CGRect(x:((getForegroundViewController().view.bounds.width-toasWidth)/2),
-                                           y:height,//navigationBarHeight + statusBarHeight + 4,
-                                           width:toasWidth,
-                                           height:40))
-    }
-    var toastBGColor:UIColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][tab]
-    if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue {
-        toastBGColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][tab]
-    }
-    toastLabel.backgroundColor = toastBGColor.withAlphaComponent(0.9)
-    toastLabel.textColor = UIColor.white
-    toastLabel.textAlignment = .center;
-    toastLabel.font = UIFont.boldSystemFont(ofSize: 12)
-    toastLabel.text = messege
-    toastLabel.alpha = 0.0
-    toastLabel.layer.cornerRadius = 10;
-    toastLabel.clipsToBounds  =  true
-    toastLabel.numberOfLines = 2
-    getForegroundViewController().view.addSubview(toastLabel)
-    DispatchQueue.main.asyncAfter(deadline: .now() , execute: {
-        UIView.animate(withDuration: 0.1, delay: 0.1, options: .curveEaseOut, animations: {
-            toastLabel.alpha = 1.0
-        }, completion: {(isCompleted) in
-            UIView.animate(withDuration: 0.3, delay: time, options: .curveEaseOut, animations: {
-                toastLabel.alpha = 0.0
-            }, completion: {(isCompleted) in
-                toastLabel.removeFromSuperview()
-            })
-        })
-    })
+
+func showToastMsg(messege: String, time: Double, tab: Int, setVc: UIViewController? = nil, Hposi: CGFloat = 0) {
+    let posY = navigationBarHeight + statusBarHeight + 8 + Hposi
+    _presentToast(message: messege, displayTime: time, posY: posY, multiline: false)
 }
+
+func showBigToastMsg(messege: String, time: Double, tab: Int, setVc: UIViewController? = nil, Hposi: CGFloat = 0) {
+    let posY = navigationBarHeight + statusBarHeight + 8 + Hposi
+    _presentToast(message: messege, displayTime: time, posY: posY, multiline: true)
+}
+
 // 中央表示の小さいトースト
-func showToastCenterMsg(messege:String,time:Double){
-    let toastLabel = UILabel(frame: CGRect(x:((getForegroundViewController().view.bounds.width-320)/2),
-                                           y:300,
-                                           width:100,
-                                           height:50))
-    toastLabel.center = getForegroundViewController().view.center
-    toastLabel.backgroundColor = UIColor.black.withAlphaComponent(0.6)
-    toastLabel.textColor = UIColor.white
-    toastLabel.textAlignment = .center;
-    toastLabel.font = UIFont(name: "Montserrat-Light", size: 10.0)
-    toastLabel.text = messege
-    toastLabel.alpha = 1.0
-    toastLabel.layer.cornerRadius = 10;
-    toastLabel.clipsToBounds  =  true
-    getForegroundViewController().view.addSubview(toastLabel)
-    DispatchQueue.main.asyncAfter(deadline: .now() + time, execute: {
-        UIView.animate(withDuration: 0.3, delay: 0.1, options: .curveEaseOut, animations: {
-            toastLabel.alpha = 0.0
-        }, completion: {(isCompleted) in
-            toastLabel.removeFromSuperview()
-        })
-    })
+func showToastCenterMsg(messege: String, time: Double) {
+    let vc = getForegroundViewController()
+    let size: CGFloat = 120
+    let blur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
+    blur.frame = CGRect(x: (vc.view.bounds.width - size) / 2,
+                        y: (vc.view.bounds.height - size) / 2,
+                        width: size, height: size)
+    blur.layer.cornerRadius = 18
+    blur.clipsToBounds = true
+
+    let label = UILabel(frame: CGRect(x: 8, y: 0, width: size - 16, height: size))
+    label.text = messege
+    label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+    label.textColor = .white
+    label.textAlignment = .center
+    label.numberOfLines = 3
+    blur.contentView.addSubview(label)
+
+    blur.alpha = 0
+    vc.view.addSubview(blur)
+    UIView.animate(withDuration: 0.25) { blur.alpha = 1 } completion: { _ in
+        UIView.animate(withDuration: 0.3, delay: time) { blur.alpha = 0 } completion: { _ in
+            blur.removeFromSuperview()
+        }
+    }
 }
 /*******************************************************************
  共通アラート処理
@@ -858,92 +894,20 @@ public func setKakinDefault(){
  広告
  *******************************************************************/
 func removeADAlertApear(vc:UIViewController,rewardedAd: RewardedAd?, rewardHandler: @escaping () -> Void = {}){
-    // アラートを作成
-    var messageBody = ""
-    if UserDefaults.standard.object(forKey: "review_done_flg") == nil{
-        UserDefaults.standard.set(false, forKey: "review_done_flg")
-        REVIEW_DONE_FLG = false
-    }else{
-        REVIEW_DONE_FLG = UserDefaults.standard.bool(forKey: "review_done_flg")
-    }
-    if UserDefaults.standard.object(forKey: "twitter_done_flg") == nil{
-        UserDefaults.standard.set(false, forKey: "twitter_done_flg")
-        TWITTER_DONE_FLG = false
-    }else{
-        TWITTER_DONE_FLG = UserDefaults.standard.bool(forKey: "twitter_done_flg")
-    }
-    // 選択ボタン作成
-    let actionAD = UIAlertAction(title: NSLocalizedString(localText(key:"rewordad_look_AD"), comment: ""), style: UIAlertAction.Style.default, handler: {
-        (action: UIAlertAction!) in
+    let alert = UIAlertController(
+        title: localText(key: "ad_reward_title"),
+        message: localText(key: "ad_reward_body"),
+        preferredStyle: .alert)
+
+    alert.addAction(UIAlertAction(title: localText(key: "ad_reward_watch"), style: .default) { _ in
         rewardedAd?.present(from: vc, userDidEarnRewardHandler: rewardHandler)
     })
-    let actionTwitter = UIAlertAction(title: NSLocalizedString(localText(key:"rewordad_look_Twitter"), comment: ""), style: UIAlertAction.Style.default, handler: {
-        (action: UIAlertAction!) in
-        let text = LINE_INTRODUCTION_MESSAGE
-        let encodedText = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-        if let encodedText = encodedText,
-            let url = URL(string: "https://twitter.com/intent/tweet?text=\(encodedText)") {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-            TWITTER_DONE_FLG = true
-            UserDefaults.standard.set(TWITTER_DONE_FLG, forKey: "twitter_done_flg")
-            let now = NSDate()
-            let date1 = NSDate(timeInterval: TimeInterval(60 * 60 * Int(truncating: 3)), since: now as Date)
-            UserDefaults.standard.set(date1, forKey: "ADdate")
-            UserDefaults.standard.synchronize()
-            deleteAD()
-            vc.loadView()
-            vc.viewDidLoad()
-        }
-    })
-    let actionReview = UIAlertAction(title: NSLocalizedString(localText(key:"rewordad_look_Review"), comment: ""), style: UIAlertAction.Style.default, handler: {
-        (action: UIAlertAction!) in
-        guard let url = URL(string: APP_REVIEW_URL) else { return }
-        UIApplication.shared.open(url)
-        REVIEW_DONE_FLG = true
-        UserDefaults.standard.set(REVIEW_DONE_FLG, forKey: "review_done_flg")
-        let now = NSDate()
-        let date1 = NSDate(timeInterval: TimeInterval(60 * 60 * Int(truncating: 3)), since: now as Date)
-        UserDefaults.standard.set(date1, forKey: "ADdate")
-        UserDefaults.standard.synchronize()
-        deleteAD()
-        vc.loadView()
-        vc.viewDidLoad()
-    })
-    let actionPro = UIAlertAction(title: NSLocalizedString(localText(key:"rewordad_nolook"), comment: ""), style: UIAlertAction.Style.default, handler: {
-        (action: UIAlertAction!) in
-        let mainStoryboard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+    alert.addAction(UIAlertAction(title: localText(key: "ad_reward_premium"), style: .default) { _ in
+        let mainStoryboard = UIStoryboard(name: "Main", bundle: nil)
         let removeADPayVC = mainStoryboard.instantiateViewController(withIdentifier: "removeADPayVC")
         vc.show(removeADPayVC, sender: nil)
     })
-    // メッセージ作成
-    messageBody = localText(key:"rewordad_body_AD")
-    if REVIEW_DONE_FLG == false{
-        messageBody = messageBody + localText(key:"rewordad_body_Or")
-        messageBody = messageBody + localText(key:"rewordad_body_Review")
-    }
-    if TWITTER_DONE_FLG == false{
-        messageBody = messageBody + localText(key:"rewordad_body_Or")
-        messageBody = messageBody + localText(key:"rewordad_body_Twitter")
-    }
-    messageBody = messageBody + localText(key:"rewordad_base")
-    if REVIEW_DONE_FLG  == false{
-        messageBody = messageBody + localText(key:"rewordad_body_Review_End")
-    }
-    
-    let alert = UIAlertController(
-        title: localText(key:"rewordad_title"),
-        message: messageBody,
-        preferredStyle: .alert)
-    
-    alert.addAction(actionAD)
-    if TWITTER_DONE_FLG == false {
-        alert.addAction(actionTwitter)
-    }
-    if REVIEW_DONE_FLG == false {
-        alert.addAction(actionReview)
-    }
-    alert.addAction(actionPro)
-    alert.addAction(UIAlertAction(title: MESSAGE_CANCEL, style: .default))
+    alert.addAction(UIAlertAction(title: MESSAGE_CANCEL, style: .cancel))
     vc.present(alert, animated: true, completion: nil)
 }
 func ADApearFlg() -> Bool{
@@ -1104,16 +1068,16 @@ func setLocalPush(){
     // ローカル通知リクエストを登録
     UNUserNotificationCenter.current().add(request){ (error : Error?) in
         if let error = error {
-            print(error.localizedDescription)
+            dlog(error.localizedDescription)
         }
     }
 }
 // Push削除
 func deleteLocalPush(pushID:String){
     // 通知の削除
-    //print("通知データ = ",UIApplication.shared.scheduledLocalNotifications)
+    //dlog("通知データ = ",UIApplication.shared.scheduledLocalNotifications)
     UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [pushID])
-    //print("通知データ = ",UIApplication.shared.scheduledLocalNotifications)
+    //dlog("通知データ = ",UIApplication.shared.scheduledLocalNotifications)
     
 }
 /*******************************************************************
@@ -1313,7 +1277,7 @@ func getRecommendWard(collect : UICollectionView? = nil){
             }
         }
     }) { (error) in
-        print(error.localizedDescription)
+        dlog(error.localizedDescription)
     }
 }
 func getRecommendMV(collect : UICollectionView? = nil){
@@ -1387,8 +1351,8 @@ func setUpRemoteconfig(vc:HomeAreaViewController!){
     // アプリバージョン情報の取得
     //let version: String = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
     //vc.remoteConfig.activate() // これでパラメータを取得できる
-    print("base_version   :" + (vc?.remoteConfig["base_version"].stringValue)!)
-    print("latest_version :" + (vc?.remoteConfig["latest_version"].stringValue)!)
+    dlog("base_version   :" + (vc?.remoteConfig["base_version"].stringValue)!)
+    dlog("latest_version :" + (vc?.remoteConfig["latest_version"].stringValue)!)
 
     // 広告表示有無　-> Userdefaultに保存
     UserDefaults.standard.set((vc?.remoteConfig["ad_display_search_banner"].boolValue)!, forKey: "ad_display_search_banner")
@@ -1473,10 +1437,10 @@ func setUpRemoteconfig(vc:HomeAreaViewController!){
 //    // 読み出し
 //    do {
 //        let fetchResults = try viewContext.fetch(request)
-//        print(fetchResults)
+//        dlog(fetchResults)
 //        if (!fetchResults.isEmpty) {
 //            for result: AnyObject in fetchResults {
-//                print(result)
+//                dlog(result)
 //                //latest_version_canceled = (result.value(forKey: "latestCancelVersion") as? String)!
 //                latest_version_canceledArray = (result.value(forKey: "latestCancelVersion") as? String)!.components(separatedBy:".")
 //            }
@@ -1541,7 +1505,7 @@ func setUpRemoteconfig(vc:HomeAreaViewController!){
 //                let fetchResults = try saveContext.fetch(request)
 //                if (!fetchResults.isEmpty) {
 //                    for result: AnyObject in fetchResults {
-//                        print(result)
+//                        dlog(result)
 //                        let record = result as! NSManagedObject
 //                        record.setValue(vc?.remoteConfig["latest_version"].stringValue, forKey: "latestCancelVersion")
 //                    }
@@ -1563,6 +1527,147 @@ func setUpRemoteconfig(vc:HomeAreaViewController!){
     //Settingのデータを読み込む
 //    SETTING_DISPLAY_CONTENTS_NUM = SETTING_DISPLAY_CONTENTS_NUM_ARRAY[3]
     //let appDelegate:AppDelegate = UIApplication.shared.delegate as! AppDelegate
+}
+
+/// YouTube WebView 用の WKWebViewConfiguration を生成する。
+/// - 自動再生・全画面起動を抑制
+/// - ボトムナビゲーション（ホーム・ショート・マイページ）を CSS で非表示
+func makeYouTubeWebViewConfiguration() -> WKWebViewConfiguration {
+    let cfg = WKWebViewConfiguration()
+    cfg.mediaTypesRequiringUserActionForPlayback = .all
+    cfg.allowsInlineMediaPlayback = true
+
+    let js = """
+    (function() {
+        var css = `
+            /* ─── ボトムナビゲーション（ホーム・ショート・マイページ） ─── */
+            ytm-pivot-bar-renderer,
+            ytm-bottom-bar-renderer,
+            .pivot-bar-renderer-background,
+            ytm-pivot-bar-item-renderer,
+            #navigation-bar-tablet,
+            ytm-mini-guide-renderer { display: none !important; }
+
+            /* ─── 検索バー（WebView 内の YouTube ヘッダー） ─── */
+            ytm-mobile-topbar-renderer,
+            ytm-app-header-packed-renderer,
+            .topbar,
+            #header.ytm-app { display: none !important; }
+
+            /* ─── 動画ページのアクションボタン（いいね・共有・保存 等） ─── */
+            ytm-slim-video-action-bar-renderer,
+            .slim-player-action-buttons,
+            .slim-player-action-buttons-primary,
+            ytm-button-renderer.style-suggestive,
+            ytm-toggle-button-renderer { display: none !important; }
+
+            /* ─── 余白調整 ─── */
+            ytm-app, .page-container, #app {
+                padding-bottom: 0 !important;
+                margin-bottom: 0 !important;
+            }
+        `;
+        function inject() {
+            if (!document.getElementById('musica-yt-style')) {
+                var s = document.createElement('style');
+                s.id = 'musica-yt-style';
+                s.textContent = css;
+                (document.head || document.documentElement).appendChild(s);
+            }
+        }
+        inject();
+        new MutationObserver(inject).observe(document.documentElement,
+            { childList: true, subtree: true });
+    })();
+    """
+    let script = WKUserScript(source: js,
+                               injectionTime: .atDocumentEnd,
+                               forMainFrameOnly: false)
+    cfg.userContentController.addUserScript(script)
+    return cfg
+}
+
+extension UIBarButtonItem {
+    static func makeHelpButton(target: Any?, action: Selector) -> UIBarButtonItem {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "questionmark.circle.fill"), for: .normal)
+        button.tintColor = AppColor.accent
+        button.addTarget(target, action: action, for: .touchUpInside)
+        button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
+        return UIBarButtonItem(customView: button)
+    }
+}
+
+/// ライブラリ登録フロー用の案内カードを生成して返す。
+/// tableView.tableHeaderView にセットする。
+func makeLibraryGuideCard(step: Int, total: Int, icon: String, title: String, body: String) -> UIView {
+    let card = UIView()
+    card.backgroundColor = AppColor.accentMuted
+    card.layer.cornerRadius = 14
+    card.translatesAutoresizingMaskIntoConstraints = false
+
+    let imgView = UIImageView(image: UIImage(systemName: icon,
+        withConfiguration: UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)))
+    imgView.tintColor = AppColor.accent
+    imgView.contentMode = .scaleAspectFit
+    imgView.setContentHuggingPriority(.required, for: .horizontal)
+    imgView.translatesAutoresizingMaskIntoConstraints = false
+
+    let stepLbl = UILabel()
+    stepLbl.text = "ステップ \(step) / \(total)"
+    stepLbl.font = AppFont.caption
+    stepLbl.textColor = AppColor.accent
+
+    let titleLbl = UILabel()
+    titleLbl.text = title
+    titleLbl.font = AppFont.headline
+    titleLbl.textColor = AppColor.textPrimary
+
+    let bodyLbl = UILabel()
+    bodyLbl.text = body
+    bodyLbl.font = AppFont.footnote
+    bodyLbl.textColor = AppColor.textSecondary
+    bodyLbl.numberOfLines = 0
+
+    let textStack = UIStackView(arrangedSubviews: [stepLbl, titleLbl, bodyLbl])
+    textStack.axis = .vertical
+    textStack.spacing = 3
+    textStack.translatesAutoresizingMaskIntoConstraints = false
+
+    let mainStack = UIStackView(arrangedSubviews: [imgView, textStack])
+    mainStack.axis = .horizontal
+    mainStack.spacing = 14
+    mainStack.alignment = .center
+    mainStack.translatesAutoresizingMaskIntoConstraints = false
+
+    card.addSubview(mainStack)
+    NSLayoutConstraint.activate([
+        mainStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
+        mainStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14),
+        mainStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+        mainStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+    ])
+
+    let wrapper = UIView()
+    wrapper.addSubview(card)
+    NSLayoutConstraint.activate([
+        card.topAnchor.constraint(equalTo: wrapper.topAnchor, constant: 12),
+        card.bottomAnchor.constraint(equalTo: wrapper.bottomAnchor, constant: -8),
+        card.leadingAnchor.constraint(equalTo: wrapper.leadingAnchor, constant: 16),
+        card.trailingAnchor.constraint(equalTo: wrapper.trailingAnchor, constant: -16),
+    ])
+
+    let width = myAppFrameSize.width
+    wrapper.frame = CGRect(x: 0, y: 0, width: width, height: 0)
+    wrapper.setNeedsLayout()
+    wrapper.layoutIfNeeded()
+    let h = wrapper.systemLayoutSizeFitting(
+        CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+        withHorizontalFittingPriority: .required,
+        verticalFittingPriority: .fittingSizeLevel
+    ).height
+    wrapper.frame.size.height = h
+    return wrapper
 }
 
 @objcMembers class Utilities: NSObject {

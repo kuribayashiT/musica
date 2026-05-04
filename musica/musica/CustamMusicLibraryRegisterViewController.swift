@@ -54,6 +54,35 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
             object: nil
         )
         nowCV = self
+        self.title = "ライブラリに登録"
+
+        // 登録ボタンをモダンスタイルに
+        if #available(iOS 15.0, *) {
+            var cfg = UIButton.Configuration.filled()
+            cfg.title = localText(key: "musiclibrary_regist_btn") != "musiclibrary_regist_btn"
+                ? localText(key: "musiclibrary_regist_btn") : "登録する"
+            cfg.baseForegroundColor = .white
+            cfg.baseBackgroundColor = AppColor.accent
+            cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { a in
+                var m = a; m.font = AppFont.button; return m
+            }
+            cfg.contentInsets = NSDirectionalEdgeInsets(top: 14, leading: 24, bottom: 14, trailing: 24)
+            cfg.cornerStyle = .large
+            registMusicLibrayBtn.configuration = cfg
+        } else {
+            registMusicLibrayBtn.backgroundColor = AppColor.accent
+            registMusicLibrayBtn.setTitleColor(.white, for: .normal)
+            registMusicLibrayBtn.titleLabel?.font = AppFont.button
+        }
+
+        // ガイドカードをテーブルヘッダーに
+        selectedTrackDataTableView.tableHeaderView = makeLibraryGuideCard(
+            step: 3, total: 3,
+            icon: "folder.badge.plus",
+            title: "ライブラリ名を入力して登録",
+            body: "曲の順番はドラッグで並び替えられます。不要な曲は左スワイプで削除できます。"
+        )
+
         // キーボードの「閉じる」ボタン作成
         let kbToolBar = UIToolbar(frame: CGRect(x: 0, y: 0, width: 320, height: 40))
         kbToolBar.barStyle = UIBarStyle.default  // スタイルを設定
@@ -64,9 +93,6 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
         let commitButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(CustamMusicLibraryRegisterViewController.editCloseBtnTapped))
         kbToolBar.items = [spacer, commitButton]
         libraryResistNameTextField.inputAccessoryView = kbToolBar
-        
-        // 「決定」ボタンのレイアウト
-        registMusicLibrayBtn.layer.cornerRadius = ICON_CORNER_RADIUS_SETTINMGS
         
         // Do any additional setup after loading the view.
         selectedTrackDataTableView.isEditing = true
@@ -172,11 +198,11 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
             appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
             self.navigationController?.navigationBar.standardAppearance = appearance
             self.navigationController?.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
-            self.navigationController?.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+            self.navigationController?.navigationBar.tintColor = AppColor.accent
         } else {
             self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
             self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
-            self.navigationController?.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+            self.navigationController?.navigationBar.tintColor = AppColor.accent
         }
         
 //        // Ingcatorの設定
@@ -292,7 +318,7 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
                         if CUSTOM_LYBRARY_NAME != musicLibraryName{
                             if checkMusicLibraryNameExistence(checkName:musicLibraryName!) {
                                 self.navigationController?.navigationBar.isUserInteractionEnabled = true
-                                self.navigationController?.navigationBar.tintColor = NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+                                self.navigationController?.navigationBar.tintColor = AppColor.accent
                                 self.waitView.isHidden = true
                                 showAlertMsgOneOkBtn(title: MUSICLIBRALY_REGIST_ERR_SAMENAME_DIALOG_TITLE,messege: MUSICLIBRALY_REGIST_ERR_SAMENAME_DIALOG_MESSAGE)
 
@@ -330,7 +356,7 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
                     }else{
                         if checkMusicLibraryNameExistence(checkName:musicLibraryName!) {
                             self.navigationController?.navigationBar.isUserInteractionEnabled = true
-                            self.navigationController?.navigationBar.tintColor = NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+                            self.navigationController?.navigationBar.tintColor = AppColor.accent
                             self.waitView.isHidden = true
                             showAlertMsgOneOkBtn(title: MUSICLIBRALY_REGIST_ERR_SAMENAME_DIALOG_TITLE,messege: MUSICLIBRALY_REGIST_ERR_SAMENAME_DIALOG_MESSAGE)
                             if #available(iOS 13.0, *) {
@@ -376,7 +402,7 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
         RESIST_LIBRARY_COMPLETE_FLG = true
         setLibraryNameData(name:libraryResistNameTextField.text!,truck_num:selectedTrackDataList.count)
         self.navigationController?.navigationBar.isUserInteractionEnabled = true
-        self.navigationController?.navigationBar.tintColor = NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+        self.navigationController?.navigationBar.tintColor = AppColor.accent
         // ここまできたら成功
         // アラートを作成
         let alert = UIAlertController(
@@ -413,7 +439,7 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
     func coredataErrDialog(){
         TAB_MOVE_FLG = true
         self.navigationController?.navigationBar.isUserInteractionEnabled = true
-        self.navigationController?.navigationBar.tintColor = NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+        self.navigationController?.navigationBar.tintColor = AppColor.accent
         self.waitView.isHidden = true
         showAlertMsgOneOkBtn(title: MUSICLIBRALY_REGIST_ERR_COREDATA_DIALOG_TITLE,
                              messege:MUSICLIBRALY_REGIST_ERR_COREDATA_DIALOG_MASSAGE)
@@ -434,7 +460,7 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
      *******************************************************************/
     func loadInterstitial() {
         InterstitialAd.load(with: ADMOB_INTERSTITIAL_CUSTUM_LIBRARY, request: Request()) { [weak self] ad, error in
-            if let error = error { print("Interstitial failed to load: \(error)"); return }
+            if let error = error { dlog("Interstitial failed to load: \(error)"); return }
             self?.interstitial = ad
             self?.interstitial?.fullScreenContentDelegate = self
         }

@@ -36,7 +36,7 @@ class SettingViewController_: UITableViewController ,MFMailComposeViewController
         let manager = ASIdentifierManager.shared()
         if manager.isAdvertisingTrackingEnabled { // 広告トラッキングを許可しているのか？
             let idfaString = manager.advertisingIdentifier.uuidString
-            print(idfaString)
+            dlog(idfaString)
             if idfaString == "1E79435D-5FF2-489C-9C9C-FA3EDA0254CA" {
                 adminBtn.isHidden = false
             }else{
@@ -59,6 +59,7 @@ class SettingViewController_: UITableViewController ,MFMailComposeViewController
         self.tableView.estimatedRowHeight = CGFloat(CELL_ROW_HEIGT_THIN)
         self.tableView.rowHeight = UITableView.automaticDimension
         size = CGSize(width: tableView.frame.size.width, height: tableView.frame.size.width*9/16)
+        applyDesignSystem()
     }
     
     /*******************************************************************
@@ -72,11 +73,11 @@ class SettingViewController_: UITableViewController ,MFMailComposeViewController
         super.viewWillAppear(animated)
         // navigationbarの色設定
         self.navigationController?.navigationBar.isTranslucent = false
-        self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SETTING.rawValue]
-        //バーアイテムカラー
-        self.navigationController?.navigationBar.tintColor = UIColor.white
-        self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SETTING.rawValue]]
-        self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SETTING.rawValue]
+        self.navigationController?.navigationBar.barTintColor = AppColor.accent
+        self.navigationController?.navigationBar.tintColor = .white
+        self.navigationController?.navigationBar.titleTextAttributes = [
+            NSAttributedString.Key.foregroundColor: UIColor.white
+        ]
         
         // バックグラウンドでも再生できるカテゴリに設定する
         let session = AVAudioSession.sharedInstance()
@@ -130,17 +131,214 @@ class SettingViewController_: UITableViewController ,MFMailComposeViewController
     
     // セクションごとの行数を決める
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-
         let sectionData = settingSectionData[section]
+        // 非課金時: WHAT_AD セクション先頭にバナー広告行を追加
+        if settingSectionTitle[section] == WHAT_AD && !KAKIN_FLG && AD_DISPLAY_SETTING_CONTENTS {
+            return sectionData.count + 1
+        }
         return sectionData.count
-        
+    }
+
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if settingSectionTitle[indexPath.section] == WHAT_AD && !KAKIN_FLG && AD_DISPLAY_SETTING_CONTENTS && indexPath.row == 0 {
+            return 64
+        }
+        return UITableView.automaticDimension
     }
     
     // セクションのタイトルを決める
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return settingSectionTitle[section]
+        return nil  // カスタムヘッダーを使用するためnilを返す
     }
-    
+
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let container = UIView()
+        container.backgroundColor = .clear
+        let label = UILabel()
+        label.text = settingSectionTitle[section].uppercased()
+        label.font = UIFont.systemFont(ofSize: 11, weight: .semibold)
+        label.textColor = AppColor.textSecondary
+        label.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
+            label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -6),
+        ])
+        return container
+    }
+
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 38
+    }
+
+    override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        return UIView()
+    }
+
+    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        return 8
+    }
+
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        // バナー広告セルはシンプルに表示
+        if cell.reuseIdentifier == "SettingBanner" {
+            cell.backgroundColor = AppColor.surface
+            cell.selectionStyle = .none
+            return
+        }
+
+        cell.backgroundColor = AppColor.surface
+        cell.textLabel?.textColor = AppColor.textPrimary
+        cell.detailTextLabel?.textColor = AppColor.textSecondary
+
+        // カード角丸
+        let rowCount = tableView.numberOfRows(inSection: indexPath.section)
+        let isFirst = indexPath.row == 0
+        let isLast  = indexPath.row == rowCount - 1
+
+        cell.layer.cornerRadius = 0
+        cell.layer.maskedCorners = []
+
+        if isFirst && isLast {
+            cell.layer.cornerRadius = 12
+            cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner,
+                                         .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        } else if isFirst {
+            cell.layer.cornerRadius = 12
+            cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        } else if isLast {
+            cell.layer.cornerRadius = 12
+            cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        }
+        cell.layer.masksToBounds = true
+
+        // 選択ハイライト
+        let sel = UIView()
+        sel.backgroundColor = AppColor.accentMuted
+        cell.selectedBackgroundView = sel
+
+        // SettingItem にカラーアイコンバッジ
+        if cell.reuseIdentifier == "SettingItem", let title = cell.textLabel?.text {
+            let (symbol, color) = iconConfig(for: title)
+            cell.imageView?.image = iconBadgeImage(symbol: symbol, color: color)
+            cell.imageView?.layer.cornerRadius = 7
+            cell.imageView?.clipsToBounds = true
+        }
+
+        // kakinCell: 独自レイアウトのため badge を手動 subview として追加
+        if let kakinCell = cell as? SettingKakinTableViewCell {
+            let badgeTag = 9997
+            if kakinCell.contentView.viewWithTag(badgeTag) == nil {
+                let badgeView = UIImageView()
+                badgeView.tag = badgeTag
+                badgeView.layer.cornerRadius = 7
+                badgeView.clipsToBounds = true
+                badgeView.translatesAutoresizingMaskIntoConstraints = false
+                kakinCell.contentView.addSubview(badgeView)
+                NSLayoutConstraint.activate([
+                    badgeView.leadingAnchor.constraint(equalTo: kakinCell.contentView.leadingAnchor, constant: 16),
+                    badgeView.centerYAnchor.constraint(equalTo: kakinCell.contentView.centerYAnchor),
+                    badgeView.widthAnchor.constraint(equalToConstant: 30),
+                    badgeView.heightAnchor.constraint(equalToConstant: 30),
+                ])
+                // title ラベルの leading 制約を badge 分ずらす
+                if let lc = kakinCell.contentView.constraints.first(where: {
+                    ($0.firstItem as? UIView) == kakinCell.title && $0.firstAttribute == .leading
+                }) { lc.constant = 62 }
+            }
+            if let badgeView = kakinCell.contentView.viewWithTag(badgeTag) as? UIImageView {
+                let (symbol, color) = iconConfig(for: REMOVE_AD)
+                badgeView.image = iconBadgeImage(symbol: symbol, color: color)
+            }
+        }
+
+        // SettingContents / SettingHelpContents: 左側アクセントバー
+        if cell.reuseIdentifier == "SettingContents" || cell.reuseIdentifier == "SettingHelpContents" {
+            let barTag = 8888
+            if cell.contentView.viewWithTag(barTag) == nil {
+                let bar = UIView()
+                bar.tag = barTag
+                bar.backgroundColor = AppColor.accent
+                bar.layer.cornerRadius = 2
+                bar.translatesAutoresizingMaskIntoConstraints = false
+                cell.contentView.addSubview(bar)
+                NSLayoutConstraint.activate([
+                    bar.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
+                    bar.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
+                    bar.widthAnchor.constraint(equalToConstant: 4),
+                    bar.heightAnchor.constraint(equalToConstant: 22),
+                ])
+            }
+        }
+    }
+
+    // MARK: - Icon badge helpers
+
+    /// 各設定項目に対応する (SF Symbol名, バッジ色) を返す
+    private func iconConfig(for title: String) -> (String, UIColor) {
+        switch title {
+        case REMOVE_AD, REMOVED_AD:
+            return ("star.fill",              AppColor.accent)
+        case SETTING_PUSH:
+            return ("bell.fill",              UIColor.systemBlue)
+        case SETTING_DEZAIN:
+            return ("paintpalette.fill",      UIColor.systemPurple)
+        case SETTING_CHASH_CLEAR:
+            return ("trash.fill",             UIColor.systemRed)
+        case HOW_TO_USE:
+            return ("book.fill",              UIColor(hex: "#34C759"))
+        case HOMEPAGE:
+            return ("globe",                  UIColor.systemBlue)
+        case INTRODUCING_APP_FRIENDS:
+            return ("square.and.arrow.up",    UIColor.systemOrange)
+        case IMPROVEMENT_REQUEST_SENT:
+            return ("lightbulb.fill",         UIColor(hex: "#FF9500"))
+        case INQUIRY_VIOLATION_REPORT:
+            return ("envelope.fill",          UIColor.systemBlue)
+        case APP_INFO:
+            return ("info.circle.fill",       UIColor.systemGray)
+        case FAQ:
+            return ("questionmark.circle.fill", UIColor.systemTeal)
+        case OPEN_SOURCE_LICENSE:
+            return ("doc.text.fill",          UIColor.systemGray)
+        case SHOW_LOG:
+            return ("terminal.fill",          UIColor.systemGray)
+        case SHOW_KANRI:
+            return ("wrench.and.screwdriver.fill", UIColor.systemGray)
+        default:
+            return ("gearshape.fill",         UIColor.systemGray)
+        }
+    }
+
+    /// SF Symbol を白抜きで中央に描いたカラーバッジ画像 (30×30pt) を生成
+    private func iconBadgeImage(symbol: String, color: UIColor) -> UIImage? {
+        let badgeSize = CGSize(width: 30, height: 30)
+        let renderer  = UIGraphicsImageRenderer(size: badgeSize)
+        return renderer.image { ctx in
+            color.setFill()
+            ctx.fill(CGRect(origin: .zero, size: badgeSize))
+
+            let cfg = UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)
+            guard let img = UIImage(systemName: symbol, withConfiguration: cfg)?
+                    .withTintColor(.white, renderingMode: .alwaysOriginal) else { return }
+            let origin = CGPoint(
+                x: (badgeSize.width  - img.size.width)  / 2,
+                y: (badgeSize.height - img.size.height) / 2
+            )
+            img.draw(at: origin)
+        }
+    }
+
+    private func applyDesignSystem() {
+        view.backgroundColor = AppColor.background
+        tableView.backgroundColor = AppColor.background
+        tableView.separatorColor = AppColor.separator
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 62, bottom: 0, right: 0)
+        tableView.tableFooterView = UIView()
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 52
+    }
+
     func degreesToRadians(degrees: Float) -> Float {
         return degrees * Float(Double.pi) / 180.0
     }
@@ -250,11 +448,23 @@ class SettingViewController_: UITableViewController ,MFMailComposeViewController
             return cell
             
         }else if settingSectionTitle[(indexPath as NSIndexPath).section] == WHAT_AD{
+            // 先頭行: バナー広告
+            let bannerRow = !KAKIN_FLG && AD_DISPLAY_SETTING_CONTENTS
+            if bannerRow && indexPath.row == 0 {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "SettingBanner", for: indexPath) as! SettingADTableViewCell
+                cell.bannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID
+                cell.bannerView.rootViewController = self
+                cell.bannerView.isHidden = false
+                cell.bannerView.load(Request())
+                return cell
+            }
+            // それ以降: 広告削除ボタン (バナー行分インデックスをずらす)
+            let dataRow = bannerRow ? indexPath.row - 1 : indexPath.row
             let cell = tableView.dequeueReusableCell(withIdentifier: "kakinCell", for: indexPath) as! SettingKakinTableViewCell
             let sectionData = settingSectionData[(indexPath as NSIndexPath).section]
-            let cellData = sectionData[(indexPath as NSIndexPath).row]
+            let cellData = sectionData[dataRow]
             cell.title.text = cellData.0
-            
+
             if UserDefaults.standard.object(forKey: "kakinn_tap") == nil {
                 var animation: CABasicAnimation
                 animation = CABasicAnimation(keyPath: "transform.rotation")
@@ -268,7 +478,6 @@ class SettingViewController_: UITableViewController ,MFMailComposeViewController
             }else{
                 cell.newIcon.isHidden = true
             }
-            //view.layer.add(animation, forKey: "VibrateAnimationKey")
             if ADApearFlg() == false{
                 cell.accessoryType = UITableViewCell.AccessoryType.none
             }
@@ -298,10 +507,22 @@ class SettingViewController_: UITableViewController ,MFMailComposeViewController
      table Cell タップ時の処理
      *******************************************************************/
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let sectionData = settingSectionData[indexPath.section]
-        let cellData = sectionData[indexPath.row]
-        
         tableView.deselectRow(at: indexPath as IndexPath, animated: true)
+
+        // バナー広告行はタップ無効
+        let isBannerRow = settingSectionTitle[indexPath.section] == WHAT_AD
+            && !KAKIN_FLG && AD_DISPLAY_SETTING_CONTENTS && indexPath.row == 0
+        if isBannerRow { return }
+
+        let sectionData = settingSectionData[indexPath.section]
+        // WHAT_AD セクションでバナー行がある場合はデータ行インデックスを補正
+        let dataRow: Int
+        if settingSectionTitle[indexPath.section] == WHAT_AD && !KAKIN_FLG && AD_DISPLAY_SETTING_CONTENTS {
+            dataRow = indexPath.row - 1
+        } else {
+            dataRow = indexPath.row
+        }
+        let cellData = sectionData[dataRow]
         
         switch cellData.0 {
         case SCANCAMERA:
@@ -405,7 +626,7 @@ class SettingViewController_: UITableViewController ,MFMailComposeViewController
         let action9 = setDezainActionsheet(selectThema : NAVIGATION_COLOR_SETTINGS.DARK_RED.rawValue)
         let cancel = UIAlertAction(title: "キャンセル", style: UIAlertAction.Style.cancel, handler: {
             (action: UIAlertAction!) in
-            print("キャンセルをタップした時の処理")
+            dlog("キャンセルをタップした時の処理")
         })
         actionSheet.addAction(action1)
         actionSheet.addAction(action2)
@@ -495,57 +716,57 @@ class SettingViewController_: UITableViewController ,MFMailComposeViewController
      広告関連の処理
      *******************************************************************/
     func adViewDidFail(toLoad view: AmazonAdView!, withError: AmazonAdError!) -> Void {
-        Swift.print("Ad Failed to load. Error code \(withError.errorCode): \(String(describing: withError.errorDescription))")
+        dlog("Ad Failed to load. Error code \(withError.errorCode): \(String(describing: withError.errorDescription))")
     }
     
     func adViewWillExpand(_ view: AmazonAdView!) -> Void {
-        Swift.print("Ad will expand")
+        dlog("Ad will expand")
     }
     
     func adViewDidCollapse(_ view: AmazonAdView!) -> Void {
-        Swift.print("Ad has collapsed")
+        dlog("Ad has collapsed")
     }
     
     // Five
     var fadDelegate:FADDelegate!
     func fiveAdDidReplay(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     
     func fiveAdDidViewThrough(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
         
     }
     
     func fiveAdDidResume(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     
     func fiveAdDidPause(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     func fiveAdDidStart(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     
     func fiveAdDidClose(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     
     
     
     func fiveAdDidClick(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     
     
     
     func fiveAd(_ ad: FADAdInterface!, didFailedToReceiveAdWithError errorCode: FADErrorCode) {
-        print(errorCode)
+        dlog(errorCode)
     }
     
     func fiveAdDidLoad(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
 
 }

@@ -8,29 +8,33 @@
 
 import UIKit
 import MediaPlayer
-import GoogleMobileAds
 
 class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataSource, UITableViewDelegate ,MPMediaPickerControllerDelegate {
     @IBOutlet weak var listModeSegment: UISegmentedControl!
     @IBOutlet weak var musicAccessErrView: UIView!
     @IBOutlet weak var OSAlbumtableview: UITableView!
-    // MusicLibrary一覧に表示するデータ
     @IBOutlet weak var noPlayListLbl: UILabel!
     @IBOutlet weak var footerDammyView: UIView!
-    
     @IBOutlet weak var footerHeight: NSLayoutConstraint!
+
     var OSAlbumList: [AlbumData] = []
     var OSLibraryList: [AlbumData] = []
     var Album: AlbumData = AlbumData()
-    var bannerViewHeight = 92
-    var footerB = 0
-    
+
     // 画面遷移時データ受け渡し用
     var albumSelectIndex = 0
     var osAlbumDataList : [AlbumData] = []
     var osLibraryDataList : [AlbumData] = []
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.title = "アルバムを選択"
+        OSAlbumtableview.tableHeaderView = makeLibraryGuideCard(
+            step: 1, total: 3,
+            icon: "music.note.list",
+            title: "アルバムまたはプレイリストを選択",
+            body: "練習したい曲が入っているアルバムをタップしてください。上部のセグメントでプレイリストに切り替えられます。"
+        )
         setMusicDataToAPLData()
         if CUSTOM_LYBRARY_FROM_MUSICLIST {
             nowTrackListCheck()
@@ -85,25 +89,25 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
                     // アーティスト名
                     guard let artist = song.value(forProperty: MPMediaItemPropertyArtist) else {
                         
-                        print("artist:NILL")
+                        dlog("artist:NILL")
                         break
                     }
                     OSAlbumList[_albumIndex].trackData[trackIndex].artist = artist as! String
-                    print("artist: \(OSAlbumList[_albumIndex].trackData[trackIndex].artist)")
+                    dlog("artist: \(OSAlbumList[_albumIndex].trackData[trackIndex].artist)")
                     
                     // 楽曲のタイトル
                     guard let title = song.value(forProperty: MPMediaItemPropertyTitle) else {
                         
-                        print("title:NILL")
+                        dlog("title:NILL")
                         break
                     }
                     OSAlbumList[_albumIndex].trackData[trackIndex].title = title as! String
-                    print("title: \(OSAlbumList[_albumIndex].trackData[trackIndex].title)")
+                    dlog("title: \(OSAlbumList[_albumIndex].trackData[trackIndex].title)")
                     
                     // 楽曲の歌詞
                     guard let lyric = song.value(forProperty: MPMediaItemPropertyLyrics) else {
                         
-                        print("lyric:NILL")
+                        dlog("lyric:NILL")
                         break
                     }
                     OSAlbumList[_albumIndex].trackData[trackIndex].lyric = lyric as! String
@@ -160,27 +164,27 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
                     
                     // アーティスト名　album.representativeItem?.artwork
                     guard let artist = song.value(forProperty: MPMediaItemPropertyArtist) else {
-                        print("artist:NILL")
+                        dlog("artist:NILL")
                         break
                     }
                     OSLibraryList[albumIndex].trackData[trackIndex].artist = artist as! String
-                    print("artist: \(OSLibraryList[albumIndex].trackData[trackIndex].artist)")
+                    dlog("artist: \(OSLibraryList[albumIndex].trackData[trackIndex].artist)")
                     
                     // 楽曲のタイトル
                     guard let title = song.value(forProperty: MPMediaItemPropertyTitle) else {
-                        print("title:NILL")
+                        dlog("title:NILL")
                         break
                     }
                     OSLibraryList[albumIndex].trackData[trackIndex].title = title as! String
-                    print("title: \(OSLibraryList[albumIndex].trackData[trackIndex].title)")
+                    dlog("title: \(OSLibraryList[albumIndex].trackData[trackIndex].title)")
                     
                     // 楽曲の歌詞
                     guard let lyric = song.value(forProperty: MPMediaItemPropertyLyrics) else {
-                        print("lyric:NILL")
+                        dlog("lyric:NILL")
                         break
                     }
                     OSLibraryList[albumIndex].trackData[trackIndex].lyric = lyric as! String
-                    print("lyric: \(OSLibraryList[albumIndex].trackData[trackIndex].lyric)")
+                    dlog("lyric: \(OSLibraryList[albumIndex].trackData[trackIndex].lyric)")
                     
                     //曲のパス
                     let path = song.assetURL ?? nil
@@ -191,15 +195,15 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
                     OSLibraryList[albumIndex].trackData[trackIndex].existFlg = true
                     OSLibraryList[albumIndex].existFlg = true
                     
-                    print("path: \(String(describing: OSLibraryList[albumIndex].trackData[trackIndex].url))")
+                    dlog("path: \(String(describing: OSLibraryList[albumIndex].trackData[trackIndex].url))")
                     
                     //ジャンル
                     guard let genre = song.value(forProperty: MPMediaItemPropertyGenre) else {
-                        print("genre:NILL")
+                        dlog("genre:NILL")
                         break
                     }
                     OSLibraryList[albumIndex].trackData[trackIndex].genre = genre as! String
-                    print("genre: \(OSLibraryList[albumIndex].trackData[trackIndex].genre)")
+                    dlog("genre: \(OSLibraryList[albumIndex].trackData[trackIndex].genre)")
 
                     // チェック状態の取得
                     let key = "\(String(describing: OSLibraryList[albumIndex].trackData[trackIndex].url))"
@@ -244,64 +248,25 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
             appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
             self.navigationController!.navigationBar.standardAppearance = appearance
             self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         } else {
             self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
             self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         }
-        
-        bannerViewHeight = 92
-        if ADApearFlg() {
-            if AD_DISPLAY_MUSIC_REGISTER_ALBUM_BANNER {
-//                // AdMobバナー広告の読み込み
-                selectBannerView.translatesAutoresizingMaskIntoConstraints = true
-                selectBannerView.layer.position = CGPoint(x:Int(myAppFrameSize.width)/2, y:112)
-                selectBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID
-                selectBannerView.load(Request())
-                selectBannerView.isHidden = false
-                selectBannerView.rootViewController = self
-                
-//                custumLoadBannerAd(bannerView: selectBannerView,setBannerView:selectMusicView)
-//                OSAlbumtableview.reloadData()
-//                addBannerViewToView(selectBannerView)
-                bannerViewHeight = bannerViewHeight + Int(selectBannerView.frame.height)
-                footerB = Int(selectBannerView.frame.height)
-            }else{
-                selectBannerView.isHidden = true
-            }
-        }else{
-            selectBannerView.isHidden = true
-        }
-        selectMusicView.frame = CGRect(x: 0, y: Int(myAppFrameSize.height - footerDammyView.frame.size.height - getTabHeghtPlusSafeArea())  - footerB , width: Int(myAppFrameSize.width),height: Int(footerDammyView.frame.size.height) + footerB)
-        // Label,Buttonを作成.
-        selectMusicLabel.text = String(selectedTracks.count) + localText(key:"musiclibrary_selected_track_num")
-        if selectedTracks.count == 0 {
-            selectMusicLabel.textColor = UIColor.lightGray
-            selectMusicButton.backgroundColor = UIColor.lightGray
-        }else{
-            selectMusicLabel.textColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
-            selectMusicButton.backgroundColor = UIColor.systemBlue
-        }
-        selectMusicLabel.font = UIFont.boldSystemFont(ofSize: CGFloat(18))
-        selectMusicLabel.sizeToFit()
-        selectMusicLabel.layer.position = CGPoint(x:Int(myAppFrameSize.width)/2, y:22)
+
+        selectBannerView.isHidden = true
+        selectMusicView.frame = CGRect(x: 0, y: Int(myAppFrameSize.height - footerDammyView.frame.size.height - getTabHeghtPlusSafeArea()), width: Int(myAppFrameSize.width), height: Int(footerDammyView.frame.size.height))
+        updateFooterAppearance()
         OSAlbumtableview.translatesAutoresizingMaskIntoConstraints = false
-        footerHeight.constant = -CGFloat(bannerViewHeight)
+        footerHeight.constant = -92
         OSAlbumtableview.reloadData()
     }
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        if selectedTracks.count == 0 {
-            selectMusicLabel.textColor = UIColor.lightGray
-            selectMusicButton.backgroundColor = UIColor.lightGray
-        }else{
-            selectMusicLabel.textColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
-            selectMusicButton.backgroundColor = UIColor.systemBlue
-        }
         if selectMusicViewMakeFlg {
-            
-        }else{
+            updateFooterAppearance()
+        } else {
             let window = UIApplication.shared.keyWindow!
             window.addSubview(createFooterView())
         }
@@ -321,39 +286,34 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
         return 0
     }
     func createFooterView() -> UIView {
-//        if isDarkMode(vc:self){
-//            selectMusicView = UIVisualEffectView(effect: UIBlurEffect(style: UIBlurEffect.Style.dark))
-//        }
-        selectMusicView.frame = CGRect(x: 0, y: Int(myAppFrameSize.height - footerDammyView.frame.size.height - getTabHeghtPlusSafeArea())  - footerB , width: Int(myAppFrameSize.width),height: Int(footerDammyView.frame.size.height) + footerB)
+        selectMusicView.frame = CGRect(x: 0, y: Int(myAppFrameSize.height - footerDammyView.frame.size.height - getTabHeghtPlusSafeArea()), width: Int(myAppFrameSize.width), height: Int(footerDammyView.frame.size.height))
         selectMusicView.isUserInteractionEnabled = true
-        // Label,Buttonを作成.
-        selectMusicLabel.text = String(selectedTracks.count) + localText(key:"musiclibrary_selected_track_num")
-        if selectedTracks.count == 0 {
-            selectMusicLabel.textColor = UIColor.lightGray
-            selectMusicButton.backgroundColor = UIColor.lightGray
-        }else{
-            selectMusicLabel.textColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
-            selectMusicButton.backgroundColor = UIColor.systemBlue
-        }
-        selectMusicLabel.font = UIFont.boldSystemFont(ofSize: CGFloat(18))
+
+        selectMusicLabel.font = AppFont.subheadline
         selectMusicLabel.sizeToFit()
-        selectMusicLabel.layer.position = CGPoint(x:Int(myAppFrameSize.width)/2, y:22)
-        
-        // ボタンを押した時に実行するメソッドを指定
-        selectMusicButton.setTitle("登録する", for: UIControl.State.normal)
-        selectMusicButton.frame = CGRect(x: 0, y: 0, width: 200, height: 40)
-        selectMusicButton.setTitleColor(UIColor.white, for: UIControl.State.normal)
-        selectMusicButton.titleLabel?.font = UIFont.init(name: "Helvetica-Bold", size: 15)
-        selectMusicButton.layer.cornerRadius = 10
-        selectMusicButton.layer.position = CGPoint(x:Int(myAppFrameSize.width)/2, y:64)
-        if selectMusicViewMakeFlg == false{
+        selectMusicLabel.layer.position = CGPoint(x: Int(myAppFrameSize.width) / 2, y: 22)
+
+        selectMusicButton.setTitle("次へ →", for: .normal)
+        selectMusicButton.frame = CGRect(x: 0, y: 0, width: 200, height: 44)
+        selectMusicButton.setTitleColor(.white, for: .normal)
+        selectMusicButton.titleLabel?.font = AppFont.button
+        selectMusicButton.layer.cornerRadius = 14
+        selectMusicButton.layer.position = CGPoint(x: Int(myAppFrameSize.width) / 2, y: 62)
+
+        if !selectMusicViewMakeFlg {
             selectMusicView.contentView.addSubview(selectMusicLabel)
             selectMusicView.contentView.addSubview(selectMusicButton)
-            selectMusicView.contentView.addSubview(selectBannerView)
         }
         selectMusicViewMakeFlg = true
-        
+        updateFooterAppearance()
         return selectMusicView
+    }
+
+    private func updateFooterAppearance() {
+        let hasSelection = selectedTracks.count > 0
+        selectMusicLabel.text = String(selectedTracks.count) + localText(key: "musiclibrary_selected_track_num")
+        selectMusicLabel.textColor = hasSelection ? AppColor.accent : AppColor.textDisabled
+        selectMusicButton.backgroundColor = hasSelection ? AppColor.accent : AppColor.inactive
     }
     // tableフッターにViewをセットしてかえします。
     func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {

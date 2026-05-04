@@ -3,8 +3,8 @@
 //  musica
 //
 //  再生速度ボトムシート
-//  - 0.5x〜2.0x のスライダーで細かく調整
-//  - プリセットボタンで素早く選択
+//  - 0.5x〜50x の対数スライダーで調整
+//  - 低速プリセット行 + 高速プリセット行
 //  - iOS 13 以降対応
 //
 
@@ -23,19 +23,30 @@ final class SpeedSheetViewController: UIViewController {
     weak var delegate: SpeedSheetDelegate?
     var currentSpeed: Double = 1.0
 
-    // ── UI ────────────────────────────────────────────────────────
-    private let containerView  = UIView()
-    private let handleBar      = UIView()
-    private let titleLabel     = UILabel()
-    private let speedLabel     = UILabel()
-    private let slider         = UISlider()
-    private let presetStack    = UIStackView()
-    private let doneButton     = UIButton(type: .system)
-
-    private let presets: [(label: String, value: Double)] = [
-        ("0.5×", 0.5), ("0.75×", 0.75), ("1.0×", 1.0),
-        ("1.25×", 1.25), ("1.5×", 1.5), ("2.0×", 2.0)
+    // ── スナップポイント（対数スケールで均等感を出す刻み）─────────────
+    private let snapPoints: [Double] = [
+        0.5, 0.6, 0.7, 0.75, 0.8, 0.9,
+        1.0, 1.1, 1.2, 1.25, 1.3, 1.4, 1.5, 1.6, 1.7, 1.75, 1.8, 1.9,
+        2.0
     ]
+
+    // ── UI ────────────────────────────────────────────────────────
+    private let containerView   = UIView()
+    private let handleBar       = UIView()
+    private let titleLabel      = UILabel()
+    private let speedLabel      = UILabel()
+    private let slider          = UISlider()
+    private let lowPresetStack  = UIStackView()   // 0.5×〜2.0×
+    private let doneButton      = UIButton(type: .system)
+
+    private let lowPresets: [(label: String, value: Double)] = [
+        ("0.5×", 0.5), ("0.75×", 0.75), ("1.0×", 1.0), ("1.5×", 1.5), ("2.0×", 2.0)
+    ]
+
+    // ── スケール定数 ──────────────────────────────────────────────
+    // speed = 0.5 * 4^pos  →  pos ∈ [0, 1] で speed ∈ [0.5, 2.0]
+    private let minSpeed = 0.5
+    private let maxSpeed = 2.0
 
     // ── Init ──────────────────────────────────────────────────────
     init(currentSpeed: Double) {
@@ -52,7 +63,7 @@ final class SpeedSheetViewController: UIViewController {
         setupBackground()
         setupContainer()
         setupContent()
-        syncUI(speed: currentSpeed)
+        syncUI(speed: currentSpeed, animated: false)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -79,10 +90,9 @@ final class SpeedSheetViewController: UIViewController {
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             containerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            containerView.heightAnchor.constraint(equalToConstant: 320),
+            containerView.heightAnchor.constraint(equalToConstant: 290),
         ])
 
-        // ドラッグで閉じるジェスチャー
         let pan = UIPanGestureRecognizer(target: self, action: #selector(panGesture(_:)))
         containerView.addGestureRecognizer(pan)
     }
@@ -95,7 +105,7 @@ final class SpeedSheetViewController: UIViewController {
         containerView.addSubview(handleBar)
 
         // ── タイトル ──────────────────────────────────────────────
-        titleLabel.text          = "再生速度"
+        titleLabel.text          = localText(key: "speed_sheet_title")
         titleLabel.font          = AppFont.headline
         titleLabel.textColor     = AppColor.textPrimary
         titleLabel.textAlignment = .center
@@ -109,29 +119,27 @@ final class SpeedSheetViewController: UIViewController {
         speedLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(speedLabel)
 
-        // ── スライダー ────────────────────────────────────────────
-        slider.minimumValue         = 0.5
-        slider.maximumValue         = 2.0
+        // ── スライダー（対数スケール） ─────────────────────────────
+        slider.minimumValue         = 0
+        slider.maximumValue         = 1
         slider.minimumTrackTintColor = AppColor.accent
         slider.maximumTrackTintColor = AppColor.separator
         slider.addTarget(self, action: #selector(sliderChanged), for: .valueChanged)
         slider.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(slider)
 
-        // ── プリセットボタン群 ────────────────────────────────────
-        presetStack.axis         = .horizontal
-        presetStack.distribution = .fillEqually
-        presetStack.spacing      = 8
-        presetStack.translatesAutoresizingMaskIntoConstraints = false
-        containerView.addSubview(presetStack)
+        // ── スライダー端ラベル ─────────────────────────────────────
+        let minLabel = makeScaleLabel("0.5×")
+        let maxLabel = makeScaleLabel("2×")
 
-        for preset in presets {
-            let btn = makePresetButton(title: preset.label, value: preset.value)
-            presetStack.addArrangedSubview(btn)
+        // ── 低速プリセット行 ──────────────────────────────────────
+        setupPresetStack(lowPresetStack)
+        for preset in lowPresets {
+            lowPresetStack.addArrangedSubview(makePresetButton(title: preset.label, value: preset.value))
         }
 
         // ── 完了ボタン ────────────────────────────────────────────
-        doneButton.setTitle("完了", for: .normal)
+        doneButton.setTitle(localText(key: "btn_done"), for: .normal)
         doneButton.titleLabel?.font = AppFont.button
         doneButton.setTitleColor(AppColor.accent, for: .normal)
         doneButton.addTarget(self, action: #selector(doneTapped), for: .touchUpInside)
@@ -145,25 +153,42 @@ final class SpeedSheetViewController: UIViewController {
             handleBar.widthAnchor.constraint(equalToConstant: 40),
             handleBar.heightAnchor.constraint(equalToConstant: 5),
 
-            titleLabel.topAnchor.constraint(equalTo: handleBar.bottomAnchor, constant: 16),
+            titleLabel.topAnchor.constraint(equalTo: handleBar.bottomAnchor, constant: 14),
             titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 24),
             titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -24),
 
-            speedLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+            speedLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
             speedLabel.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
 
-            slider.topAnchor.constraint(equalTo: speedLabel.bottomAnchor, constant: 12),
-            slider.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 24),
-            slider.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -24),
+            // スライダー + 端ラベル
+            minLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            minLabel.centerYAnchor.constraint(equalTo: slider.centerYAnchor),
 
-            presetStack.topAnchor.constraint(equalTo: slider.bottomAnchor, constant: 20),
-            presetStack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
-            presetStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
-            presetStack.heightAnchor.constraint(equalToConstant: 40),
+            slider.topAnchor.constraint(equalTo: speedLabel.bottomAnchor, constant: 10),
+            slider.leadingAnchor.constraint(equalTo: minLabel.trailingAnchor, constant: 6),
+            slider.trailingAnchor.constraint(equalTo: maxLabel.leadingAnchor, constant: -6),
 
-            doneButton.topAnchor.constraint(equalTo: presetStack.bottomAnchor, constant: 20),
+            maxLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            maxLabel.centerYAnchor.constraint(equalTo: slider.centerYAnchor),
+
+            // 低速プリセット
+            lowPresetStack.topAnchor.constraint(equalTo: slider.bottomAnchor, constant: 14),
+            lowPresetStack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
+            lowPresetStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
+            lowPresetStack.heightAnchor.constraint(equalToConstant: 36),
+
+            doneButton.topAnchor.constraint(equalTo: lowPresetStack.bottomAnchor, constant: 16),
             doneButton.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
         ])
+    }
+
+    // ── ヘルパー ──────────────────────────────────────────────────
+    private func setupPresetStack(_ stack: UIStackView) {
+        stack.axis         = .horizontal
+        stack.distribution = .fillEqually
+        stack.spacing      = 6
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(stack)
     }
 
     private func makePresetButton(title: String, value: Double) -> UIButton {
@@ -172,24 +197,62 @@ final class SpeedSheetViewController: UIViewController {
         btn.titleLabel?.font   = AppFont.footnote
         btn.layer.cornerRadius = 8
         btn.layer.borderWidth  = 1
-        btn.tag = Int(value * 100)   // 速度を整数タグとして保持
+        // value を整数タグ（×1000）で保持（小数点以下3桁まで対応）
+        btn.tag = Int(value * 1000)
         btn.addTarget(self, action: #selector(presetTapped(_:)), for: .touchUpInside)
         return btn
     }
 
-    // ── 状態同期 ──────────────────────────────────────────────────
-    private func syncUI(speed: Double) {
-        currentSpeed = speed
-        speedLabel.text = String(format: "%.2g×", speed)
-        slider.value = Float(speed)
+    private func makeScaleLabel(_ text: String) -> UILabel {
+        let label = UILabel()
+        label.text      = text
+        label.font      = AppFont.caption2
+        label.textColor = AppColor.textSecondary
+        label.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(label)
+        return label
+    }
 
-        for view in presetStack.arrangedSubviews {
-            guard let btn = view as? UIButton else { continue }
-            let presetValue = Double(btn.tag) / 100.0
-            let isSelected = abs(presetValue - speed) < 0.01
-            btn.backgroundColor    = isSelected ? AppColor.accent : AppColor.surfaceSecondary
-            btn.setTitleColor(isSelected ? .white : AppColor.textPrimary, for: .normal)
-            btn.layer.borderColor  = isSelected ? AppColor.accent.cgColor : AppColor.border.cgColor
+    // ── 対数スケール変換 ──────────────────────────────────────────
+    /// speed → slider position [0, 1]
+    private func speedToSlider(_ speed: Double) -> Float {
+        let clamped = max(minSpeed, min(maxSpeed, speed))
+        return Float(log(clamped / minSpeed) / log(maxSpeed / minSpeed))
+    }
+
+    /// slider position [0, 1] → speed
+    private func sliderToSpeed(_ pos: Float) -> Double {
+        return minSpeed * pow(maxSpeed / minSpeed, Double(pos))
+    }
+
+    /// 最近傍スナップポイントに丸める
+    private func snap(_ speed: Double) -> Double {
+        return snapPoints.min(by: { abs($0 - speed) < abs($1 - speed) }) ?? speed
+    }
+
+    // ── 状態同期 ──────────────────────────────────────────────────
+    private func syncUI(speed: Double, animated: Bool = true) {
+        currentSpeed = speed
+
+        // ラベル表示: 整数になるなら小数なし、そうでなければ最大2桁
+        if speed >= 10 || speed == Double(Int(speed)) {
+            speedLabel.text = String(format: "%.4g×", speed)
+        } else {
+            speedLabel.text = String(format: "%.2g×", speed)
+        }
+
+        slider.setValue(speedToSlider(speed), animated: animated)
+
+        // 全プリセットボタンのハイライト更新
+        for stack in [lowPresetStack] {
+            for view in stack.arrangedSubviews {
+                guard let btn = view as? UIButton else { continue }
+                let presetValue = Double(btn.tag) / 1000.0
+                let isSelected  = abs(presetValue - speed) < 0.001
+                btn.backgroundColor   = isSelected ? AppColor.accent : AppColor.surfaceSecondary
+                btn.setTitleColor(isSelected ? .white : AppColor.textPrimary, for: .normal)
+                btn.layer.borderColor = isSelected ? AppColor.accent.cgColor : AppColor.border.cgColor
+            }
         }
     }
 
@@ -212,19 +275,23 @@ final class SpeedSheetViewController: UIViewController {
     @objc private func backgroundTapped() { dismiss() }
 
     @objc private func doneTapped() {
-        delegate?.speedSheet(self, didSelectSpeed: currentSpeed)
+        // リアルタイムで速度は適用済みのため、ここは閉じるだけ
         dismiss()
     }
 
     @objc private func sliderChanged() {
-        // 0.05 刻みにスナップ
-        let snapped = (Double(slider.value) * 20).rounded() / 20
-        syncUI(speed: snapped)
+        let raw     = sliderToSpeed(slider.value)
+        let snapped = snap(raw)
+        syncUI(speed: snapped, animated: false)
+        // ドラッグ中にリアルタイムで速度を反映
+        delegate?.speedSheet(self, didSelectSpeed: snapped)
     }
 
     @objc private func presetTapped(_ sender: UIButton) {
-        let speed = Double(sender.tag) / 100.0
+        let speed = Double(sender.tag) / 1000.0
         syncUI(speed: speed)
+        // タップ直後に速度を反映
+        delegate?.speedSheet(self, didSelectSpeed: speed)
     }
 
     @objc private func panGesture(_ pan: UIPanGestureRecognizer) {

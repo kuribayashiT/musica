@@ -8,12 +8,10 @@
 
 import UIKit
 import MediaPlayer
-import GoogleMobileAds
 
 class CustomMusicLibraryTrackViewController: UIViewController , UITableViewDataSource, UITableViewDelegate ,MPMediaPickerControllerDelegate {
-    
+
     @IBOutlet weak var OSTracktableview: UITableView!
-    // アルバム一覧から値を受け取るための変数
     var listModeSegment = 0
     var albumSelectIndex = 0
     var osAlbumDataList : [AlbumData] = []
@@ -21,10 +19,16 @@ class CustomMusicLibraryTrackViewController: UIViewController , UITableViewDataS
     var osTrackDataList : [AlbumData] = []
     @objc dynamic var nowPlayTrackNum = 0
     @IBOutlet weak var footerHeight: NSLayoutConstraint!
-    var bannerViewHeight = 92
-        
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.title = "曲を選択"
+        OSTracktableview.tableHeaderView = makeLibraryGuideCard(
+            step: 2, total: 3,
+            icon: "checkmark.circle",
+            title: "練習したい曲にチェックを入れる",
+            body: "複数選択できます。「全て選択」「全て解除」ボタンも使えます。選曲後は下の「次へ」ボタンをタップしてください。"
+        )
     }
     
     override func didReceiveMemoryWarning() {
@@ -42,46 +46,25 @@ class CustomMusicLibraryTrackViewController: UIViewController , UITableViewDataS
         }
         super.viewWillAppear(animated)
         selectMusicView.isHidden = false
+        selectBannerView.isHidden = true
         // navigationbarの色設定
         self.navigationController?.navigationBar.isTranslucent = false
         if #available(iOS 15.0, *) {
             let appearance = UINavigationBarAppearance()
             appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor =  NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+            appearance.backgroundColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
             appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
             self.navigationController!.navigationBar.standardAppearance = appearance
             self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
-            self.navigationController!.navigationBar.tintColor =  NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         } else {
             self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
             self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
-            self.navigationController!.navigationBar.tintColor =  NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         }
-        bannerViewHeight = 92
-        if ADApearFlg() {
-            if AD_DISPLAY_MUSIC_REGISTER_TRACK_BANNER {
-                // AdMobバナー広告の読み込み
-                bannerViewHeight = bannerViewHeight + Int(selectBannerView.frame.height)
-            }else{
-                selectBannerView.isHidden = true
-            }
-        }else{
-            selectBannerView.isHidden = true
-        }
-        // Label,Buttonを作成.
-        selectMusicLabel.text = String(selectedTracks.count) + localText(key:"musiclibrary_selected_track_num")
-        if selectedTracks.count == 0 {
-            selectMusicLabel.textColor = UIColor.lightGray
-            selectMusicButton.backgroundColor = UIColor.lightGray
-        }else{
-            selectMusicLabel.textColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
-            selectMusicButton.backgroundColor = UIColor.systemBlue
-        }
-        selectMusicLabel.font = UIFont.boldSystemFont(ofSize: CGFloat(18))
-        selectMusicLabel.sizeToFit()
-        selectMusicLabel.layer.position = CGPoint(x:Int(myAppFrameSize.width)/2, y:22)
+        updateFooterAppearance()
         OSTracktableview.translatesAutoresizingMaskIntoConstraints = false
-        footerHeight.constant = -CGFloat(bannerViewHeight)
+        footerHeight.constant = -92
         OSTracktableview.reloadData()
     }
     /* セクションの個数 */
@@ -131,12 +114,12 @@ class CustomMusicLibraryTrackViewController: UIViewController , UITableViewDataS
             cell.playBtn.tintColor = UIColor.gray
             cell.hideView.isHidden = false
             cell.TrackTitleLabel.textColor = UIColor.darkGray
-            cell.TrackSubtitleLabel.textColor = UIColor.lightGray
+            cell.TrackSubtitleLabel.textColor = AppColor.textSecondary
         }else{
-            cell.playBtn.tintColor = UIColor.blue
+            cell.playBtn.tintColor = AppColor.accent
             cell.hideView.isHidden = true
             cell.TrackTitleLabel.textColor = darkModeLabelColor()
-            cell.TrackSubtitleLabel.textColor = UIColor.lightGray
+            cell.TrackSubtitleLabel.textColor = AppColor.textSecondary
         }
         cell.playBtn.tag = indexPath.row
         // selectedCells[key] からチェック状態を取得
@@ -207,14 +190,7 @@ class CustomMusicLibraryTrackViewController: UIViewController , UITableViewDataS
             selectedTracks[key]=true;
         }
         
-        selectMusicLabel.text = String(selectedTracks.count) + localText(key:"musiclibrary_selected_track_num")
-        if selectedTracks.count == 0 {
-            selectMusicLabel.textColor = UIColor.lightGray
-            selectMusicButton.backgroundColor = UIColor.lightGray
-        }else{
-            selectMusicLabel.textColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
-            selectMusicButton.backgroundColor = UIColor.systemBlue
-        }
+        updateFooterAppearance()
         selectMusicLabel.sizeToFit()
         // Cellの 更新処理
         OSTracktableview.reloadData()
@@ -235,14 +211,7 @@ class CustomMusicLibraryTrackViewController: UIViewController , UITableViewDataS
             track.checkedFlg=false
         }
         // Cellの 更新処理
-        selectMusicLabel.text = String(selectedTracks.count) + localText(key:"musiclibrary_selected_track_num")
-        if selectedTracks.count == 0 {
-            selectMusicLabel.textColor = UIColor.lightGray
-            selectMusicButton.backgroundColor = UIColor.lightGray
-        }else{
-            selectMusicLabel.textColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
-            selectMusicButton.backgroundColor = UIColor.systemBlue
-        }
+        updateFooterAppearance()
         selectMusicLabel.sizeToFit()
         OSTracktableview.reloadData()
     }
@@ -258,19 +227,18 @@ class CustomMusicLibraryTrackViewController: UIViewController , UITableViewDataS
             selectedTracks[key]=true
             track.checkedFlg=true
         }
-        selectMusicLabel.text = String(selectedTracks.count) + localText(key:"musiclibrary_selected_track_num")
-        if selectedTracks.count == 0 {
-            selectMusicLabel.textColor = UIColor.lightGray
-            selectMusicButton.backgroundColor = UIColor.lightGray
-        }else{
-            selectMusicLabel.textColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
-            selectMusicButton.backgroundColor = UIColor.systemBlue
-        }
+        updateFooterAppearance()
         selectMusicLabel.sizeToFit()
         // Cellの 更新処理
         OSTracktableview.reloadData()
     }
-    // 引っ越し
+    private func updateFooterAppearance() {
+        let hasSelection = selectedTracks.count > 0
+        selectMusicLabel.text = String(selectedTracks.count) + localText(key: "musiclibrary_selected_track_num")
+        selectMusicLabel.textColor = hasSelection ? AppColor.accent : AppColor.textDisabled
+        selectMusicButton.backgroundColor = hasSelection ? AppColor.accent : AppColor.inactive
+    }
+
     @IBAction func playBtnTapped(_ sender: Any) {
         // ステータスバーの高さ
         // 端末内に、再生データがあるかチェック。
@@ -308,7 +276,7 @@ class CustomMusicLibraryTrackViewController: UIViewController , UITableViewDataS
                 }
                 // エラーチェック
                 if let error = audioError {
-                    print("Error \(error.localizedDescription)")
+                    dlog("Error \(error.localizedDescription)")
                 }else{
                     audioTestPlayer.play()
                     playingTestTracks[(sender as AnyObject).tag]=false

@@ -3,15 +3,10 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DDDDDD0000000002DDDDDD01 /* DemoDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDDDD0000000001DDDDDD01 /* DemoDataSeeder.swift */; };
-		CCCCCC0000000002CCCCCC01 /* SpeedSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCCCC0000000001CCCCCC01 /* SpeedSheetViewController.swift */; };
-		CCCCCC0000000002CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCCCC0000000001CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift */; };
-		AAAAAA0000000002AAAAAA01 /* AppColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAA0000000001AAAAAA01 /* AppColor.swift */; };
-		AAAAAA0000000002AAAAAA02 /* AppFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAA0000000001AAAAAA02 /* AppFont.swift */; };
 		0C052EC921DA129100EDC8D0 /* CBAutoScrollLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 0C052EC821DA129100EDC8D0 /* CBAutoScrollLabel.m */; };
 		0C07C1461F24959A0033E368 /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0C07C1451F24959A0033E368 /* MessageUI.framework */; };
 		0C07C1481F24FB1B0033E368 /* SettingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C07C1471F24FB1B0033E368 /* SettingTableViewCell.swift */; };
@@ -35,6 +30,7 @@
 		0C2134102403AD2100DD0275 /* AVPlayerViewControllerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C21340F2403AD2100DD0275 /* AVPlayerViewControllerManager.swift */; };
 		0C21E02E208C4AA500D0AF7B /* scanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C21E02D208C4AA500D0AF7B /* scanViewController.swift */; };
 		0C22520D2641A9E700C21DCA /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = 0C22520C2641A9E700C21DCA /* index.html */; };
+		0C22520F2641A9E700C21DCA /* help.html in Resources */ = {isa = PBXBuildFile; fileRef = 0C22520E2641A9E700C21DCA /* help.html */; };
 		0C2252152641ACE800C21DCA /* YoutubeHtmlPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2252142641ACE800C21DCA /* YoutubeHtmlPlayerViewController.swift */; };
 		0C2839B41F801EAF00D68F74 /* YoutubePlayViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2839B31F801EAF00D68F74 /* YoutubePlayViewController.swift */; };
 		0C2A9E66208F771C00558BB9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0C2A9E65208F771C00558BB9 /* Assets.xcassets */; };
@@ -47,7 +43,6 @@
 		0C34D8DA1EC0AB9B002739EA /* MusicPlayListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C34D8D91EC0AB9B002739EA /* MusicPlayListViewController.swift */; };
 		0C34D8DC1EC0B57F002739EA /* CustamPlayListTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C34D8DB1EC0B57F002739EA /* CustamPlayListTableViewCell.swift */; };
 		0C34D8DE1EC5EBB4002739EA /* PlayMusicViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C34D8DD1EC5EBB4002739EA /* PlayMusicViewController.swift */; };
-		0C34D8E01EC76FB3002739EA /* MusicLyricEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C34D8DF1EC76FB3002739EA /* MusicLyricEditViewController.swift */; };
 		0C35813023F1742A00D69C32 /* RecommendWardCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C35812F23F1742A00D69C32 /* RecommendWardCollectionViewCell.swift */; };
 		0C3AF5A122A2FB9E00CE606E /* SettingKakinTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C3AF5A022A2FB9E00CE606E /* SettingKakinTableViewCell.swift */; };
 		0C3B080F20FBC04400989494 /* registerTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C3B080E20FBC04400989494 /* registerTableViewCell.swift */; };
@@ -86,6 +81,7 @@
 		0C9205AB23F18596004963E2 /* RecommendMVCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0C9205A923F18596004963E2 /* RecommendMVCollectionViewCell.xib */; };
 		0CA27E7E1F5A68F500E1C01B /* OKINIIRICollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA27E7D1F5A68F500E1C01B /* OKINIIRICollectionViewCell.swift */; };
 		0CA7DAD124D304C8003BF76F /* SettingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA7DAD024D304C8003BF76F /* SettingViewController.swift */; };
+		0CAA44112F8AC19E00EDE808 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0CAA44102F8AC19E00EDE807 /* WhisperKit */; };
 		0CB3D3952365943F002F8E25 /* AdmobNativeAD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB3D3942365943F002F8E25 /* AdmobNativeAD.swift */; };
 		0CB6D02D235608A000C3D1FB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0CB6D02F235608A000C3D1FB /* InfoPlist.strings */; };
 		0CB7FB7621777F8600F6580F /* FiveAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0C65EA44200649480078C2CA /* FiveAd.framework */; };
@@ -110,8 +106,49 @@
 		0CEC2A28250E009600250C2D /* PopUpAdDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CEC2A27250E009600250C2D /* PopUpAdDialog.swift */; };
 		0CF3CC6B2403BD40006BFD55 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0CF3CC6A2403BD40006BFD55 /* AVKit.framework */; };
 		8C2E91D6ADD8894B22A41E4D /* Pods_musica.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C1FB35A96DEA9FEAF8AD42B /* Pods_musica.framework */; };
+		AA0000001ED0000000000001 /* OnboardingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED0000000000002 /* OnboardingViewController.swift */; };
+		AA0000001ED0000000000003 /* PracticeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED0000000000004 /* PracticeViewController.swift */; };
+		AA0000001ED0000000000005 /* LyricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED0000000000006 /* LyricsService.swift */; };
+		AA0000001ED0000000000007 /* DictationSetupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED0000000000008 /* DictationSetupViewController.swift */; };
+		AA0000001ED000000000000B /* DictationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED000000000000C /* DictationViewController.swift */; };
+		AA0000001ED000000000000D /* SectionRepeatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED000000000000E /* SectionRepeatViewController.swift */; };
+		AA0000001ED000000000000F /* Notification+musica.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED0000000000010 /* Notification+musica.swift */; };
+		AA0000001ED0000000000011 /* YouTubeCaptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED0000000000012 /* YouTubeCaptionService.swift */; };
+		AA0000001ED0000000000021 /* YoutubeCaptionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED0000000000022 /* YoutubeCaptionStore.swift */; };
+		AA0000001ED0000000000023 /* CaptionTextEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED0000000000024 /* CaptionTextEditorViewController.swift */; };
+		AA0000001ED0000000000025 /* YouTubeTranscriptBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED0000000000026 /* YouTubeTranscriptBrowserViewController.swift */; };
+		AA0000001ED0000000000027 /* LyricsTextEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED0000000000028 /* LyricsTextEditorViewController.swift */; };
+		AA0000001ED00000000000A0 /* PracticeHistoryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED00000000000A1 /* PracticeHistoryService.swift */; };
+		AA0000001ED00000000000A2 /* FlashCardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED00000000000A3 /* FlashCardViewController.swift */; };
+		AA0000001ED00000000000A4 /* PracticeHistoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED00000000000A5 /* PracticeHistoryViewController.swift */; };
+		AA0000001ED00000000000A6 /* WeakWordService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED00000000000A7 /* WeakWordService.swift */; };
+		AA0000001ED00000000000A8 /* WeakWordListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED00000000000A9 /* WeakWordListViewController.swift */; };
+		AAAAAA0000000002AAAAAA01 /* AppColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAA0000000001AAAAAA01 /* AppColor.swift */; };
+		AAAAAA0000000002AAAAAA02 /* AppFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAA0000000001AAAAAA02 /* AppFont.swift */; };
+		AAAAAA0000000002AAAAAA03 /* DiscoverViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAA0000000001AAAAAA03 /* DiscoverViewController.swift */; };
 		ACB719E37565B152E787E331 /* Pods_musicaTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04CEBF1CB4DB63D661E7ED7B /* Pods_musicaTests.framework */; };
+		AD0F4A9DACEE4DAF9C82D009 /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACD923A84F541F6B48CCCCA /* TranscriptionService.swift */; };
+		BB0000001ED0000000000001 /* PlayMusicViewControllerNewUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000001ED0000000000002 /* PlayMusicViewControllerNewUI.swift */; };
+		BB0000001ED0000000000003 /* RegionRepeatSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000001ED0000000000004 /* RegionRepeatSheetViewController.swift */; };
+		BB0000001ED0000000000005 /* MusicLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000001ED0000000000006 /* MusicLibrary.swift */; };
+		BB0000001ED0000000000007 /* MusicLibraryTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000001ED0000000000008 /* MusicLibraryTableViewController.swift */; };
+		BB0000001ED0000000000009 /* SettingViewController_.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000100000000000000A /* SettingViewController_.swift */; };
+		BB1111001ED0000000000001 /* MusicPlayListViewControllerRedesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1111001ED0000000000002 /* MusicPlayListViewControllerRedesign.swift */; };
+		BE1234567890ABCDEF123456 /* WhisperKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE1234567890ABCDEF123457 /* WhisperKitService.swift */; };
+		CCCCCC0000000002CCCCCC01 /* SpeedSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCCCC0000000001CCCCCC01 /* SpeedSheetViewController.swift */; };
+		CCCCCC0000000002CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCCCC0000000001CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift */; };
+		DDDDDD0000000002DDDDDD01 /* DemoDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDDDD0000000001DDDDDD01 /* DemoDataSeeder.swift */; };
 		E02F87B1DD0BF3CBD16B8934 /* Pods_musicaUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1EEA973D479AE8143214A070 /* Pods_musicaUITests.framework */; };
+		EEEEEE0000000002EEEEEE01 /* SampleDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEEEEE0000000001EEEEEE01 /* SampleDataSeeder.swift */; };
+		EEEEEE0000000002EEEEEE02 /* sample_en.caf in Resources */ = {isa = PBXBuildFile; fileRef = EEEEEE0000000001EEEEEE02 /* sample_en.caf */; };
+		EEEEEE0000000002EEEEEE03 /* sample_ja.caf in Resources */ = {isa = PBXBuildFile; fileRef = EEEEEE0000000001EEEEEE03 /* sample_ja.caf */; };
+		EEEEEE0000000002EEEEEE04 /* lesson_01.caf in Resources */ = {isa = PBXBuildFile; fileRef = EEEEEE0000000001EEEEEE04 /* lesson_01.caf */; };
+		EEEEEE0000000002EEEEEE05 /* lesson_02.caf in Resources */ = {isa = PBXBuildFile; fileRef = EEEEEE0000000001EEEEEE05 /* lesson_02.caf */; };
+		EEEEEE0000000002EEEEEE06 /* lesson_03.caf in Resources */ = {isa = PBXBuildFile; fileRef = EEEEEE0000000001EEEEEE06 /* lesson_03.caf */; };
+		EEEEEE0000000002EEEEEE07 /* lesson_04.caf in Resources */ = {isa = PBXBuildFile; fileRef = EEEEEE0000000001EEEEEE07 /* lesson_04.caf */; };
+		EEEEEE0000000002EEEEEE08 /* lesson_05.caf in Resources */ = {isa = PBXBuildFile; fileRef = EEEEEE0000000001EEEEEE08 /* lesson_05.caf */; };
+		EEEEEE0000000002EEEEEE09 /* lesson_06.caf in Resources */ = {isa = PBXBuildFile; fileRef = EEEEEE0000000001EEEEEE09 /* lesson_06.caf */; };
+		FFEEEE0000000002FFEEEE01 /* MVHowToViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFEEEE0000000001FFEEEE01 /* MVHowToViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -139,11 +176,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		DDDDDD0000000001DDDDDD01 /* DemoDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoDataSeeder.swift; sourceTree = "<group>"; };
-		CCCCCC0000000001CCCCCC01 /* SpeedSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedSheetViewController.swift; sourceTree = "<group>"; };
-		CCCCCC0000000001CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayMusicViewControllerPlayerUI.swift; sourceTree = "<group>"; };
-		AAAAAA0000000001AAAAAA01 /* AppColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColor.swift; sourceTree = "<group>"; };
-		AAAAAA0000000001AAAAAA02 /* AppFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFont.swift; sourceTree = "<group>"; };
 		0025313EAF3AECFBFD289E96 /* Pods-musicaTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-musicaTests.release.xcconfig"; path = "Target Support Files/Pods-musicaTests/Pods-musicaTests.release.xcconfig"; sourceTree = "<group>"; };
 		04CEBF1CB4DB63D661E7ED7B /* Pods_musicaTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_musicaTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0C052EC721DA129000EDC8D0 /* CBAutoScrollLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CBAutoScrollLabel.h; sourceTree = "<group>"; };
@@ -170,6 +202,7 @@
 		0C21340F2403AD2100DD0275 /* AVPlayerViewControllerManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AVPlayerViewControllerManager.swift; sourceTree = "<group>"; };
 		0C21E02D208C4AA500D0AF7B /* scanViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scanViewController.swift; sourceTree = "<group>"; };
 		0C22520C2641A9E700C21DCA /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		0C22520E2641A9E700C21DCA /* help.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = help.html; sourceTree = "<group>"; };
 		0C2252142641ACE800C21DCA /* YoutubeHtmlPlayerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YoutubeHtmlPlayerViewController.swift; sourceTree = "<group>"; };
 		0C2839B31F801EAF00D68F74 /* YoutubePlayViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = YoutubePlayViewController.swift; sourceTree = "<group>"; };
 		0C2A9E65208F771C00558BB9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -182,7 +215,6 @@
 		0C34D8D91EC0AB9B002739EA /* MusicPlayListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicPlayListViewController.swift; sourceTree = "<group>"; };
 		0C34D8DB1EC0B57F002739EA /* CustamPlayListTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustamPlayListTableViewCell.swift; sourceTree = "<group>"; };
 		0C34D8DD1EC5EBB4002739EA /* PlayMusicViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayMusicViewController.swift; sourceTree = "<group>"; };
-		0C34D8DF1EC76FB3002739EA /* MusicLyricEditViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicLyricEditViewController.swift; sourceTree = "<group>"; };
 		0C35812F23F1742A00D69C32 /* RecommendWardCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendWardCollectionViewCell.swift; sourceTree = "<group>"; };
 		0C3AF5A022A2FB9E00CE606E /* SettingKakinTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingKakinTableViewCell.swift; sourceTree = "<group>"; };
 		0C3B080E20FBC04400989494 /* registerTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = registerTableViewCell.swift; sourceTree = "<group>"; };
@@ -258,13 +290,54 @@
 		0CEC2A27250E009600250C2D /* PopUpAdDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopUpAdDialog.swift; sourceTree = "<group>"; };
 		0CF3CC6A2403BD40006BFD55 /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 		113E48560FDFBE69B04F5AEA /* Pods-musica.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-musica.release.xcconfig"; path = "Target Support Files/Pods-musica/Pods-musica.release.xcconfig"; sourceTree = "<group>"; };
+		1ACD923A84F541F6B48CCCCA /* TranscriptionService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
 		1EEA973D479AE8143214A070 /* Pods_musicaUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_musicaUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3080AB3CACC60AB216A8AF3F /* Pods-musicaUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-musicaUITests.debug.xcconfig"; path = "Target Support Files/Pods-musicaUITests/Pods-musicaUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		6BADFB06CDC5B483557F75C4 /* Pods-musicaTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-musicaTests.debug.xcconfig"; path = "Target Support Files/Pods-musicaTests/Pods-musicaTests.debug.xcconfig"; sourceTree = "<group>"; };
 		6C1FB35A96DEA9FEAF8AD42B /* Pods_musica.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_musica.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D80474C73C3E3C989F857A8 /* Pods-musicaUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-musicaUITests.release.xcconfig"; path = "Target Support Files/Pods-musicaUITests/Pods-musicaUITests.release.xcconfig"; sourceTree = "<group>"; };
 		A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4 /* Pods.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Pods.xcodeproj; path = Pods/Pods.xcodeproj; sourceTree = "<group>"; };
+		AA0000001ED0000000000002 /* OnboardingViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnboardingViewController.swift; sourceTree = "<group>"; };
+		AA0000001ED0000000000004 /* PracticeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PracticeViewController.swift; sourceTree = "<group>"; };
+		AA0000001ED0000000000006 /* LyricsService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LyricsService.swift; sourceTree = "<group>"; };
+		AA0000001ED0000000000008 /* DictationSetupViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DictationSetupViewController.swift; sourceTree = "<group>"; };
+		AA0000001ED000000000000C /* DictationViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DictationViewController.swift; sourceTree = "<group>"; };
+		AA0000001ED000000000000E /* SectionRepeatViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SectionRepeatViewController.swift; sourceTree = "<group>"; };
+		AA0000001ED0000000000010 /* Notification+musica.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Notification+musica.swift"; sourceTree = "<group>"; };
+		AA0000001ED0000000000012 /* YouTubeCaptionService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = YouTubeCaptionService.swift; sourceTree = "<group>"; };
+		AA0000001ED0000000000022 /* YoutubeCaptionStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = YoutubeCaptionStore.swift; sourceTree = "<group>"; };
+		AA0000001ED0000000000024 /* CaptionTextEditorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CaptionTextEditorViewController.swift; sourceTree = "<group>"; };
+		AA0000001ED0000000000026 /* YouTubeTranscriptBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = YouTubeTranscriptBrowserViewController.swift; sourceTree = "<group>"; };
+		AA0000001ED0000000000028 /* LyricsTextEditorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LyricsTextEditorViewController.swift; sourceTree = "<group>"; };
+		AA0000001ED00000000000A1 /* PracticeHistoryService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PracticeHistoryService.swift; sourceTree = "<group>"; };
+		AA0000001ED00000000000A3 /* FlashCardViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlashCardViewController.swift; sourceTree = "<group>"; };
+		AA0000001ED00000000000A5 /* PracticeHistoryViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PracticeHistoryViewController.swift; sourceTree = "<group>"; };
+		AA0000001ED00000000000A7 /* WeakWordService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WeakWordService.swift; sourceTree = "<group>"; };
+		AA0000001ED00000000000A9 /* WeakWordListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WeakWordListViewController.swift; sourceTree = "<group>"; };
+		AAAAAA0000000001AAAAAA01 /* AppColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColor.swift; sourceTree = "<group>"; };
+		AAAAAA0000000001AAAAAA02 /* AppFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFont.swift; sourceTree = "<group>"; };
+		AAAAAA0000000001AAAAAA03 /* DiscoverViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverViewController.swift; sourceTree = "<group>"; };
+		BB000000100000000000000A /* SettingViewController_.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingViewController_.swift; sourceTree = "<group>"; };
+		BB0000001ED0000000000002 /* PlayMusicViewControllerNewUI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayMusicViewControllerNewUI.swift; sourceTree = "<group>"; };
+		BB0000001ED0000000000004 /* RegionRepeatSheetViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegionRepeatSheetViewController.swift; sourceTree = "<group>"; };
+		BB0000001ED0000000000006 /* MusicLibrary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicLibrary.swift; sourceTree = "<group>"; };
+		BB0000001ED0000000000008 /* MusicLibraryTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicLibraryTableViewController.swift; sourceTree = "<group>"; };
+		BB1111001ED0000000000002 /* MusicPlayListViewControllerRedesign.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicPlayListViewControllerRedesign.swift; sourceTree = "<group>"; };
+		BE1234567890ABCDEF123457 /* WhisperKitService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WhisperKitService.swift; sourceTree = "<group>"; };
 		BF9862B196B85C662F61F2E5 /* Pods-musica.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-musica.debug.xcconfig"; path = "Target Support Files/Pods-musica/Pods-musica.debug.xcconfig"; sourceTree = "<group>"; };
+		CCCCCC0000000001CCCCCC01 /* SpeedSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedSheetViewController.swift; sourceTree = "<group>"; };
+		CCCCCC0000000001CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayMusicViewControllerPlayerUI.swift; sourceTree = "<group>"; };
+		DDDDDD0000000001DDDDDD01 /* DemoDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoDataSeeder.swift; sourceTree = "<group>"; };
+		EEEEEE0000000001EEEEEE01 /* SampleDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleDataSeeder.swift; sourceTree = "<group>"; };
+		EEEEEE0000000001EEEEEE02 /* sample_en.caf */ = {isa = PBXFileReference; lastKnownFileType = "audio.aiff-c"; path = sample_en.caf; sourceTree = "<group>"; };
+		EEEEEE0000000001EEEEEE03 /* sample_ja.caf */ = {isa = PBXFileReference; lastKnownFileType = "audio.aiff-c"; path = sample_ja.caf; sourceTree = "<group>"; };
+		EEEEEE0000000001EEEEEE04 /* lesson_01.caf */ = {isa = PBXFileReference; lastKnownFileType = "audio.aiff-c"; path = lesson_01.caf; sourceTree = "<group>"; };
+		EEEEEE0000000001EEEEEE05 /* lesson_02.caf */ = {isa = PBXFileReference; lastKnownFileType = "audio.aiff-c"; path = lesson_02.caf; sourceTree = "<group>"; };
+		EEEEEE0000000001EEEEEE06 /* lesson_03.caf */ = {isa = PBXFileReference; lastKnownFileType = "audio.aiff-c"; path = lesson_03.caf; sourceTree = "<group>"; };
+		EEEEEE0000000001EEEEEE07 /* lesson_04.caf */ = {isa = PBXFileReference; lastKnownFileType = "audio.aiff-c"; path = lesson_04.caf; sourceTree = "<group>"; };
+		EEEEEE0000000001EEEEEE08 /* lesson_05.caf */ = {isa = PBXFileReference; lastKnownFileType = "audio.aiff-c"; path = lesson_05.caf; sourceTree = "<group>"; };
+		EEEEEE0000000001EEEEEE09 /* lesson_06.caf */ = {isa = PBXFileReference; lastKnownFileType = "audio.aiff-c"; path = lesson_06.caf; sourceTree = "<group>"; };
+		FFEEEE0000000001FFEEEE01 /* MVHowToViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MVHowToViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -292,6 +365,7 @@
 				0C184B9C1EFD6BD600C330FF /* AdSupport.framework in Frameworks */,
 				0C3EA1061EED420100B502CE /* AssetsLibrary.framework in Frameworks */,
 				8C2E91D6ADD8894B22A41E4D /* Pods_musica.framework in Frameworks */,
+				0CAA44112F8AC19E00EDE808 /* WhisperKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -344,14 +418,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		0C07C14C1F2D10BE0033E368 /* musicLyricEdit */ = {
-			isa = PBXGroup;
-			children = (
-				0C34D8DF1EC76FB3002739EA /* MusicLyricEditViewController.swift */,
-			);
-			name = musicLyricEdit;
-			sourceTree = "<group>";
-		};
 		0C21E02F208C4AB900D0AF7B /* scanCamera */ = {
 			isa = PBXGroup;
 			children = (
@@ -378,9 +444,9 @@
 			isa = PBXGroup;
 			children = (
 				0C34D8D91EC0AB9B002739EA /* MusicPlayListViewController.swift */,
+				BB1111001ED0000000000002 /* MusicPlayListViewControllerRedesign.swift */,
 				0C34D8DD1EC5EBB4002739EA /* PlayMusicViewController.swift */,
 				0C34D8DB1EC0B57F002739EA /* CustamPlayListTableViewCell.swift */,
-				0C07C14C1F2D10BE0033E368 /* musicLyricEdit */,
 			);
 			name = musicPlayList;
 			sourceTree = "<group>";
@@ -420,6 +486,7 @@
 			isa = PBXGroup;
 			children = (
 				0C22520C2641A9E700C21DCA /* index.html */,
+				0C22520E2641A9E700C21DCA /* help.html */,
 				0CEBBB90219FE3CD00B4FA69 /* musica-Bridging-Header.h */,
 				0CC5920E1EA37E6D00BD5A82 /* musica */,
 				0CC592251EA37E6D00BD5A82 /* musicaTests */,
@@ -444,8 +511,23 @@
 			isa = PBXGroup;
 			children = (
 				DDDDDD0000000001DDDDDD01 /* DemoDataSeeder.swift */,
+				FFEEEE0000000001FFEEEE01 /* MVHowToViewController.swift */,
+				EEEEEE0000000001EEEEEE01 /* SampleDataSeeder.swift */,
+				EEEEEE0000000001EEEEEE02 /* sample_en.caf */,
+				EEEEEE0000000001EEEEEE03 /* sample_ja.caf */,
+				EEEEEE0000000001EEEEEE04 /* lesson_01.caf */,
+				EEEEEE0000000001EEEEEE05 /* lesson_02.caf */,
+				EEEEEE0000000001EEEEEE06 /* lesson_03.caf */,
+				EEEEEE0000000001EEEEEE07 /* lesson_04.caf */,
+				EEEEEE0000000001EEEEEE08 /* lesson_05.caf */,
+				EEEEEE0000000001EEEEEE09 /* lesson_06.caf */,
 				CCCCCC0000000001CCCCCC01 /* SpeedSheetViewController.swift */,
 				CCCCCC0000000001CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift */,
+				BB0000001ED0000000000002 /* PlayMusicViewControllerNewUI.swift */,
+				BB0000001ED0000000000004 /* RegionRepeatSheetViewController.swift */,
+				BB0000001ED0000000000006 /* MusicLibrary.swift */,
+				BB0000001ED0000000000008 /* MusicLibraryTableViewController.swift */,
+				BB000000100000000000000A /* SettingViewController_.swift */,
 				AAAAAA0000000003AAAAAA01 /* Theme */,
 				0C052EC721DA129000EDC8D0 /* CBAutoScrollLabel.h */,
 				0C052EC821DA129100EDC8D0 /* CBAutoScrollLabel.m */,
@@ -556,6 +638,26 @@
 				0CB3D3942365943F002F8E25 /* AdmobNativeAD.swift */,
 				0C3B080E20FBC04400989494 /* registerTableViewCell.swift */,
 				0C1A30A91ED0856F00602A11 /* HomeTableViewCell.swift */,
+				AA0000001ED0000000000002 /* OnboardingViewController.swift */,
+				AA0000001ED0000000000004 /* PracticeViewController.swift */,
+				AAAAAA0000000001AAAAAA03 /* DiscoverViewController.swift */,
+				AA0000001ED0000000000006 /* LyricsService.swift */,
+				1ACD923A84F541F6B48CCCCA /* TranscriptionService.swift */,
+				BE1234567890ABCDEF123457 /* WhisperKitService.swift */,
+				AA0000001ED0000000000008 /* DictationSetupViewController.swift */,
+				AA0000001ED000000000000C /* DictationViewController.swift */,
+				AA0000001ED000000000000E /* SectionRepeatViewController.swift */,
+				AA0000001ED00000000000A1 /* PracticeHistoryService.swift */,
+				AA0000001ED00000000000A3 /* FlashCardViewController.swift */,
+				AA0000001ED00000000000A5 /* PracticeHistoryViewController.swift */,
+				AA0000001ED00000000000A7 /* WeakWordService.swift */,
+				AA0000001ED00000000000A9 /* WeakWordListViewController.swift */,
+				AA0000001ED0000000000010 /* Notification+musica.swift */,
+				AA0000001ED0000000000012 /* YouTubeCaptionService.swift */,
+				AA0000001ED0000000000022 /* YoutubeCaptionStore.swift */,
+				AA0000001ED0000000000024 /* CaptionTextEditorViewController.swift */,
+				AA0000001ED0000000000026 /* YouTubeTranscriptBrowserViewController.swift */,
+				AA0000001ED0000000000028 /* LyricsTextEditorViewController.swift */,
 				0C5A31871F2DCD270069FD92 /* musicPlayList */,
 				0CDE3AD01EEC138700FE112E /* customMusicLibraryRegister */,
 				0C5A31881F2DCD520069FD92 /* MVPlayList */,
@@ -574,6 +676,15 @@
 			path = AVAudioSessionObj;
 			sourceTree = "<group>";
 		};
+		AAAAAA0000000003AAAAAA01 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				AAAAAA0000000001AAAAAA01 /* AppColor.swift */,
+				AAAAAA0000000001AAAAAA02 /* AppFont.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
 		B88046BE849A421FB2D9C4FC /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -585,16 +696,6 @@
 				6D80474C73C3E3C989F857A8 /* Pods-musicaUITests.release.xcconfig */,
 			);
 			path = Pods;
-			sourceTree = "<group>";
-		};
-
-		AAAAAA0000000003AAAAAA01 /* Theme */ = {
-			isa = PBXGroup;
-			children = (
-				AAAAAA0000000001AAAAAA01 /* AppColor.swift */,
-				AAAAAA0000000001AAAAAA02 /* AppFont.swift */,
-			);
-			path = Theme;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -618,6 +719,9 @@
 				C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6 /* PBXTargetDependency */,
 			);
 			name = musica;
+			packageProductDependencies = (
+				0CAA44102F8AC19E00EDE807 /* WhisperKit */,
+			);
 			productName = musica;
 			productReference = 0CC5920C1EA37E6D00BD5A82 /* musica.app */;
 			productType = "com.apple.product-type.application";
@@ -712,6 +816,9 @@
 				tr,
 			);
 			mainGroup = 0CC592031EA37E6D00BD5A82;
+			packageReferences = (
+				0CAA440F2F8AC19E00EDE806 /* XCRemoteSwiftPackageReference "WhisperKit" */,
+			);
 			productRefGroup = 0CC5920D1EA37E6D00BD5A82 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -729,6 +836,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0C22520D2641A9E700C21DCA /* index.html in Resources */,
+				0C22520F2641A9E700C21DCA /* help.html in Resources */,
 				0CEC2A26250DF94600250C2D /* PopUpDialog.xib in Resources */,
 				0CC419AF2369B7A7007AD501 /* UnifiedNativeAdViewInTableCell.xib in Resources */,
 				0CC5921C1EA37E6D00BD5A82 /* LaunchScreen.storyboard in Resources */,
@@ -745,6 +853,14 @@
 				0CB6D02D235608A000C3D1FB /* InfoPlist.strings in Resources */,
 				0C8EB673235C299C00E868B7 /* RemoteConfigDefaults.plist in Resources */,
 				0CEC2A22250DEBA900250C2D /* PopUpAdView.xib in Resources */,
+				EEEEEE0000000002EEEEEE02 /* sample_en.caf in Resources */,
+				EEEEEE0000000002EEEEEE03 /* sample_ja.caf in Resources */,
+				EEEEEE0000000002EEEEEE04 /* lesson_01.caf in Resources */,
+				EEEEEE0000000002EEEEEE05 /* lesson_02.caf in Resources */,
+				EEEEEE0000000002EEEEEE06 /* lesson_03.caf in Resources */,
+				EEEEEE0000000002EEEEEE07 /* lesson_04.caf in Resources */,
+				EEEEEE0000000002EEEEEE08 /* lesson_05.caf in Resources */,
+				EEEEEE0000000002EEEEEE09 /* lesson_06.caf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -965,8 +1081,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				DDDDDD0000000002DDDDDD01 /* DemoDataSeeder.swift in Sources */,
+				FFEEEE0000000002FFEEEE01 /* MVHowToViewController.swift in Sources */,
+				EEEEEE0000000002EEEEEE01 /* SampleDataSeeder.swift in Sources */,
 				CCCCCC0000000002CCCCCC01 /* SpeedSheetViewController.swift in Sources */,
 				CCCCCC0000000002CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift in Sources */,
+				BB0000001ED0000000000001 /* PlayMusicViewControllerNewUI.swift in Sources */,
+				BB0000001ED0000000000003 /* RegionRepeatSheetViewController.swift in Sources */,
+				BB0000001ED0000000000005 /* MusicLibrary.swift in Sources */,
+				BB0000001ED0000000000007 /* MusicLibraryTableViewController.swift in Sources */,
+				BB0000001ED0000000000009 /* SettingViewController_.swift in Sources */,
 				AAAAAA0000000002AAAAAA01 /* AppColor.swift in Sources */,
 				AAAAAA0000000002AAAAAA02 /* AppFont.swift in Sources */,
 				0CA7DAD124D304C8003BF76F /* SettingViewController.swift in Sources */,
@@ -994,6 +1117,26 @@
 				0C1DCDD41EB78EDE009B307F /* CustomMusicLibraryAlbumViewController.swift in Sources */,
 				0C2134102403AD2100DD0275 /* AVPlayerViewControllerManager.swift in Sources */,
 				0C1A30AA1ED0856F00602A11 /* HomeTableViewCell.swift in Sources */,
+				AA0000001ED0000000000001 /* OnboardingViewController.swift in Sources */,
+				AA0000001ED0000000000003 /* PracticeViewController.swift in Sources */,
+				AAAAAA0000000002AAAAAA03 /* DiscoverViewController.swift in Sources */,
+				AA0000001ED0000000000005 /* LyricsService.swift in Sources */,
+				AD0F4A9DACEE4DAF9C82D009 /* TranscriptionService.swift in Sources */,
+				BE1234567890ABCDEF123456 /* WhisperKitService.swift in Sources */,
+				AA0000001ED0000000000007 /* DictationSetupViewController.swift in Sources */,
+				AA0000001ED000000000000B /* DictationViewController.swift in Sources */,
+				AA0000001ED000000000000D /* SectionRepeatViewController.swift in Sources */,
+				AA0000001ED00000000000A0 /* PracticeHistoryService.swift in Sources */,
+				AA0000001ED00000000000A2 /* FlashCardViewController.swift in Sources */,
+				AA0000001ED00000000000A4 /* PracticeHistoryViewController.swift in Sources */,
+				AA0000001ED00000000000A6 /* WeakWordService.swift in Sources */,
+				AA0000001ED00000000000A8 /* WeakWordListViewController.swift in Sources */,
+				AA0000001ED000000000000F /* Notification+musica.swift in Sources */,
+				AA0000001ED0000000000011 /* YouTubeCaptionService.swift in Sources */,
+				AA0000001ED0000000000021 /* YoutubeCaptionStore.swift in Sources */,
+				AA0000001ED0000000000023 /* CaptionTextEditorViewController.swift in Sources */,
+				AA0000001ED0000000000025 /* YouTubeTranscriptBrowserViewController.swift in Sources */,
+				AA0000001ED0000000000027 /* LyricsTextEditorViewController.swift in Sources */,
 				0C4799CE1EDF0F8D0029F2E7 /* SearchViewController.swift in Sources */,
 				0C2839B41F801EAF00D68F74 /* YoutubePlayViewController.swift in Sources */,
 				0C3AF5A122A2FB9E00CE606E /* SettingKakinTableViewCell.swift in Sources */,
@@ -1003,6 +1146,7 @@
 				0C5A31861F2DCD090069FD92 /* PlayMVListViewController.swift in Sources */,
 				0C052EC921DA129100EDC8D0 /* CBAutoScrollLabel.m in Sources */,
 				0C34D8DA1EC0AB9B002739EA /* MusicPlayListViewController.swift in Sources */,
+				BB1111001ED0000000000001 /* MusicPlayListViewControllerRedesign.swift in Sources */,
 				0C34D8DE1EC5EBB4002739EA /* PlayMusicViewController.swift in Sources */,
 				0C4B8B0D1ED858B400244C0B /* define.swift in Sources */,
 				0C459ECA1EBDAAFA00E60023 /* CustamMusicLibraryRegisterTableViewCell.swift in Sources */,
@@ -1020,7 +1164,6 @@
 				0C2252152641ACE800C21DCA /* YoutubeHtmlPlayerViewController.swift in Sources */,
 				0CDE3ACB1EE588F300FE112E /* YoutubeVideoViewController.swift in Sources */,
 				0C07C14A1F2500E20033E368 /* SettingADTableViewCell.swift in Sources */,
-				0C34D8E01EC76FB3002739EA /* MusicLyricEditViewController.swift in Sources */,
 				0C3B080F20FBC04400989494 /* registerTableViewCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1123,6 +1266,7 @@
 		0CC592341EA37E6D00BD5A82 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1157,6 +1301,7 @@
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -1172,9 +1317,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -1232,14 +1377,15 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "";
 				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/$(PRODUCT)/Bridging-Header.h";
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -1255,7 +1401,7 @@
 				CODE_SIGN_ENTITLEMENTS = musica/musica.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4.1.9;
+				CURRENT_PROJECT_VERSION = 5.1.1;
 				DEVELOPMENT_TEAM = SCU9EZ2EKX;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1264,9 +1410,13 @@
 					"$(PROJECT_DIR)",
 				);
 				INFOPLIST_FILE = musica/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 4.1.9;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 5.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = kuriFCTmusica;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1287,7 +1437,7 @@
 				CODE_SIGN_ENTITLEMENTS = musica/musica.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4.1.9;
+				CURRENT_PROJECT_VERSION = 5.1.1;
 				DEVELOPMENT_TEAM = SCU9EZ2EKX;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1296,9 +1446,13 @@
 					"$(PROJECT_DIR)",
 				);
 				INFOPLIST_FILE = musica/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 4.1.9;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 5.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = kuriFCTmusica;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1317,7 +1471,11 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				DEVELOPMENT_TEAM = SCU9EZ2EKX;
 				INFOPLIST_FILE = musicaTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = kuriFCT.musicaTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
@@ -1333,7 +1491,11 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				DEVELOPMENT_TEAM = SCU9EZ2EKX;
 				INFOPLIST_FILE = musicaTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = kuriFCT.musicaTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
@@ -1348,7 +1510,11 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				DEVELOPMENT_TEAM = SCU9EZ2EKX;
 				INFOPLIST_FILE = musicaUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = kuriFCT.musicaUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
@@ -1363,7 +1529,11 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				DEVELOPMENT_TEAM = SCU9EZ2EKX;
 				INFOPLIST_FILE = musicaUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = kuriFCT.musicaUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
@@ -1411,6 +1581,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		0CAA440F2F8AC19E00EDE806 /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/argmaxinc/WhisperKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0CAA44102F8AC19E00EDE807 /* WhisperKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0CAA440F2F8AC19E00EDE806 /* XCRemoteSwiftPackageReference "WhisperKit" */;
+			productName = WhisperKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		0C1283C91EBE355700DBF546 /* RegistMusicLibraryModel.xcdatamodeld */ = {

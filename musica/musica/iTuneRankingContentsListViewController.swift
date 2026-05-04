@@ -11,7 +11,6 @@ import GoogleMobileAds
 import SDWebImage
 import CoreData
 import Reachability
-import RAMAnimatedTabBarController
 import WebKit
 
 class iTuneRankingContentsListViewController: UIViewController{
@@ -81,8 +80,10 @@ class iTuneRankingContentsListViewController: UIViewController{
         }
         iTunesImgView.sd_setImage(with: imgUrl as URL)
         iTunesADView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.iTunesADTapeed)))
-        webView = WKWebView(frame:CGRect(x: 0, y: 0, width: myAppFrameSize.width, height: youtubeWebView.frame.height + getTabHeghtPlusSafeArea()))
-        //webView = WKWebView(frame:CGRect(youtubeWebView.frame)
+        webView = WKWebView(
+            frame: CGRect(x: 0, y: 0, width: myAppFrameSize.width, height: youtubeWebView.frame.height + getTabHeghtPlusSafeArea()),
+            configuration: makeYouTubeWebViewConfiguration()
+        )
         webView.navigationDelegate = self
         webView.uiDelegate = self
         webView.addObserver(self, forKeyPath: "URL", options: .new, context: nil)
@@ -119,18 +120,18 @@ class iTuneRankingContentsListViewController: UIViewController{
             appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.RANKING.rawValue]]
             self.navigationController!.navigationBar.standardAppearance = appearance
             self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.RANKING.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         } else {
             self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.RANKING.rawValue]
             self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.RANKING.rawValue]]
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.RANKING.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         }
         
         NotificationCenter.default.addObserver(self, selector: #selector(reachabilityChanged),name: ReachabilityChangedNotification,object: reachability)
         do{
             try reachability.startNotifier()
         }catch{
-            print("could not start reachability notifier")
+            dlog("could not start reachability notifier")
         }
         
         if ADApearFlg() {
@@ -146,7 +147,7 @@ class iTuneRankingContentsListViewController: UIViewController{
         switch keyPath {
             case "URL":
                 self.waitView.isHidden = false
-                print(change![.newKey]!)
+                dlog(change![.newKey]!)
                     if let url = String(describing: change![.newKey]!) as? String {
                         if url.hasPrefix("https://www.youtube.com/watch?v=") || url.hasPrefix("https://m.youtube.com/watch?v="){
                             self.nowYoutubeVideoID = url.replacingOccurrences(of: "https://www.youtube.com/watch?v=", with: "")
@@ -195,25 +196,23 @@ class iTuneRankingContentsListViewController: UIViewController{
         let reachability = note.object as! Reachability
         if reachability.isReachable {
             if reachability.isReachableViaWiFi {
-                print("Reachable via WiFi")
+                dlog("Reachable via WiFi")
             } else {
-                print("Reachable via Cellular")
+                dlog("Reachable via Cellular")
             }
         } else {
-            print("Network not reachable")
+            dlog("Network not reachable")
         }
     }
     // 音楽名で検索
     @IBAction func searchMusicNameBtnTapped(_ sender: Any) {
         SEARCH_FARST_WORD = searchMusic
-        let animatedTabBar = self.tabBarController as! RAMAnimatedTabBarController
-        animatedTabBar.setSelectIndex(from: self.tabBarController!.selectedIndex, to: 2)
+        self.tabBarController?.selectedIndex = 2
     }
     // アーティスト名で検索
     @IBAction func searchArtistNameBtnTapped(_ sender: Any) {
         SEARCH_FARST_WORD = searchArtist
-        let animatedTabBar = self.tabBarController as! RAMAnimatedTabBarController
-        animatedTabBar.setSelectIndex(from: self.tabBarController!.selectedIndex, to: 2)
+        self.tabBarController?.selectedIndex = 2
     }
     /*******************************************************************
      画面遷移時処理
@@ -244,8 +243,9 @@ extension iTuneRankingContentsListViewController: WKUIDelegate, WKNavigationDele
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Swift.Void) {
         if let url = navigationAction.request.url?.absoluteString {
-            if url.hasPrefix("https://www.youtube.com/watch?v=") || url.hasPrefix("https://m.youtube.com/watch?v="){
+            if url.hasPrefix("https://www.youtube.com/watch?v=") || url.hasPrefix("https://m.youtube.com/watch?v=") {
                 decisionHandler(.cancel)
+                return
             }
         }
         decisionHandler(.allow)

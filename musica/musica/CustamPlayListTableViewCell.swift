@@ -18,7 +18,20 @@ class CustamPlayListTableViewCell: SWTableViewCell {
     @IBOutlet var animationGifWebView: WKWebView!
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
+        backgroundColor = AppColor.surface
+        trackTitleLabel.textColor = AppColor.textPrimary
+        albumTitleLabel.textColor = AppColor.textSecondary
+        trackNumLabel.textColor = AppColor.textSecondary
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        // タイトル＋アーティストをセル内で垂直中央揃えにする
+        guard let titleLbl = trackTitleLabel, let artistLbl = albumTitleLabel else { return }
+        let blockH = titleLbl.frame.height + 2 + artistLbl.frame.height
+        let originY = (contentView.bounds.height - blockH) / 2
+        titleLbl.frame.origin.y  = originY
+        artistLbl.frame.origin.y = originY + titleLbl.frame.height + 2
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {

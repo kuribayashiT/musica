@@ -204,7 +204,7 @@
 "VCy-vW-60F.normalTitle" = "再読み込み";
 
 /* Class = "UITabBarItem"; title = "検索"; ObjectID = "VG4-RV-CU7"; */
-"VG4-RV-CU7.title" = "検索";
+"VG4-RV-CU7.title" = "発見";
 
 /* Class = "UILabel"; text = "00:00"; ObjectID = "Vgy-Qy-ESm"; */
 "Vgy-Qy-ESm.text" = "00:00";
@@ -237,7 +237,7 @@
 "Ykb-d5-ZFh.text" = "以下の様に、メディアとApple Musicを『ON』にして下さい。";
 
 /* Class = "UINavigationItem"; title = "検索"; ObjectID = "Z6C-tI-nau"; */
-"Z6C-tI-nau.title" = "検索";
+"Z6C-tI-nau.title" = "発見";
 
 /* Class = "UILabel"; text = "Title"; ObjectID = "Zcz-Lu-UyX"; */
 "Zcz-Lu-UyX.text" = "Title";

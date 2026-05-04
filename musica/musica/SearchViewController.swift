@@ -216,11 +216,11 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,APVAdManage
             appearance.titleTextAttributes =  [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SEARCH.rawValue]]
             self.navigationController!.navigationBar.standardAppearance = appearance
             self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SEARCH.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         } else {
             self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SEARCH.rawValue]
             self.navigationController?.navigationBar.titleTextAttributes =  [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SEARCH.rawValue]]
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SEARCH.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         }
         
         searchResultTableView.dg_setPullToRefreshFillColor(NAVIGATION_PTR_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SEARCH.rawValue])
@@ -264,7 +264,7 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,APVAdManage
             //if reachability.isReachable {searchResultTableView.reloadData()}
         } catch  {
             // エラー処理
-            print("could not start reachability notifier")
+            dlog("could not start reachability notifier")
         }
         // キーボードの設定
         NotificationCenter.default.addObserver(
@@ -316,17 +316,32 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,APVAdManage
         case "URL":
             recommendWardHiddenFlg = true
             self.waitView.isHidden = false
-            print(change![.newKey]!)
+            dlog(change![.newKey]!)
                 if let url = String(describing: change![.newKey]!) as? String {
-                    if url.hasPrefix("https://www.youtube.com/watch?v=") || url.hasPrefix("https://m.youtube.com/watch?v="){
+                    if url.hasPrefix("https://www.youtube.com/watch?v=") || url.hasPrefix("https://m.youtube.com/watch?v=") {
                         self.nowYoutubeVideoID = url.replacingOccurrences(of: "https://www.youtube.com/watch?v=", with: "")
-                        self.nowYoutubeVideoID = url.replacingOccurrences(of: "https://m.youtube.com/watch?v=", with: "")
+                        self.nowYoutubeVideoID = self.nowYoutubeVideoID.replacingOccurrences(of: "https://m.youtube.com/watch?v=", with: "")
                         DispatchQueue.main.async {
                             self.webView.goBack()
-                            self.performSegue(withIdentifier: "toYoutubePlayer",sender: "")
+                            self.performSegue(withIdentifier: "toYoutubePlayer", sender: "")
                             self.waitView.isHidden = true
                         }
-                    }else{
+                    } else if url.contains("/shorts/") {
+                        // YouTube Shorts URL: https://www.youtube.com/shorts/VIDEO_ID
+                        let parts = url.components(separatedBy: "/shorts/")
+                        if let rawID = parts.last, !rawID.isEmpty {
+                            let videoID = rawID.components(separatedBy: "?").first ?? rawID
+                            self.nowYoutubeVideoID = videoID
+                            self.youtubeVideoTitle = ""
+                            DispatchQueue.main.async {
+                                self.webView.goBack()
+                                self.performSegue(withIdentifier: "toYoutubePlayer", sender: "")
+                                self.waitView.isHidden = true
+                            }
+                        } else {
+                            self.waitView.isHidden = true
+                        }
+                    } else {
                         self.waitView.isHidden = true
                     }
                 }
@@ -352,7 +367,7 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,APVAdManage
         // ネットワーク接続を確認
         var searchWordEncoded = ""
         if reachability.isReachable {
-            print("online")
+            dlog("online")
             self.view.endEditing(true)
             searchWordEncoded = searchWord.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ??  "エンコードできませんでした"
             // 各Viewの表示設定
@@ -361,7 +376,7 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,APVAdManage
             ADView.isHidden = true
             noHitView.isHidden = true
         }else{
-            print("offlone")
+            dlog("offlone")
             // 各Viewの表示設定
             errorView.isHidden = false
             waitView.isHidden = true
@@ -454,7 +469,7 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,APVAdManage
             noHitView.isHidden = true
             
         }else{
-            print("offlone")
+            dlog("offlone")
             // 各Viewの表示設定
             errorView.isHidden = false
             waitView.isHidden = true
@@ -518,7 +533,7 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,APVAdManage
         
         let cancel = UIAlertAction(title: localText(key:"btn_cancel"), style: UIAlertAction.Style.cancel, handler: {
             (action: UIAlertAction!) in
-            print("キャンセルをタップした時の処理")
+            dlog("キャンセルをタップした時の処理")
         })
         
         actionSheet.addAction(action1)
@@ -660,19 +675,19 @@ class SearchViewController: UIViewController , UISearchBarDelegate  ,APVAdManage
         
         if reachability.isReachable {
             if reachability.isReachableViaWiFi {
-                print("Reachable via WiFi")
+                dlog("Reachable via WiFi")
             } else {
-                print("Reachable via Cellular")
+                dlog("Reachable via Cellular")
             }
         } else {
-            print("Network not reachable")
+            dlog("Network not reachable")
         }
     }
     func checkOffline(){
         if reachability.isReachable {
-            print("online")
+            dlog("online")
         }else{
-            print("offlone")
+            dlog("offlone")
             waitView.isHidden = true
             errorView.isHidden = false
             return
@@ -910,7 +925,7 @@ extension SearchViewController :  UICollectionViewDelegate,UICollectionViewDataS
                             try contextC.save()
                             
                         }catch{
-                            print(error)
+                            dlog(error)
                             return
                         }
                         iconPopUpAnimesion(view : cell!.checkmark)
@@ -927,7 +942,7 @@ extension SearchViewController :  UICollectionViewDelegate,UICollectionViewDataS
                     // アラートを作成
                     let alert = UIAlertController(
                         title: localText(key:"okiniiri_delete_title"),
-                        message: localText(key:"okiniiri_delete_title"),
+                        message: localText(key:"okiniiri_delete_body"),
                         preferredStyle: .alert)
                     
                     // アラートにボタンをつける
@@ -951,7 +966,7 @@ extension SearchViewController :  UICollectionViewDelegate,UICollectionViewDataS
                             try MVContext.save()
                             
                         }catch{
-                            print(error)
+                            dlog(error)
                             return
                         }
                         // 登録されている「お気に入り動画」数も更新
@@ -979,7 +994,7 @@ extension SearchViewController :  UICollectionViewDelegate,UICollectionViewDataS
                             try contextC.save()
                             
                         }catch{
-                            print(error)
+                            dlog(error)
                             return
                         }
                         iconPopDownAnimesion(view : cell!.checkmark)
@@ -992,7 +1007,7 @@ extension SearchViewController :  UICollectionViewDelegate,UICollectionViewDataS
                 }
             }
         }else{
-            print("long press on table view")
+            dlog("long press on table view")
         }
     }
 }
@@ -1042,6 +1057,6 @@ extension SearchViewController: WKUIDelegate, WKNavigationDelegate {
     }
     // MARK: - リダイレクト
     func webView(_ webView: WKWebView, didReceiveServerRedirectForProvisionalNavigation:WKNavigation!) {
-        print("リダイレクト")
+        dlog("リダイレクト")
     }
 }

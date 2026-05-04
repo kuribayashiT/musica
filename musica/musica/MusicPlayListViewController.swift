@@ -50,6 +50,15 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     @IBOutlet weak var autoScrollTrackTitleLebel: CBAutoScrollLabel!
     var playedFlg = false
     var selectIndex = 0
+
+    // ── 新デザイン ミニプレイヤーカード ──────────────────────────────────
+    var miniPlayerCardShadow: UIView?       // シャドウラッパー
+    var miniPlayerCard: UIView?             // clipsToBounds カード
+    var miniPlayerBgImageView: UIImageView? // カード内背景アート
+    var miniPlayerArtView: UIImageView?     // サムネイル
+    var miniPlayerTitleLabel: UILabel?
+    var miniPlayerArtistLabel: UILabel?
+    var miniPlayerPlayPauseBtn: UIButton?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -65,6 +74,10 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
             custumLoadBannerAd(bannerView: self.bannerView,setBannerView:self.view)
         }
         
+        // テーブルデザイン
+        musicLabraryTableview.backgroundColor = AppColor.background
+        musicLabraryTableview.separatorColor = AppColor.separator
+
         // 長押し時の挙動を登録
         let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.cellLongPressed))
         longPressRecognizer.allowableMovement = 15
@@ -78,11 +91,11 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         
         // ボタンを初期化
         playBackBtn.setImage(playBackLBtnImage.withRenderingMode(.alwaysTemplate), for: .normal)
-        playBackBtn.tintColor = darkModeIconBlackUIcolor()
+        playBackBtn.tintColor = AppColor.accent
         playBtn.setImage(playBtnLImage.withRenderingMode(.alwaysTemplate), for: .normal)
-        playBtn.tintColor = darkModeIconBlackUIcolor()
+        playBtn.tintColor = AppColor.accent
         playNextBtn.setImage(playNextLBtnImage.withRenderingMode(.alwaysTemplate), for: .normal)
-        playNextBtn.tintColor = darkModeIconBlackUIcolor()
+        playNextBtn.tintColor = AppColor.accent
 
         /*
          音楽再生準備
@@ -93,6 +106,9 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         autoScrollTrackTitleLebel.scrollSpeed = 50.0;                         // スクロール速度
         autoScrollTrackTitleLebel.fadeLength = 10.0;                          // 左端と右端のフェードの長さ
         autoScrollTrackTitleLebel.font = AppFont.miniPlayerTitle
+
+        // 新デザイン適用（viewDidLoad 最後に呼ぶ）
+        redesignMiniPlayer()
 
         
         
@@ -118,28 +134,44 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     /*******************************************************************
      画面描画時の処理
      *******************************************************************/
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // shadowPath を確定させてアニメーション中の再計算コストとチラつきを防ぐ
+        if let shadow = miniPlayerCardShadow, shadow.bounds != .zero {
+            shadow.layer.shadowPath = UIBezierPath(
+                roundedRect: shadow.bounds, cornerRadius: 16
+            ).cgPath
+        }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // タブ切り替えアニメーション完了後にシャドウを復元（遷移中の縦線チラつき防止）
+        guard let shadow = miniPlayerCardShadow else { return }
+        shadow.layer.shadowOpacity = 0
+        UIView.animate(withDuration: 0.2) {
+            shadow.layer.shadowOpacity = 0.22
+        }
+    }
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        // 遷移アニメーション中はシャドウを非表示にしてチラつきを防ぐ
+        miniPlayerCardShadow?.layer.shadowOpacity = 0
         selectMusicView.isHidden = true
         selectedTracks = [:]
         CUSTOM_LYBRARY_FROM_MUSICLIST = false
         LYRIC_RESULT_TEXT = ""
         // navigationbarの色設定
-        self.navigationController?.navigationBar.isTranslucent = false
-        //バーアイテムカラー
-        if #available(iOS 15.0, *) {
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
-            self.navigationController!.navigationBar.standardAppearance = appearance
-            self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-        } else {
-            self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-        }
+        self.navigationController?.navigationBar.isTranslucent = true
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.configureWithTransparentBackground()
+        navAppearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
+        navAppearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: AppColor.textPrimary]
+        self.navigationController?.navigationBar.standardAppearance = navAppearance
+        self.navigationController?.navigationBar.scrollEdgeAppearance = navAppearance
+        self.navigationController?.navigationBar.compactAppearance = navAppearance
+        self.navigationController?.navigationBar.tintColor = AppColor.accent
         
         navigationItem.rightBarButtonItems = [makeAddTrackBtn()]
         
@@ -187,6 +219,9 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         let center = NotificationCenter.default
         center.addObserver(self, selector: #selector(self.handleInterruption(_:)), name: AVAudioSession.interruptionNotification, object: nil)
         center.addObserver(self, selector: #selector(self.audioSessionRouteChanged(_:)), name: AVAudioSession.routeChangeNotification, object: nil)
+        center.addObserver(self, selector: #selector(handleRemotePlayPause), name: .musicaRemotePlayPause, object: nil)
+        center.addObserver(self, selector: #selector(handleRemotePrevFromList), name: .musicaRemotePrev, object: nil)
+        center.addObserver(self, selector: #selector(handleRemoteNextFromList), name: .musicaRemoteNext, object: nil)
 
         // 表示する音楽情報を更新
         displayMusicLibraryData.musicLibraryCode = newMusicLibraryCode
@@ -274,6 +309,10 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool{
         return true
     }
+    // セル高さ
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 68
+    }
     // tableフッターの高さを返却
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
         if AD_DISPLAY_MUSICLIBRARYLIST_BANNER{
@@ -291,42 +330,39 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     func makeEditBtn() -> UIBarButtonItem{
         let button = UIButton(type: UIButton.ButtonType.system)
         button.frame.size = CGSize(width: 80, height: 30)
-        button.setTitleColor(AppColor.textSecondary, for: UIControl.State.normal)
-        if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue {
-            button.layer.borderWidth = 1.0
-            button.layer.borderColor = AppColor.textSecondary.cgColor
-        }else{
-            button.layer.borderWidth = 0
-            button.layer.borderColor = UIColor.clear.cgColor
-        }
+        button.setTitleColor(AppColor.accent, for: UIControl.State.normal)
+        button.layer.borderWidth = 1.0
+        button.layer.borderColor = AppColor.accent.cgColor
         button.layer.cornerRadius = 5
         button.backgroundColor = AppColor.surface
         button.addTarget(self, action: #selector(self.editDoneBtnTapped), for: UIControl.Event.touchUpInside)
-        //button.titleLabel?.font =  UIFont.systemFont(ofSize: 13 ,weight: UIFont.Weight.ultraLight)
         button.setTitle(NAVUGATION_BTN_EDIT_END, for: UIControl.State.normal)
         let barButton = UIBarButtonItem(customView: button)
         nowBarBtn = 1
         return barButton
     }
-    func makeAddTrackBtn() -> UIBarButtonItem{
-        let button = UIButton(type: UIButton.ButtonType.system)
-        button.frame.size = CGSize(width: 80, height: 30)
-        button.setTitleColor(AppColor.textSecondary, for: UIControl.State.normal)
-        if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue {
-            button.layer.borderWidth = 1.0
-            button.layer.borderColor = AppColor.textSecondary.cgColor
-        }else{
-            button.layer.borderWidth = 0
-            button.layer.borderColor = UIColor.clear.cgColor
+    func makeAddTrackBtn() -> UIBarButtonItem {
+        let button = UIButton(type: .system)
+        if #available(iOS 15.0, *) {
+            var cfg = UIButton.Configuration.plain()
+            cfg.title = localText(key: "home_addtrack_btn")
+            cfg.baseForegroundColor = AppColor.accent
+            cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+                var a = attrs; a.font = AppFont.footnote; return a
+            }
+            cfg.contentInsets = NSDirectionalEdgeInsets(top: 7, leading: 12, bottom: 7, trailing: 12)
+            button.configuration = cfg
+        } else {
+            button.frame.size = CGSize(width: 80, height: 30)
+            button.setTitleColor(AppColor.accent, for: .normal)
+            button.layer.cornerRadius = 5
+            button.backgroundColor = AppColor.surface
+            button.titleLabel?.font = AppFont.footnote
+            button.setTitle(localText(key: "home_addtrack_btn"), for: .normal)
         }
-        button.layer.cornerRadius = 5
-        button.backgroundColor = AppColor.surface
-        button.addTarget(self, action: #selector(self.addTrack), for: UIControl.Event.touchUpInside)
-        button.titleLabel?.font =  AppFont.footnote
-        button.setTitle(localText(key:"home_addtrack_btn"), for: UIControl.State.normal)
-        let barButton = UIBarButtonItem(customView: button)
+        button.addTarget(self, action: #selector(self.addTrack), for: .touchUpInside)
         nowBarBtn = 0
-        return barButton
+        return UIBarButtonItem(customView: button)
     }
     @objc func addTrack(){
         CUSTOM_LYBRARY_FROM_MUSICLIST = true
@@ -449,7 +485,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     func swipeableTableViewCell(_ cell: SWTableViewCell!, didTriggerRightUtilityButtonWith index: Int) {
         let point = musicLabraryTableview.convert(cell.frame.origin, from: cell.superview)
         if let indexPath = musicLabraryTableview.indexPathForRow(at: point) {
-            print("section: \(indexPath.section) - row: \(indexPath.row)")
+            dlog("section: \(indexPath.section) - row: \(indexPath.row)")
             switch index {
             case 0:
                 selectIndex = indexPath.row
@@ -474,7 +510,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                 getForegroundViewController().present(alert, animated: true, completion: nil)
                 
             default:
-                print("other")
+                dlog("other")
             }
         }
         
@@ -483,6 +519,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     /* UITableViewDelegateデリゲートメソッド */
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath as IndexPath, animated: true)
+        UISelectionFeedbackGenerator().selectionChanged()
         // 編集中であれば、再生しない
         if musicLabraryTableview.isEditing {
             return
@@ -557,7 +594,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
      *******************************************************************/
     func loadInterstitial() {
         InterstitialAd.load(with: ADMOB_INTERSTITIAL_LIBRARY, request: Request()) { [weak self] ad, error in
-            if let error = error { print("Interstitial failed to load: \(error)"); return }
+            if let error = error { dlog("Interstitial failed to load: \(error)"); return }
             self?.interstitial = ad
             self?.interstitial?.fullScreenContentDelegate = self
         }
@@ -618,9 +655,13 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         NowPlayingMusicLibraryData.nowPlayingLibrary = self.musicLibraryName
         // アニメーション
         tappedAnimation(tappedBtn: playBtn)
+        // 新カードの再生/停止アイコンを即時更新
+        let ppCfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
+        let ppSymbol = (audioPlayer?.isPlaying ?? false) ? "pause.fill" : "play.fill"
+        miniPlayerPlayPauseBtn?.setImage(UIImage(systemName: ppSymbol, withConfiguration: ppCfg), for: .normal)
         musicLabraryTableview.reloadData()
     }
-    
+
     // 「次の曲へ」ボタンタップ時
     @IBAction func playNextBtnTapped(_ sender: Any) {
         // 再生中のライブラリが表示されているものが同じかチェック→違ったら更新
@@ -686,6 +727,24 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         playBtn.setImage(stopBtnLImage.withRenderingMode(.alwaysTemplate), for: .normal)
         tappedAnimation(tappedBtn: playBackBtn)
     }
+    // リモート通知ハンドラ（練習タブ・ディクテーション画面からの操作）
+    // PlayMusicVCが nav スタックにいる場合はそちらに任せて二重処理を防ぐ
+    @objc private func handleRemotePlayPause() {
+        guard !(navigationController?.topViewController is PlayMusicViewController) else { return }
+        playBtnTapped(self)
+        miniPlayerReload()
+    }
+
+    @objc private func handleRemotePrevFromList() {
+        guard !(navigationController?.topViewController is PlayMusicViewController) else { return }
+        prevMusicPlay()
+    }
+
+    @objc private func handleRemoteNextFromList() {
+        guard !(navigationController?.topViewController is PlayMusicViewController) else { return }
+        nextMusicPlay()
+    }
+
     // 次の曲再生
     @objc func nextMusicPlay(){
         self.desideNextPlayMusic(next: true)
@@ -798,7 +857,8 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         playNextBtn.setImage(playNextLBtnImage.withRenderingMode(.alwaysTemplate), for: .normal)
         
         autoScrollTrackTitleLebel.text = NOT_PLAYING_TRACK_TITLE
-        
+        resetMiniPlayerCard()
+
         //テーブルの再読み込み
         musicLabraryTableview.reloadData()
         // DB保存
@@ -830,7 +890,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                 do{
                     try context.save()
                 }catch{
-                    print(error)
+                    dlog(error)
                 }
             }
         }
@@ -851,6 +911,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
             playBtn.setImage(playBtnLImage.withRenderingMode(.alwaysTemplate), for: .normal)
             playNextBtn.setImage(playNextLBtnImage.withRenderingMode(.alwaysTemplate), for: .normal)
             autoScrollTrackTitleLebel.text = NOT_PLAYING_TRACK_TITLE
+            resetMiniPlayerCard()
             // 編集完了ボタンの有効化
             navigationItem.rightBarButtonItems = [makeEditBtn()]
             musicLabraryTableview.reloadData()
@@ -1087,10 +1148,25 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                 self.imageIconView.image = UIImage(named: "onpu_BL")
                 self.imageIconView.contentMode = .center
             }
+            // ── 新カード同期 ──────────────────────────────────────────────
+            let isPlaying = audioPlayer != nil && audioPlayer.isPlaying
+            if NowPlayingMusicLibraryData.musicLibraryCode == displayMusicLibraryData.musicLibraryCode,
+               NowPlayingMusicLibraryData.nowPlaying >= 0 {
+                let track = SHUFFLE_FLG
+                    ? NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying]
+                    : NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying]
+                self.syncMiniPlayerCard(artworkImg: track.artworkImg,
+                                        title: track.title,
+                                        artist: track.artist,
+                                        isPlaying: isPlaying)
+            } else {
+                self.resetMiniPlayerCard()
+            }
+            NotificationCenter.default.post(name: .musicaTrackChanged, object: nil)
             self.musicLabraryTableview.reloadData()
         }
     }
-    
+
     // 上部のミニplayer更新(エラー用)
     func miniPlayerErrReload(){
         if SHUFFLE_FLG {
@@ -1132,6 +1208,18 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
             }
         }
 
+        // ── 新カード同期（エラー時: isPlaying=false） ──────────────────
+        if NowPlayingMusicLibraryData.nowPlaying >= 0 {
+            let track = SHUFFLE_FLG
+                ? NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying]
+                : NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying]
+            syncMiniPlayerCard(artworkImg: audioPlayer != nil ? track.artworkImg : nil,
+                               title: audioPlayer != nil ? track.title : NOT_PLAYING_TRACK_TITLE,
+                               artist: audioPlayer != nil ? track.artist : "",
+                               isPlaying: false)
+        } else {
+            resetMiniPlayerCard()
+        }
     }
 
     /*******************************************************************
@@ -1166,7 +1254,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                     NowPlayingMusicLibraryData = displayMusicLibraryData
                 }
             }catch{
-                print(error)
+                dlog(error)
             }
         }
         // 登録されている「音楽」数も更新
@@ -1217,7 +1305,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                 try contextC.save()
                 
             }catch{
-                print(error)
+                dlog(error)
             }
             
             // TOP画面へ遷移
@@ -1233,7 +1321,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
             try contextC.save()
             
         }catch{
-            print(error)
+            dlog(error)
             return
         }
         
@@ -1323,6 +1411,8 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
      *******************************************************************/
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        // 遷移アニメーション中はシャドウを非表示にしてチラつきを防ぐ
+        miniPlayerCardShadow?.layer.shadowOpacity = 0
         // 編集完了ボタンの無効化
         navigationItem.rightBarButtonItems = [makeAddTrackBtn()]
     }
@@ -1333,6 +1423,8 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
             let secondVc = segue.destination as! PlayMusicViewController
             // 値を渡す
             secondVc.musicLibraryName = musicLibraryName
+            // 遷移前の再生状態を保持（停止中なら再生を開始しない）
+            secondVc.preservePlayState = !(audioPlayer?.isPlaying ?? false)
             mMusicController.commandAllRemove()
         }else if segue.identifier == "toMusicSetting" {
             // musicLyricEditViewControllerをインスタンス化
@@ -1376,7 +1468,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                 do{
                     try context.save()
                 }catch{
-                    print(error)
+                    dlog(error)
                 }
                 
             }

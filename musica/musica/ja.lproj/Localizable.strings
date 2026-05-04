@@ -119,7 +119,7 @@
 "homepage_musicahoutouse" = "使い方";
 "homepage_musica" = "musicA 公式";
 "homepage_pp" = "利用規約/プライバシーポリシー";
-"to_homepage_musica" = "musicA 公式サイトへ";
+"to_homepage_musica" = "利用規約 / プライバシーポリシー";
 
 // 問い合わせ
 "qa" = "FAQ";
@@ -174,7 +174,6 @@
 "search_janre_technology" = "科学と技術";
 "search_janre_society" = "社会";
 "search_janre_anime" = "アニメ";
-"search_janre_entertainment" = "エンタメ";
 "search_janre_movietrailer" = "映画予告";
 
 // 検索文言
@@ -286,7 +285,7 @@
 "okiniiri_regist_title" = "お気に入りに追加";
 "okiniiri_regist_body" = "この動画をお気に入りに追加しますか？";
 "okiniiri_delete_title" = "お気に入りから削除";
-"okiniiri_delete_title" = "この動画をお気に入りから削除しますか？";
+"okiniiri_delete_body" = "この動画をお気に入りから削除しますか？";
 "okiniiri_regist_comp_title" = "登録完了";
 "okiniiri_regist_comp_body" = "「お気に入り動画」に追加しました";
 "okiniiri_delete_comp_title" = "削除完了";
@@ -310,8 +309,8 @@
 "home_help_look" = "見る";
 "home_help_1" = "ここはMVが流れます。";
 "home_help_2" = "ここから、登録した「お気に入りの動画」が観れます。";
-"home_help_3" = "「お気に入りの動画」はここで検索した動画や・・・";
-"home_help_4" = "ランキングで観れる動画を登録できます。";
+"home_help_3" = "「発見」タブでは、YouTube動画の検索や世界のランキングが確認できます。気に入った動画はそこからお気に入り登録もできますよ！";
+"home_help_4" = "「練習」タブでは、音声ファイルを使ったディクテーション練習や区間リピート練習ができます。語学学習にもぴったりです！";
 "home_help_5" = "「お気に入りの動画」以外にも、作成した音楽ライブラリもここに表示されます。";
 "home_help_6" = "音楽ライブラリの作成はこの「＋」ボタンからできます。";
 "home_help_7" = "ちなみに、この「？」ボタンで今の説明がまた見れます。";
@@ -319,7 +318,7 @@
 "home_help_9" = "ここで音楽ライブラリの作成ができるよ！";
 
 "home_tutorial_mv_message" = "お気に入り動画を登録してみよう!!";
-"home_tutorial_tapped_message" = "ランキングや検索タブからお気に入り動画を登録しよう！";
+"home_tutorial_tapped_message" = "「発見」タブでYouTube動画を検索してお気に入り登録しよう！";
 
 // How To Download
 "how_to_download_page1" = "ダウンロードは、iPhone/iPadに元から入っている「ミュージック」アプリ、もしくは「iTunes Store」のアプリから行えます。";
@@ -431,3 +430,334 @@
 "kakin_restore_fail_title" = "復元に失敗しました";
 "kakin_restore_fail_body" = "現在ストアにてログインされているAppleIDから、購入履歴が見つかりませんでした。" ;
 "kakin_rule" = "☆「ホーム」タブ\n・画面上部に表示されるMV広告\n・音楽再生リストなどの各画面のバナー広告\n・お気に入り動画再生時に時々出てくる全画面広告\n☆「ランキング」タブ\n・画面上部に表示されるMV広告\n・関連動画一覧内に表示されるMV広告\n☆「検索」タブ\n・画面上部に表示されるMV広告\n・関連動画一覧内に表示されるMV広告\n・検索時に時々出てくる全画面広告\n☆「オプション」タブ\n・MV広告\n※「テキスト」タブ以外の広告は全て削除対象となります。\n--以下、必ずお読み下さい--\n!!注意!!\n・Youtube動画自体に広告が挿入されているものは削除が不可となります。\n・「テキスト」タブのスキャン機能および、翻訳機能実行時の広告は、サーバー負荷軽減のため削除が負荷となります。\nあらかじめご了承ください。\n\n◇「自動継続課金」について\n期限が切れる24時間以内に自動更新の解除をされない場合、\"契約期間が自動更新\"されます。\n自動更新の課金は、期限が切れる24時間以内に行われます。\n\n◇契約期間の確認と解約\n契約期間の確認と解約は、端末の設定->iTunes StoreとApp Store -> Apple IDをタップ -> Apple ID を表示 -> 登録 -> musicA から行えます。\n※「登録」がない場合は、自動更新の登録はされていません。\n\n◇購入情報の復元\n機種変更時には、購入状態を無料で復元できます。\n購入時と同じApple IDで端末にログインして、「過去の購入から復元する」ボタンを押して下さい。\n\n◇注意点\n・課金された方の解約は、上記以外の方法では行えません。\n・当月分のキャンセルについては受け付けておりません。\n・iTunesアカウントを経由して課金されます。\n\n◇利用規約・プライバシーポリシー\n(リンク:https://www.ios-app-develop.com/blank-8)\n第三者に個人を特定できる情報を提供することはありません。\n個人情報の管理には細心の注意を払い、以下に掲げた通りに扱います。\n\n・サポート時\n個人を特定できる情報は一切送信されません。\n解析のための端末種類/OSバージョンのみがサポートメールに記載されます。\n\n・データ解析\nアプリの利便性向上のために、不具合発生時はデータ解析を行っております。\nここで開発者が扱うデータは、個人を特定できるようなものは含まれません。\n\n◇免責事項\n利用上の不具合、不都合に関しては可能な限りサポートを行っておりますが、利用者が本アプリを利用して生じた損害に対しては開発元は責任を負わないものとします。";
+
+/*******************************************************************
+ タブ
+ *******************************************************************/
+"tab_home" = "ホーム";
+"tab_practice" = "練習";
+"tab_discovery" = "発見";
+"tab_text" = "テキスト";
+"tab_options" = "オプション";
+
+/*******************************************************************
+ プレイヤー状態ラベル
+ *******************************************************************/
+"player_state_on" = "オン";
+"player_state_off" = "オフ";
+"player_repeat_all" = "全曲";
+"player_repeat_one" = "1曲";
+
+/*******************************************************************
+ 再生スピード
+ *******************************************************************/
+"speed_very_slow" = "超ゆっくり";
+"speed_slow" = "ゆっくり";
+"speed_somewhat_slow" = "やや遅め";
+"speed_slightly_slow" = "少し遅め";
+"speed_normal" = "通常";
+"speed_slightly_fast" = "少し速め";
+"speed_fast" = "速め";
+"speed_fairly_fast" = "かなり速め";
+"speed_double" = "2倍速";
+
+/*******************************************************************
+ 練習画面
+ *******************************************************************/
+"practice_title" = "練習";
+"practice_mode_header" = "練習モード";
+"practice_speed_header" = "再生スピード";
+"practice_mode_loop" = "区間リピート";
+"practice_mode_loop_sub" = "サビだけループ";
+"practice_coming_soon" = "近日公開";
+"practice_no_track_hint" = "ホームタブで曲を選ぶと、ここに表示されます";
+"practice_go_home_btn" = "ホームへ →";
+"practice_go_home_short" = "ホームへ";
+"practice_unknown" = "不明";
+"practice_library" = "ライブラリ";
+"practice_dictation_title" = "ディクテーション";
+"practice_dictation_desc" = "聴き取り → 穴埋め練習";
+"practice_change_settings" = "テキスト・言語を変更する";
+"practice_no_track_state" = "曲が選択されていません";
+"practice_no_track_state_sub" = "ホームタブで曲を再生してから練習を始めましょう";
+"practice_lyrics_ready" = "歌詞が登録済みです";
+"practice_start_btn" = "練習を開始する";
+"practice_no_lyrics_hint" = "歌詞が未登録です — AI音声認識や写真から自動取得できます";
+"practice_prepare_text_btn" = "テキストを準備する";
+"practice_no_track_alert_title" = "曲が選択されていません";
+"practice_no_track_alert_msg" = "ホームタブで曲を選んでから練習を始めましょう。";
+"practice_coming_soon_ok" = "楽しみにしてます！";
+
+/*******************************************************************
+ ディクテーション画面
+ *******************************************************************/
+"dictation_title" = "ディクテーション";
+"dictation_input_placeholder" = "ここに入力してください";
+"dictation_speak_hint" = "この行だけ再生";
+"dictation_check_btn" = "答え合わせ";
+"dictation_skip_btn" = "スキップ";
+"dictation_track_changed_title" = "曲が変わりました";
+"dictation_track_changed_msg" = "%@の歌詞があります。ディクテーションを切り替えますか？";
+"dictation_switch_practice" = "切り替えて練習";
+"dictation_keep_current" = "このまま続ける";
+"dictation_no_lyrics_title" = "歌詞なし";
+"dictation_no_lyrics_msg" = "%@には歌詞が登録されていません。\n引き続き現在の練習を続けることができます。";
+"dictation_this_song" = "この曲";
+"dictation_result_title" = "結果";
+"dictation_review_header" = "問題の振り返り";
+"dictation_retry_btn" = "もう一度練習する";
+"dictation_done_btn" = "練習を終了する";
+"dictation_accuracy_fmt" = "正解率 %.0f%%";
+"dictation_skipped" = "（スキップ）";
+
+/*******************************************************************
+ ディクテーション設定画面
+ *******************************************************************/
+"dictsetup_fetch_btn" = "広告を見て歌詞を検索する";
+"dictsetup_transcribe_btn" = "音声から文字起こし（AI）";
+"dictsetup_whisper_btn" = "🎵  音声から自動で文字起こし";
+"dictsetup_recommended_badge" = "おすすめ";
+"dictsetup_image_ocr_btn" = "📷  写真・画像から文字を読み取る";
+"dictsetup_camera_ocr_btn" = "📸  カメラで文字を読み取る";
+"dictsetup_manual_btn" = "✏️  テキストを手動で入力する";
+"dictsetup_analyzing" = "音声を解析しています...";
+"dictsetup_loading_model" = "モデルを読み込んでいます";
+"dictsetup_other_methods_close" = "その他の方法を閉じる";
+"dictsetup_other_methods_open" = "その他の方法を見る";
+"dictsetup_caption_input_btn" = "字幕を入力する";
+"dictsetup_caption_edit_btn" = "字幕を編集する";
+"dictsetup_youtube_open_btn" = "YouTubeで文字起こしを開く";
+"dictsetup_caption_hint" = "字幕を入力してください";
+"dictsetup_caption_instruction" = "YouTube の「…」→「文字起こしを開く」からテキストをコピーして貼り付けると、ディクテーション練習ができます。";
+"dictsetup_lang_header" = "問題にする言語";
+"dictsetup_lang_all" = "すべて";
+"dictsetup_text_registered" = "テキストが登録されています";
+"dictsetup_text_registered_sub" = "この音声のテキストが登録されています。練習を開始できます。";
+"dictsetup_text_empty" = "テキストを準備しましょう";
+"dictsetup_text_empty_sub" = "音声から自動取得（おすすめ）または教材写真から文字を読み取れます。";
+"dictsetup_transcribing_fmt" = "文字起こし中... (全%dチャンク)";
+"dictsetup_transcribing" = "文字起こし中...";
+"dictsetup_reading_image" = "画像を読み取り中...";
+"dictsetup_lyrics_saved" = "歌詞を保存しました";
+"dictsetup_alert_ad_loading" = "広告の読み込み中";
+"dictsetup_alert_ad_wait" = "もう少しお待ちください。";
+"dictsetup_alert_no_url_msg" = "音声ファイルのURLが取得できませんでした。";
+"dictsetup_alert_no_result" = "文字起こし結果なし";
+"dictsetup_alert_no_result_msg" = "音声からテキストを取得できませんでした。";
+"dictsetup_alert_whisper_error" = "WhisperKit エラー";
+"dictsetup_alert_incompatible" = "このモデルはお使いのデバイスでは動作しません。より小さいモデル（Small以下）をお試しください。";
+"dictsetup_alert_image_load_error_msg" = "画像の読み込みに失敗しました。";
+"dictsetup_alert_no_text_title" = "文字が見つかりませんでした";
+"dictsetup_alert_no_text_msg" = "テキストが写った鮮明な写真を選んでください。";
+"dictsetup_alert_lyrics_not_found_title" = "歌詞が見つかりませんでした";
+"dictsetup_alert_lyrics_not_found_msg" = "「%@」の歌詞はデータベースに登録されていません。\n手動で歌詞を入力してください。";
+"dictsetup_alert_ad_failed" = "広告の表示に失敗しました";
+"dictsetup_alert_ad_failed_msg" = "しばらくしてから再度お試しください。";
+"dictsetup_lang_select_title" = "① 言語を選択";
+"dictsetup_lang_select_msg" = "混在する場合は「自動判定」を選択";
+"dictsetup_chunk_select_title" = "② チャンク秒数を選択";
+"dictsetup_chunk_select_msg" = "短いほど精度が上がりやすいが処理時間が増えます";
+"dictsetup_chunk_10s" = "10秒（短め・精度重視）";
+"dictsetup_chunk_20s" = "20秒（バランス型）";
+"dictsetup_chunk_30s" = "30秒（推奨）";
+"dictsetup_chunk_45s" = "45秒";
+"dictsetup_chunk_55s" = "55秒（最大・高速）";
+"dictsetup_transcribe_confirm_title" = "文字起こしを開始します";
+"dictsetup_transcribe_confirm_msg" = "音声: 約%d分%d秒\nチャンク: %d秒 × %d分割%@\n\n完了まで少し時間がかかります。";
+"dictsetup_auto_detect_note" = "（%d言語で自動判定）";
+"dictsetup_start_btn" = "開始";
+"dictsetup_no_result_alt_msg" = "音声からテキストを取得できませんでした。別の言語を試してみてください。";
+"dictsetup_transcribe_fail_title" = "文字起こし失敗";
+"dictsetup_ocr_copy_btn" = "コピー";
+
+/*******************************************************************
+ 言語名
+ *******************************************************************/
+"lang_japanese" = "日本語";
+"lang_english" = "英語";
+"lang_chinese_simplified" = "中国語（簡体）";
+"lang_chinese_traditional" = "中国語（繁体）";
+"lang_korean" = "韓国語";
+"lang_spanish" = "スペイン語";
+"lang_french" = "フランス語";
+"lang_german" = "ドイツ語";
+
+/*******************************************************************
+ オンボーディング
+ *******************************************************************/
+"onboarding_next" = "次へ";
+"onboarding_skip" = "スキップ";
+"onboarding_start" = "始める 🎵";
+"onboarding_welcome_title" = "musica へようこそ";
+"onboarding_welcome_body" = "音楽・YouTube動画を使って\n語学学習・耳コピ・楽器練習ができます。\n\n次のページで使い方を教えてください！";
+"onboarding_goal_title" = "どんな目的で使いますか？";
+"onboarding_goal_sub" = "あとから変えられます";
+"onboarding_goal_music_title" = "好きな曲で楽しく練習";
+"onboarding_goal_music_sub" = "歌詞の穴埋め・区間リピート";
+"onboarding_goal_youtube_title" = "YouTube動画で語学学習";
+"onboarding_goal_youtube_sub" = "字幕を取得してディクテーション";
+"onboarding_goal_earcopy_title" = "耳コピ・楽器練習がしたい";
+"onboarding_goal_earcopy_sub" = "スロー再生・区間リピートで完全習得";
+"onboarding_ready_title" = "準備はできました 🎉";
+"onboarding_howto_music_title" = "好きな曲でディクテーション";
+"onboarding_howto_music_step1" = "ホームから曲を選んで再生";
+"onboarding_howto_music_step2" = "AIが歌詞を自動取得または音声認識";
+"onboarding_howto_music_step3" = "歌詞の穴埋めで練習スタート！";
+"onboarding_howto_youtube_title" = "YouTube字幕でディクテーション";
+"onboarding_howto_youtube_step1" = "気に入った動画をお気に入り登録";
+"onboarding_howto_youtube_step2" = "YouTubeアプリで字幕を取得してスクショ";
+"onboarding_howto_youtube_step3" = "字幕の穴埋めで練習スタート！";
+"onboarding_howto_earcopy_title" = "耳コピ・楽器練習モード";
+"onboarding_howto_earcopy_step1" = "ホームからライブラリの曲を選択";
+"onboarding_howto_earcopy_step2" = "再生速度を下げてゆっくり聴く";
+"onboarding_howto_earcopy_step3" = "区間リピートで難しいフレーズを習得";
+
+/*******************************************************************
+ 共通ボタン（追加分）
+ *******************************************************************/
+"btn_done" = "完了";
+
+/*******************************************************************
+ 発見タブ
+ *******************************************************************/
+"discover_search_title" = "YouTube 検索";
+"discover_back_ranking" = "ランキング";
+"discover_search_placeholder" = "楽曲・アーティストを検索 (YouTube)";
+"discover_segment_songs" = "楽曲";
+"discover_segment_mv" = "ミュージックビデオ";
+"discover_load_error" = "読み込みに失敗しました";
+
+/*******************************************************************
+ ホームタブ
+ *******************************************************************/
+"home_hide_ads" = "広告を非表示";
+"ad_reward_title" = "広告を3時間オフにする";
+"ad_reward_body" = "動画広告を最後まで見ると、3時間広告なしで利用できます。";
+"ad_reward_watch" = "広告を見る";
+"ad_reward_premium" = "プレミアムプランへ";
+
+/*******************************************************************
+ お気に入り動画
+ *******************************************************************/
+"mv_add_title" = "YouTube動画を追加";
+"mv_add_message" = "YouTubeのURLを貼り付けてください";
+"mv_add_btn" = "追加";
+"mv_invalid_url" = "URLが正しくありません";
+"mv_already_added" = "すでに登録済みです";
+"mv_added_fmt" = "「%@」を追加しました";
+"mv_play" = "▶︎ 再生";
+"mv_dictation" = "ディクテーション練習";
+"mv_caption_badge" = "字幕";
+
+/*******************************************************************
+ お気に入り動画の使い方
+ *******************************************************************/
+"mv_howto_title" = "お気に入り動画の使い方";
+"mv_howto_subtitle" = "YouTubeの動画でディクテーション練習ができます。\n以下のステップで設定してみましょう！";
+"mv_howto_step1_title" = "YouTubeで動画のURLをコピー";
+"mv_howto_step1_body" = "YouTubeアプリまたはブラウザで練習したい動画を開きます。\n「共有」→「リンクをコピー」でURLをコピーしてください。\n\n💡 「発見」タブからランキング・検索で探して直接登録することもできます。";
+"mv_howto_step2_title" = "musicaに動画を追加する";
+"mv_howto_step2_body" = "このページ右上の「＋」ボタンをタップ。\nコピーしたURLを貼り付けて「追加」を押すと、動画がリストに登録されます。";
+"mv_howto_step3_title" = "字幕（スクリプト）を登録する";
+"mv_howto_step3_body" = "追加した動画をタップすると、下からシートが表示されます。\n「ディクテーション練習」をタップし、字幕入力画面でスクリプトを入力して保存してください。\n\n💡 スクリプトはYouTubeの字幕や動画概要欄からコピーするのがおすすめです。";
+"mv_howto_step4_title" = "ディクテーション練習を始める";
+"mv_howto_step4_body" = "字幕を登録した動画をタップして再生します。\n再生速度を落として聴き、聞こえた言葉を書き取りましょう。\n終わったら字幕と答え合わせ！";
+"mv_howto_tip" = "💡  最初は 0.75x か 0.5x のスピードがおすすめ。慣れてきたら少しずつ速くしていきましょう！";
+
+/*******************************************************************
+ プレイヤー（ボタンラベル追加分）
+ *******************************************************************/
+"player_shuffle_label" = "シャッフル";
+"player_repeat_label" = "リピート";
+"player_region_label" = "区間";
+"player_dictation_label" = "練習";
+"player_region_on" = "ON";
+
+/*******************************************************************
+ 速度 / 区間リピートシート
+ *******************************************************************/
+"speed_sheet_title" = "再生速度";
+"region_sheet_title" = "区間リピート";
+"section_repeat_range" = "リピート区間";
+"section_repeat_loop" = "区間ループ";
+
+/* ── プレミアムプラン画面 ─────────────────── */
+"premium_title" = "プレミアムプラン";
+"premium_hero_title" = "広告なし、集中できる練習環境へ";
+"premium_hero_sub" = "musicaプレミアムで広告をすべて非表示に。\nディクテーション練習に集中できます。";
+"premium_benefits_header" = "プレミアムで できること";
+"premium_benefit1_label" = "すべての広告を非表示";
+"premium_benefit1_sub" = "バナー・全画面・MV広告を完全カット";
+"premium_benefit2_label" = "練習に集中";
+"premium_benefit2_sub" = "途中で広告が入らないのでリズムが途切れない";
+"premium_benefit3_label" = "音楽再生もスムーズ";
+"premium_benefit3_sub" = "再生リストを快適にブラウズできる";
+"premium_benefit4_label" = "いつでも解約 OK";
+"premium_benefit4_sub" = "継続課金。解約はいつでも設定から可能";
+"premium_price_fallback" = "月額プラン";
+"premium_price_fmt" = "月額 %@";
+"premium_price_sub" = "広告をすべて非表示 · いつでも解約 OK";
+"premium_cta" = "プレミアムを始める";
+"premium_restore" = "過去の購入を復元する";
+"premium_terms" = "利用規約 / プライバシーポリシー";
+"premium_legal" = "・サブスクリプションは購入確認後に課金されます。\n・期限の24時間前までに解約しない場合、自動更新されます。\n・解約方法：設定 → Apple ID → サブスクリプション → musica\n・YouTube動画内の広告は対象外です。";
+"premium_alert_title" = "プレミアムプランを開始しますか？";
+"premium_alert_price_fmt" = "月額 %@（自動更新）";
+
+/* ── テキストタブ (scanViewController) ─── */
+"scan_status_title" = "テキスト認識・翻訳";
+"scan_status_sub" = "カメラや画像から文字を読み取ります";
+"scan_edit_mode" = "歌詞編集モード";
+"scan_unknown_title" = "曲名不明";
+"scan_copy_empty" = "コピーするテキストがありません";
+"scan_copy_done" = "テキストをコピーしました";
+"scan_btn_clear" = "クリア";
+"scan_btn_undo" = "戻す";
+"scan_btn_register" = "登録";
+"scan_analyzing" = "音声を解析中...";
+
+/* ── テキストタブ マイクボタン関連 ─────────────── */
+"scan_no_music_title" = "音楽が未選択です";
+"scan_no_music_body" = "再生中または選択中の曲が必要です。\n緑のマイクボタンからライブ入力もできます。";
+"scan_unsupported_title" = "非対応";
+"scan_unsupported_body" = "音声認識は iOS 16 以降が必要です。";
+"scan_no_result_title" = "結果なし";
+"scan_no_result_body" = "音声からテキストを取得できませんでした。";
+"scan_error_title" = "エラー";
+"scan_transcribe_fail_title" = "文字起こし失敗";
+"scan_lang_sf_title" = "🎙 SFSpeech 言語を選択";
+"scan_lang_live_title" = "🎙 認識言語を選択";
+"scan_lang_live_msg" = "複数言語モードは並列認識して最長結果を採用";
+"scan_lang_device_default_fmt" = "✓ %@（デバイスのデフォルト）";
+"scan_perm_error_title" = "権限エラー";
+"scan_perm_speech_body" = "設定 → プライバシーとセキュリティ → 音声認識からアプリを許可してください。";
+"scan_perm_mic_body" = "設定 → プライバシーとセキュリティ → マイクからアプリを許可してください。";
+"scan_no_engine_body" = "利用できる音声認識エンジンがありません。";
+"scan_recording_label" = "🎙 録音中... タップで停止";
+"scan_transcribing" = "文字起こし中...";
+"scan_transcribe_complete_title" = "文字起こし完了";
+"scan_transcribe_apply_body" = "テキストエリアに反映しますか？\n\n%@";
+"scan_transcribe_apply_btn" = "反映する";
+
+/* ── 苦手単語 ─────────────────────────────────── */
+"weak_word_title" = "苦手単語";
+"weak_word_clear_all_title" = "全て削除";
+"weak_word_clear_all_msg" = "苦手単語リストを全て削除しますか？";
+"weak_word_delete" = "削除";
+"weak_word_empty_title" = "苦手単語はありません";
+"weak_word_empty_sub" = "フラッシュカードで「もう一度」を\n選んだ単語がここに追加されます";
+"weak_word_practice_btn_fmt" = "苦手単語を練習する（%d語）";
+"practice_weak_words_title" = "苦手単語";
+"practice_weak_words_sub" = "もう一度の単語を復習";
+"flash_weak_mode_title" = "苦手単語練習";
+
+/* ── 練習履歴詳細 ─────────────────────────────── */
+"history_title" = "練習記録";
+"history_tab_track" = "曲別";
+"history_tab_period" = "期間別";
+"history_empty_start" = "まだ練習記録がありません\n今日から始めましょう！";
+"history_empty" = "まだ練習記録がありません";
+"history_unknown_track" = "不明な曲";
+"history_no_score" = "スコアなし";
+"history_best_badge" = "最高 🏆";
+"history_year_comparison" = "年間比較";

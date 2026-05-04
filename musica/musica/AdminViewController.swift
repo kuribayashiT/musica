@@ -76,7 +76,7 @@ class AdminViewController: UIViewController {
 //                    self.waitView.isHidden = true
 //                }
 //            }) { (error) in
-//                print(error.localizedDescription)
+//                dlog(error.localizedDescription)
 //            }
 //        }
     }
@@ -114,7 +114,7 @@ class AdminViewController: UIViewController {
 //                    self.waitView.isHidden = true
 //                }
 //            }) { (error) in
-//                print(error.localizedDescription)
+//                dlog(error.localizedDescription)
 //            }
 //        }
     }
@@ -261,7 +261,7 @@ class AdminViewController: UIViewController {
             wardTable.isHidden = true
             MVCollectView.isHidden = false
          default:
-             print("該当無し")
+             dlog("該当無し")
          }
      }
 

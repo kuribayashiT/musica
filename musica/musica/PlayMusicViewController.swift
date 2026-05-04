@@ -38,6 +38,13 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
     @IBOutlet weak var musicArtView4InchHeight: NSLayoutConstraint!
     @IBOutlet weak var sectionPlayLabel: UILabel!
     
+    // 広告非表示時にバナー領域を回収するための制約
+    private var bannerHeightZeroConstraint: NSLayoutConstraint?
+    // 新UI: 広告有無で上下余白を切り替えるための制約
+    var newCardTopConstraint: NSLayoutConstraint?
+    var newContentContainerTopConstraint: NSLayoutConstraint?
+    var newSecondaryStackBottomConstraint: NSLayoutConstraint?
+
     /* 音楽関連 */
     // 再生中の音楽データ
     var musicLibraryName : String = ""
@@ -50,6 +57,33 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
     @IBOutlet weak var LyricTextView: UITextView!
     @IBOutlet weak var lyricSegmentetion: UISegmentedControl!
     @IBOutlet weak var LyricBGView: UIVisualEffectView!
+
+    // MARK: - New Player UI Properties
+    var newBgImageView: UIImageView?
+    var newPlayerCard: UIView?
+    var newContentContainer: UIView?
+    var newArtworkView: UIImageView?
+    var newLyricsView: UITextView?
+    var newTitleLabel: UILabel?
+    var newArtistLabel: UILabel?
+    var newProgressSlider: UISlider?
+    var newNowTimeLabel: UILabel?
+    var newTotalTimeLabel: UILabel?
+    var newPlayPauseBtn: UIButton?
+    var newPrevBtn: UIButton?
+    var newNextBtn: UIButton?
+    var newShufflePill: UIButton?
+    var newRepeatPill: UIButton?
+    var newSpeedPill: UIButton?
+    var newRegionPill: UIButton?
+    var newModeSegment: UISegmentedControl?
+    var adRemoveBarItem: UIBarButtonItem?
+    var adRemoveSpaceItem: UIBarButtonItem?
+    var newScrubTimeLabel: UILabel?
+    var isShowingLyrics: Bool = false
+    /// 再生開始前にスクラブされた位置 [0, 1]。再生開始時にシークして消費する
+    var pendingSeekRatio: Float?
+
     // 再生時間
     @IBOutlet weak var musicTotalTime: UILabel!
     @IBOutlet weak var musicNowTime: UILabel!
@@ -59,10 +93,17 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
     var rewardedAd: RewardedAd?
     // 総再生数
     var playListNum : Int = 0
-    
+    // 遷移前の再生状態を保持するフラグ（trueなら一時停止状態を維持）
+    var preservePlayState = false
+
     // 音楽再生のためのplayer
     let mMusicController = MusicController()
-    
+
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        navigationItem.largeTitleDisplayMode = .always
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -70,6 +111,13 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         let backButton = UIBarButtonItem()
         backButton.title = " "
         self.navigationItem.backBarButtonItem = backButton
+        let textTabBtn = UIBarButtonItem(
+            image: UIImage(systemName: "doc.text.fill"),
+            style: .plain,
+            target: self,
+            action: #selector(musicSettingBtnTapped(_:))
+        )
+        self.navigationItem.rightBarButtonItem = textTabBtn
         MusicArtWorkView.isHidden = false
         LyricTextView.font = AppFont.lyric(sizeIndex: SETTING_LYRIC_SIZE_NUM)
         mojiSizeBtn.setTitle(SETTING_LYRIC_SIZE_NAME_ARRAY[SETTING_LYRIC_SIZE_NUM], for: .normal)
@@ -106,6 +154,11 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
 
         // ── デザインシステム適用・プリセット速度UI追加 ──
         setupPlayerUI()
+
+        // 練習タブからのリモートコマンドを受信
+        NotificationCenter.default.addObserver(self, selector: #selector(handleRemotePlayPause), name: .musicaRemotePlayPause, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleRemotePrev), name: .musicaRemotePrev, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleRemoteNext), name: .musicaRemoteNext, object: nil)
     }
     override func viewDidAppear(_ animated: Bool) {
         if topViewController(controller: getForegroundViewController()) is PlayMusicViewController {
@@ -132,7 +185,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if self.view.viewWithTag(101) != nil && self.view.viewWithTag(100) != nil{
-            //print("Continue")
+            //dlog("Continue")
         }else{
             shadowView.tag = 100
             musicArtWorkImgView.tag = 101
@@ -149,14 +202,28 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
                 // iOS10 以前の場合 # iOS10はNSLayoutConstraintが正しく反映されないため、バナーは常に非表示。
                 OS11upFlg = false
             }
-            if OS11upFlg && ADApearFlg() && AD_DISPLAY_MUSICLIBRARYLIST_BANNER {
+            let showAd = OS11upFlg && ADApearFlg() && AD_DISPLAY_MUSICLIBRARYLIST_BANNER
+            if showAd {
                 banner.isHidden = false
-                adRemoveBtn.isHidden = false
-                //bannerHeight.constant = banner.frame.height
-            }else{
+                if newPlayerCard == nil { adRemoveBtn.isHidden = false }
+                setAdRemoveBarItemVisible(true)
+                // バナー領域を復元（高さ制約を解除）
+                bannerHeightZeroConstraint?.isActive = false
+            } else {
                 banner.isHidden = true
-                //bannerHeight.constant = 5.0
+                adRemoveBtn.isHidden = true
+                setAdRemoveBarItemVisible(false)
+                // バナーの高さを 0 にして musicControllerView が領域を吸収する
+                if bannerHeightZeroConstraint == nil {
+                    bannerHeightZeroConstraint = banner.heightAnchor.constraint(equalToConstant: 0)
+                    bannerHeightZeroConstraint?.priority = .required
+                }
+                bannerHeightZeroConstraint?.isActive = true
             }
+            // 新UI: カードは常に画面最上部、広告有無でコンテンツ上余白を切り替える
+            newCardTopConstraint?.constant = 0
+            newContentContainerTopConstraint?.constant = showAd ? 60 : 16
+            newSecondaryStackBottomConstraint?.constant = showAd ? -68 : -16
             
             // musicArt/歌詞エリア のレイアウト
             switch Int(myAppFrameSize.height) {
@@ -209,13 +276,12 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         }
     }
     override func viewWillAppear(_ animated: Bool) {
-        
         LYRIC_RESULT_TEXT = ""
         // navigationbarの色設定
         setNavigationberStyle(naviBar:self.navigationController!.navigationBar,place:COLOR_THEMA.HOME.rawValue)
         if ADApearFlg() {
             RewardedAd.load(with: ADMOB_REWARD_AD, request: Request()) { [weak self] ad, error in
-                if let error = error { print("RewardedAd failed to load: \(error)"); return }
+                if let error = error { dlog("RewardedAd failed to load: \(error)"); return }
                 self?.rewardedAd = ad
                 self?.rewardedAd?.fullScreenContentDelegate = self
             }
@@ -225,6 +291,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
                 banner.isHidden = false
                 banner.adUnitID = ADMOB_BANNER_ADUNIT_ID
                 banner.rootViewController = self
+                banner.delegate = self
                 custumLoadBannerAd(bannerView: self.banner,setBannerView:self.view)
             }
         }
@@ -238,6 +305,10 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         restoreSpeedUI()
         updateShuffleLabel()
         updateRepeatLabel()
+        syncNewUIShuffleState()
+        syncNewUIRepeatState()
+        syncNewUISpeedState()
+        syncNewUIRegionState()
         // 音楽再生
         if SHUFFLE_FLG == false {
             shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
@@ -302,9 +373,14 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             timer.fire()
         }
         setSectionRepeatStatus()
-        
+        // 遷移前が一時停止状態だった場合、再生を開始せずに停止状態を維持
+        if preservePlayState {
+            audioPlayer?.stop()
+            preservePlayState = false
+        }
+
     }
-    
+
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -341,7 +417,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
      *******************************************************************/
     func loadInterstitial() {
         InterstitialAd.load(with: ADMOB_INTERSTITIAL_LIBRARY, request: Request()) { [weak self] ad, error in
-            if let error = error { print("Interstitial failed to load: \(error)"); return }
+            if let error = error { dlog("Interstitial failed to load: \(error)"); return }
             self?.interstitial = ad
             self?.interstitial?.fullScreenContentDelegate = self
         }
@@ -427,7 +503,39 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
                 musicImageTrans(v1 : self.musicArtWorkImgView, v2 : self.shadowView, type:1)
             }
         }
+        syncNewUIPlayState()
+        postPlaybackState()
     }
+
+    /// 練習タブからの再生/停止コマンドを処理
+    @objc private func handleRemotePlayPause() {
+        PlayBtnTapped(self)
+    }
+
+    @objc private func handleRemotePrev() {
+        BeforeBtnTapped(self)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            NotificationCenter.default.post(name: .musicaTrackChanged, object: nil)
+        }
+    }
+
+    @objc private func handleRemoteNext() {
+        AfterBtnTapped(self)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            NotificationCenter.default.post(name: .musicaTrackChanged, object: nil)
+        }
+    }
+
+    /// 現在の再生状態を通知
+    func postPlaybackState() {
+        let isPlaying = audioPlayer?.isPlaying ?? false
+        NotificationCenter.default.post(
+            name: .musicaPlaybackStateChanged,
+            object: nil,
+            userInfo: ["isPlaying": isPlaying]
+        )
+    }
+
     // 「◀︎◀︎」タップ時
     @IBAction func BeforeBtnTapped(_ sender: Any) {
         tapBtnAnimesion(btn: BeforeBtn ,image: nil)
@@ -497,8 +605,9 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
                 }
             }
         }
+        syncNewUIShuffleState()
     }
-    
+
     // mojiサイズボタンタップ
     @IBAction func mojiSizeBtnTapped(_ sender: Any) {
         mMusicController.setFontSize(textView: self.LyricTextView, btn : mojiSizeBtn)
@@ -517,6 +626,11 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
      *******************************************************************/
     //再生終了時の呼び出しメソッド
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        if sectionRepeatStatus == SECTION_REPEAT_ON {
+            audioPlayer.currentTime = TimeInterval(Float(multiRepeatSlider.value[0]) * Float(audioPlayer.duration))
+            audioPlayer.play()
+            return
+        }
         if endTruckCheckRepeat() {
             return
         }
@@ -585,9 +699,17 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             self.multiRepeatSlider.value = self.mMusicController.getSectionRepeatSetting(url:playData.url!)
             self.repeatMinTime.text = formatTimeString(d: TimeInterval(self.multiRepeatSlider.value[0]) * audioPlayer.duration)
             self.repeatMaxTime.text = formatTimeString(d: TimeInterval(self.multiRepeatSlider.value[1]) * audioPlayer.duration)
+            // 曲ごとの区間リピートON/OFFを復元
+            let savedOn = self.mMusicController.getSectionRepeatEnabled(url: playData.url!)
+            sectionRepeatStatus = savedOn ? SECTION_REPEAT_ON : SECTION_REPEAT_OFF
+            self.syncNewUIRegionState()
             if beginningFlg {
                 if sectionRepeatStatus == SECTION_REPEAT_ON {
                     audioPlayer.currentTime = TimeInterval(self.multiRepeatSlider.value[0]) * audioPlayer.duration
+                } else if let ratio = self.pendingSeekRatio {
+                    audioPlayer.currentTime = TimeInterval(ratio) * audioPlayer.duration
+                    self.newProgressSlider?.value = ratio
+                    self.pendingSeekRatio = nil
                 }
             }else{
                 if sectionRepeatStatus == SECTION_REPEAT_ON && audioPlayer.currentTime <  TimeInterval(self.multiRepeatSlider.value[0]) * audioPlayer.duration{
@@ -607,6 +729,8 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
                 self.PlayBtn.setImage(playBtnLImage, for: .normal)
                 musicImageTrans(v1 : self.musicArtWorkImgView, v2 : self.shadowView, type:0)
             }
+            self.syncNewUITrack(playData: playData)
+            self.syncNewUIPlayState()
         }
     }
 
@@ -652,38 +776,21 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             return
         }
         if ADApearFlg() && AD_DISPLAY_MUSICLIBRARYLIST_BANNER {
-            if rewardedAd != nil {
-                adRemoveBtn.isHidden = false
-            }else{
-                adRemoveBtn.isHidden = true
-            }
-        }else{
+            let show = rewardedAd != nil
+            if newPlayerCard == nil { adRemoveBtn.isHidden = !show }
+            setAdRemoveBarItemVisible(show)
+        } else {
             adRemoveBtn.isHidden = true
+            setAdRemoveBarItemVisible(false)
         }
         musicNowTime.text = formatTimeString(d: audioPlayer.currentTime)
-        musicProgressSlider.value = Float(audioPlayer.currentTime/audioPlayer.duration)
+        if audioPlayer.duration > 0 {
+            musicProgressSlider.value = Float(audioPlayer.currentTime / audioPlayer.duration)
+        }
+        syncNewUIProgress()
         if sectionRepeatStatus == SECTION_REPEAT_ON {
-            if musicProgressSlider.value >= Float(multiRepeatSlider.value[1]){
-                switch repeatState {
-                case REPEAT_STATE_NONE:
-                    if endTruckCheckRepeat(){
-                        return
-                    }else{
-                        // !!
-                        let topController = topViewController(controller: getForegroundViewController())
-                        if topController is MusicPlayListViewController {
-                            (topController as! MusicPlayListViewController).audioPlayerDidFinishPlaying(audioPlayer, successfully: true)
-
-                        }else{
-                            nextMusicPlay()
-                        }
-                    }
-                case REPEAT_STATE_ONE:
-                    audioPlayer.currentTime = TimeInterval(Float(multiRepeatSlider.value[0]) * Float(audioPlayer.duration))
-                case REPEAT_STATE_ALL:
-                    nextMusicPlay()
-                default:break
-                }
+            if musicProgressSlider.value >= Float(multiRepeatSlider.value[1]) {
+                audioPlayer.currentTime = TimeInterval(Float(multiRepeatSlider.value[0]) * Float(audioPlayer.duration))
             }
         }
     }
@@ -803,7 +910,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             LyricView.isHidden = false
             mojiSizeBtn.isHidden = false
         default:
-            print("該当無し")
+            dlog("該当無し")
         }
         lyricSegmentetion.selectedSegmentIndex = nowSegment
         LYRIC_IMG_SEGMENT_STATE = nowSegment
@@ -834,6 +941,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             repeatBtn.tintColor = AppColor.inactive
         }
         repeatState = nowSegment
+        syncNewUIRepeatState()
         updateRepeatLabel()
     }
     /*******************************************************************
@@ -890,5 +998,20 @@ extension UIApplication {
         }
         return controller
     }
-    
+
+}
+
+// MARK: - BannerViewDelegate
+
+extension PlayMusicViewController: BannerViewDelegate {
+    /// 広告の読み込みが失敗したとき（シミュレータ・no fill 等）バナー領域を回収する
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+        bannerView.isHidden = true
+        if bannerHeightZeroConstraint == nil {
+            bannerHeightZeroConstraint = bannerView.heightAnchor.constraint(equalToConstant: 0)
+            bannerHeightZeroConstraint?.priority = .required
+        }
+        bannerHeightZeroConstraint?.isActive = true
+        view.layoutIfNeeded()
+    }
 }

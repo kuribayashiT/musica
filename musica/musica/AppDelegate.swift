@@ -46,7 +46,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
 //        let manager = ASIdentifierManager.shared()
 //        if manager.isAdvertisingTrackingEnabled { // 広告トラッキングを許可しているのか？
 //            let idfaString = manager.advertisingIdentifier.uuidString
-//            print(idfaString)
+//            dlog(idfaString)
 ////            if idfaString == "1E79435D-5FF2-489C-9C9C-FA3EDA0254CA" {
 ////                API_KEY = API_KEY_TEST
 ////                API_KEY_TOP = API_KEY_TEST
@@ -78,6 +78,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
             if let product = result.retrievedProducts.first {
                 //未購入の場合
                 KAKINPLICE_PLICE = product.localizedDescription
+                KAKIN_PRICE_STRING = product.localizedPrice ?? ""
             } else {
                //購入済みの場合
             }
@@ -149,8 +150,45 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
         Analytics.setUserProperty(String(SCAN_USE_NUM), forName: "スキャン回数")
         Analytics.setUserProperty(String(TRANS_USE_NUM), forName: "翻訳回数")
 
-        // カラーテーマ設定（AppTheme で一元管理）
-        AppTheme.restoreFromUserDefaults()
+        // グローバルナビゲーションバー外観（モダン glassmorphism スタイル）
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.configureWithTransparentBackground()
+        navAppearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
+        navAppearance.titleTextAttributes = [
+            .foregroundColor: AppColor.textPrimary,
+            .font: AppFont.navigationTitle,
+        ]
+        navAppearance.largeTitleTextAttributes = [
+            .foregroundColor: AppColor.textPrimary,
+        ]
+        UINavigationBar.appearance().standardAppearance   = navAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
+        UINavigationBar.appearance().compactAppearance    = navAppearance
+        UINavigationBar.appearance().tintColor            = AppColor.accent
+
+        // タブバー外観
+        let tabAppearance = UITabBarAppearance()
+        tabAppearance.configureWithTransparentBackground()
+        tabAppearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
+
+        // RAMAnimatedTabBarController は独自の UIView/UILabel でタブを描画する。
+        // UITabBarButton（UIKit のネイティブ描画）が RAM のコンテナ（backgroundColor=.clear）
+        // の下から透けて見え、テキストが二重に重なる問題を防ぐため、
+        // UITabBarItemAppearance でネイティブテキスト・アイコンを完全に透明にする。
+        let hiddenItem = UITabBarItemAppearance()
+        hiddenItem.normal.titleTextAttributes   = [.foregroundColor: UIColor.clear]
+        hiddenItem.selected.titleTextAttributes  = [.foregroundColor: UIColor.clear]
+        hiddenItem.focused.titleTextAttributes   = [.foregroundColor: UIColor.clear]
+        hiddenItem.disabled.titleTextAttributes  = [.foregroundColor: UIColor.clear]
+        tabAppearance.stackedLayoutAppearance       = hiddenItem
+        tabAppearance.inlineLayoutAppearance        = hiddenItem
+        tabAppearance.compactInlineLayoutAppearance = hiddenItem
+
+        UITabBar.appearance().standardAppearance = tabAppearance
+        if #available(iOS 15.0, *) {
+            UITabBar.appearance().scrollEdgeAppearance = tabAppearance
+        }
+        UITabBar.appearance().tintColor = AppColor.accent
 
         if UserDefaults.standard.object(forKey: "transCount") == nil{
             UserDefaults.standard.set(TRANS_REWARD_COUNT, forKey: "transCount")
@@ -210,9 +248,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
             settingSectionTitle = settingSectionTitle_mukakin
             addAD()
         }
-        // シミュレータ用デモデータのシード（実機では何もしない）
-        DemoDataSeeder.seedIfNeeded(appDelegate: self)
-
         // CoreDataのマイグレーション
         var _: NSPersistentStoreCoordinator = {
             let coordinator = NSPersistentStoreCoordinator(managedObjectModel: (managedObjectModel))
@@ -237,7 +272,32 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
 
             return coordinator
         }()
+
+        // シミュレータ用デモデータのシード（CoreData セットアップ後に実行）
+        DemoDataSeeder.seedIfNeeded(appDelegate: self)
+
+        // 実機・シミュレータ共通: 初回起動サンプルデータのシード
+        SampleDataSeeder.seedIfNeeded(appDelegate: self)
+
+        // 「練習」タブをプログラムで追加（Ranking タブの後）
+        injectPracticeTab()
+
         return true
+    }
+
+    private func injectPracticeTab() {
+        guard let tabController = window?.rootViewController as? UITabBarController else { return }
+        guard var vcs = tabController.viewControllers, !vcs.isEmpty else { return }
+
+        guard let rankingIndex = vcs.firstIndex(where: {
+            ($0 as? UINavigationController)?.viewControllers.first is ITuneRankingViewController
+        }) else { return }
+
+        let practiceVC = PracticeViewController()
+        let nav = LargeTitleNavigationController(rootViewController: practiceVC)
+        nav.tabBarItem = UITabBarItem(title: "練習", image: UIImage(systemName: "headphones"), tag: 0)
+        vcs[rankingIndex] = nav
+        tabController.setViewControllers(vcs, animated: false)
     }
     
     private func showRequestTrackingAuthorizationAlert() {
@@ -245,11 +305,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
             ATTrackingManager.requestTrackingAuthorization(completionHandler: { status in
                 switch status {
                 case .authorized:
-                    print("🎉")
+                    dlog("🎉")
                     //IDFA取得
-                    print("IDFA: \(ASIdentifierManager.shared().advertisingIdentifier)")
+                    dlog("IDFA: \(ASIdentifierManager.shared().advertisingIdentifier)")
                 case .denied, .restricted, .notDetermined:
-                    print("😭")
+                    dlog("😭")
                 @unknown default:
                     fatalError()
                 }
@@ -258,7 +318,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
     }
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        print("APNs token retrieved: \(deviceToken)")
+        dlog("APNs token retrieved: \(deviceToken)")
     }
     
     func applicationWillResignActive(_ application: UIApplication) {
@@ -281,21 +341,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
         if #available(iOS 14, *) {
             switch ATTrackingManager.trackingAuthorizationStatus {
             case .authorized:
-                print("Allow Tracking")
-                print("IDFA: \(ASIdentifierManager.shared().advertisingIdentifier)")
+                dlog("Allow Tracking")
+                dlog("IDFA: \(ASIdentifierManager.shared().advertisingIdentifier)")
             case .denied:
-                print("😭拒否")
+                dlog("😭拒否")
             case .restricted:
-                print("🥺制限")
+                dlog("🥺制限")
             case .notDetermined:
                 showRequestTrackingAuthorizationAlert()
             }
         } else {// iOS14未満
             if ASIdentifierManager.shared().isAdvertisingTrackingEnabled {
-                print("Allow Tracking")
-                print("IDFA: \(ASIdentifierManager.shared().advertisingIdentifier)")
+                dlog("Allow Tracking")
+                dlog("IDFA: \(ASIdentifierManager.shared().advertisingIdentifier)")
             } else {
-                print("🥺制限")
+                dlog("🥺制限")
             }
         }
         if UIApplication.shared.applicationIconBadgeNumber > 0 {
@@ -417,7 +477,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
             try MusicLibraryContext.save()
             
         }catch{
-            print(error)
+            dlog(error)
             let dict = ["firstLaunch": false]
             // 次回起動時にもう一回やり直す為の値登録
             let userDefault = UserDefaults.standard
@@ -432,10 +492,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
                      fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void){
         //通知を受け取った時の処理
         if let messageID = userInfo[gcmMessageIDKey] {
-            print("Message ID: \(messageID)")
+            dlog("Message ID: \(messageID)")
         }
         // Print full message.
-        print(userInfo)
+        dlog(userInfo)
     }
     // [END receive_message]
 
@@ -476,7 +536,7 @@ extension AppDelegate : UNUserNotificationCenterDelegate {
         RANKING_PUSH_RECIEVE_FLG = true
         // messageIDを出力
         if let messageID = userInfo[gcmMessageIDKey] {
-            print("Message ID: \(messageID)")
+            dlog("Message ID: \(messageID)")
             if let aps = userInfo["aps"] as? NSDictionary {
                 if let alertMessage = aps["alert"] as? String {
                     
@@ -508,11 +568,11 @@ extension AppDelegate : UNUserNotificationCenterDelegate {
         let userInfo = response.notification.request.content.userInfo
         // Print message ID.
         if let messageID = userInfo[gcmMessageIDKey] {
-            print("Message ID: \(messageID)")
+            dlog("Message ID: \(messageID)")
         }
         RANKING_PUSH_RECIEVE_FLG = true
         START_APP_TAB = 1
-        print(userInfo)
+        dlog(userInfo)
         
         completionHandler()
     }
@@ -522,9 +582,9 @@ extension AppDelegate : UNUserNotificationCenterDelegate {
 extension AppDelegate : MessagingDelegate {
     // [START refresh_token]
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        print("Firebase registration token: \(String(describing: fcmToken))")
+        dlog("Firebase registration token: \(String(describing: fcmToken))")
         let token = Messaging.messaging().fcmToken
-        print("FCM token: \(token ?? "")")
+        dlog("FCM token: \(token ?? "")")
         // TODO: If necessary send token to application server.
         // Note: This callback is fired at each app startup and whenever a new token is generated.
     }
@@ -533,7 +593,7 @@ extension AppDelegate : MessagingDelegate {
     // Receive data messages on iOS 10+ directly from FCM (bypassing APNs) when the app is in the foreground.
     // To enable direct data messages, you can set Messaging.messaging().shouldEstablishDirectChannel to true.
 //    func messaging(_ messaging: Messaging, didReceive remoteMessage: MessagingRemoteMessage) {
-//        print("Received data message: \(remoteMessage.appData)")
+//        dlog("Received data message: \(remoteMessage.appData)")
 //    }
     // [END ios_10_data_message]
 }

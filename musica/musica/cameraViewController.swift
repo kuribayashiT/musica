@@ -46,7 +46,7 @@ class cameraViewController: UIViewController ,AVCapturePhotoCaptureDelegate ,UIC
         setupFiveSDK()
         // 広告　Admobの生成
         InterstitialAd.load(with: "ca-app-pub-1929244717899448/1782653178", request: Request()) { [weak self] ad, error in
-            if let error = error { print("Interstitial load error: \(error)"); return }
+            if let error = error { dlog("Interstitial load error: \(error)"); return }
             self?.interstitial = ad
         }
         // 解像度の設定
@@ -66,22 +66,25 @@ class cameraViewController: UIViewController ,AVCapturePhotoCaptureDelegate ,UIC
                     captureSesssion.startRunning()
                     // アスペクト比、カメラの向き(縦)
                     previewLayer = AVCaptureVideoPreviewLayer(session: captureSesssion)
-                    previewLayer?.videoGravity = AVLayerVideoGravity.resizeAspect // アスペクトフィット
+                    previewLayer?.videoGravity = AVLayerVideoGravity.resizeAspectFill
                     previewLayer?.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
-                    // ビューのサイズの調整
-                    previewLayer?.position = cameraView.center
                     previewLayer?.frame = cameraView.bounds
                     cameraView.layer.addSublayer(previewLayer!)
                 }
             }
         }
        catch {
-            print(error)
+            dlog(error)
         }
     }
     /*******************************************************************
      画面描画時の処理
      *******************************************************************/
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        previewLayer?.frame = cameraView.bounds
+    }
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         // 動画は一旦止める
@@ -190,7 +193,7 @@ class cameraViewController: UIViewController ,AVCapturePhotoCaptureDelegate ,UIC
                 if let interstitial = interstitial {
                     interstitial.present(from: self)
                 } else {
-                    print("Admob wasn't ready")
+                    dlog("Admob wasn't ready")
                     // 初期化
                     let interstitial_five = FADInterstitial(slotId: "252628")
                     interstitial_five?.loadAd()
@@ -315,10 +318,10 @@ class cameraViewController: UIViewController ,AVCapturePhotoCaptureDelegate ,UIC
             let splitDetectedText = detectedText.components(separatedBy: "\n")
             var resultDetectedText = ""
             if splitDetectedText.count > 1 {
-                print(splitDetectedText.count)
+                dlog(splitDetectedText.count)
                 let resultIndex = splitDetectedText[splitDetectedText.count - 1].count + (splitDetectedText.count - 1)
-                print(detectedText.startIndex)
-                print(resultIndex)
+                dlog(detectedText.startIndex)
+                dlog(resultIndex)
                 resultDetectedText = String(detectedText[detectedText.startIndex...detectedText.index(detectedText.startIndex, offsetBy: resultIndex)])
                 if resultDetectedText == "" {
                     resultDetectedText = localText(key:"text_err_scan_failure_title")
@@ -345,53 +348,53 @@ class cameraViewController: UIViewController ,AVCapturePhotoCaptureDelegate ,UIC
      広告関連の処理
      *******************************************************************/
     func adViewDidFail(toLoad view: AmazonAdView!, withError: AmazonAdError!) -> Void {
-        Swift.print("Ad Failed to load. Error code \(withError.errorCode): \(String(describing: withError.errorDescription))")
+        dlog("Ad Failed to load. Error code \(withError.errorCode): \(String(describing: withError.errorDescription))")
     }
     
     func adViewWillExpand(_ view: AmazonAdView!) -> Void {
-        Swift.print("Ad will expand")
+        dlog("Ad will expand")
     }
     
     func adViewDidCollapse(_ view: AmazonAdView!) -> Void {
-        Swift.print("Ad has collapsed")
+        dlog("Ad has collapsed")
     }
     
     // Five
     var fadDelegate:FADDelegate!
     func fiveAdDidReplay(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     
     func fiveAdDidViewThrough(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
         
     }
     
     func fiveAdDidResume(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     
     func fiveAdDidPause(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     func fiveAdDidStart(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     
     func fiveAdDidClose(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     
     func fiveAdDidClick(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     
     func fiveAd(_ ad: FADAdInterface!, didFailedToReceiveAdWithError errorCode: FADErrorCode) {
-        print(errorCode)
+        dlog(errorCode)
     }
     
     func fiveAdDidLoad(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     // 必ず実装してください。
     // AmazonAdViewDelegate APVAdManagerDelegate で使う

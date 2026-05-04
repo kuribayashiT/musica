@@ -11,7 +11,6 @@
 //
 //  【動作条件】
 //  - #if targetEnvironment(simulator) で実機では一切実行されない
-//  - CoreData にライブラリが 0 件の時だけシードする（2 回目以降は何もしない）
 //  - UserDefaults の "demoSeeded" フラグで多重登録を防ぐ
 //
 //  【使い方】
@@ -33,32 +32,59 @@ enum DemoDataSeeder {
         #if targetEnvironment(simulator)
         // すでにシード済みなら何もしない
         guard !UserDefaults.standard.bool(forKey: "demoSeeded") else { return }
-        // CoreData に既存ライブラリがあれば何もしない
-        guard getNowMusicLibraryData().isEmpty else { return }
 
-        print("[DemoSeeder] シミュレータ用デモデータを生成します...")
+        dlog("[DemoSeeder] シミュレータ用デモデータを生成します...")
 
         let tracks = generateDemoTracks()
         guard !tracks.isEmpty else {
-            print("[DemoSeeder] 音声ファイルの生成に失敗しました")
+            dlog("[DemoSeeder] 音声ファイルの生成に失敗しました")
             return
         }
 
-        registNewMusicLibrary(
-            appdelegate: appDelegate,
-            libraryName: "🎵 デモライブラリ",
-            trackList: tracks
-        ) { success in
-            if success {
-                UserDefaults.standard.set(true, forKey: "demoSeeded")
-                print("[DemoSeeder] デモライブラリを登録しました（\(tracks.count) 曲）")
-                // HomeAreaViewController へ更新通知
-                DispatchQueue.main.async {
-                    NotificationCenter.default.post(name: .init("DemoSeederDidFinish"), object: nil)
-                }
-            } else {
-                print("[DemoSeeder] CoreData への登録に失敗しました")
+        // initMasters() と同じパターン: main context に直接書き込む
+        let context = appDelegate.managedObjectContext
+        let libraryName = "🎵 デモライブラリ"
+
+        // ── ライブラリエンティティを作成 ──────────────────────────────
+        let libEntity = NSEntityDescription.entity(forEntityName: "MusicLibraryModel", in: context)!
+        let libModel  = NSManagedObject(entity: libEntity, insertInto: context) as! MusicLibraryModel
+        libModel.musicLibraryName = libraryName
+        libModel.trackNum         = Int16(tracks.count)
+        libModel.creationDate     = Date()
+        libModel.iconName         = "onpu_BL"
+        libModel.icomColorName    = colorChoicesNameArray[0]
+
+        let existFetch: NSFetchRequest<MusicLibraryModel> = MusicLibraryModel.fetchRequest()
+        let existData = try? context.fetch(existFetch)
+        libModel.indicatoryNum = Int16((existData?.count ?? 0))
+
+        // ── トラックエンティティを作成 ────────────────────────────────
+        for (index, track) in tracks.enumerated() {
+            let trackEntity = NSEntityDescription.entity(forEntityName: "MusicModel", in: context)!
+            let trackModel  = NSManagedObject(entity: trackEntity, insertInto: context) as! MusicModel
+            trackModel.musicLibraryName = libraryName
+            trackModel.trackTitle       = track.title
+            trackModel.artist           = track.artist
+            trackModel.albumTitle       = track.albumName
+            trackModel.lyric            = track.lyric
+            trackModel.url              = String(describing: track.url!)
+            trackModel.indicatoryNum    = Int16(index)
+            if let img = track.artworkImg, let png = img.pngData() {
+                trackModel.artworkData = png
             }
+        }
+
+        // ── 保存 ─────────────────────────────────────────────────────
+        dlog("[DemoSeeder] context.hasChanges = \(context.hasChanges), save 試行")
+        do {
+            try context.save()
+            UserDefaults.standard.set(true, forKey: "demoSeeded")
+            dlog("[DemoSeeder] デモライブラリを登録しました（\(tracks.count) 曲）")
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .init("DemoSeederDidFinish"), object: nil)
+            }
+        } catch {
+            dlog("[DemoSeeder] CoreData 保存エラー: \(error as NSError)")
         }
         #endif
     }
@@ -173,7 +199,7 @@ enum DemoDataSeeder {
             try file.write(from: buffer)
             return outputURL
         } catch {
-            print("[DemoSeeder] ファイル書き込みエラー: \(error)")
+            dlog("[DemoSeeder] ファイル書き込みエラー: \(error)")
             return nil
         }
     }

@@ -26,16 +26,27 @@ class HowToUseViewController: UIViewController ,WKNavigationDelegate, WKUIDelega
         // タブバーの高さを取得する
         let TABBARHEIGHT = (self.tabBarController?.tabBar.frame.size.height)!
         let wkWebView = WKWebView(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: self.view.frame.size.height - STATUSBARHEIGHT - NAVIGATIONBARHEIGHTNAVIGATIONBARHEIGH! - TABBARHEIGHT), configuration: webConfiguration)
-        
+
         // スワイプで戻るを許可
         wkWebView.allowsBackForwardNavigationGestures = true
         wkWebView.navigationDelegate = self
         wkWebView.uiDelegate = self
+        // 背景色を明示的に設定（ロード前の暗いフラッシュを防ぐ）
+        wkWebView.isOpaque = false
+        wkWebView.backgroundColor = .systemBackground
+        wkWebView.scrollView.backgroundColor = .systemBackground
+        webView.backgroundColor = .systemBackground
+        if #available(iOS 15.0, *) {
+            wkWebView.underPageBackgroundColor = .systemBackground
+        }
         if site == HOW_TO_USE {
             self.title = HOW_TO_USE
-            let accessURL = URL(string: howToUseURL)
-            let myRequest = URLRequest(url: accessURL!)
-            wkWebView.load(myRequest)
+            if let localURL = Bundle.main.url(forResource: "help", withExtension: "html") {
+                wkWebView.loadFileURL(localURL, allowingReadAccessTo: localURL.deletingLastPathComponent())
+            } else {
+                let accessURL = URL(string: homepageURL)!
+                wkWebView.load(URLRequest(url: accessURL))
+            }
         } else if site == HOMEPAGE_TITLE {
             self.title = HOMEPAGE_TITLE
             let accessURL = URL(string: homepageURL)
@@ -70,14 +81,14 @@ class HowToUseViewController: UIViewController ,WKNavigationDelegate, WKUIDelega
             let appearance = UINavigationBarAppearance()
             appearance.configureWithOpaqueBackground()
             appearance.backgroundColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SETTING.rawValue]
-            appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SETTING.rawValue]]
+            appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: darkModeLabelColor()]
             self.navigationController!.navigationBar.standardAppearance = appearance
             self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SETTING.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         } else {
             self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SETTING.rawValue]
-            self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SETTING.rawValue]]
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SETTING.rawValue]
+            self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: darkModeLabelColor()]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         }
         
 //        ingcator.stopAnimating()

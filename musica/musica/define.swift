@@ -25,6 +25,8 @@ var LOG_TEXT = ""
  ----------------------------------------------------------------*/
 var KAKIN_FLG = false
 var KAKINPLICE_PLICE = "a"
+/// App Store から取得したフォーマット済み価格文字列（例: "¥250"）
+var KAKIN_PRICE_STRING = ""
 let SECRET_CODE = "cdfd1d9d44ea42b5848546d039d9d182"
 let MySoftwareRestartNotification = Notification.Name("MySoftwareRestartNotification")
 
@@ -541,15 +543,15 @@ let REMOVE_AD : String = localText(key:"setting_item_adclear")
 let REMOVED_AD : String = localText(key:"setting_item_kakinkaijo")
 let SETTING_DEZAIN : String = localText(key:"setting_item_design")
 
-var settingSectionTitle = [SETTING,WHAT_AD, OSUSUME,ABOUT_APP ]
-let settingSectionTitle_mukakin = [SETTING,WHAT_AD, OSUSUME,ABOUT_APP]
+var settingSectionTitle = [SETTING,WHAT_AD, ABOUT_APP, OSUSUME]
+let settingSectionTitle_mukakin = [SETTING,WHAT_AD, ABOUT_APP, OSUSUME]
 let settingSectionTitle_kakin = [SETTING,OSUSUME,ABOUT_APP]
-let settingSectionAppInfo = [(HOW_TO_USE,""),(HOMEPAGE,""),(INTRODUCING_APP_FRIENDS,""),(IMPROVEMENT_REQUEST_SENT,""),(INQUIRY_VIOLATION_REPORT,""),(APP_INFO,"")]
+let settingSectionAppInfo = [(HOW_TO_USE,""),(INTRODUCING_APP_FRIENDS,""),(IMPROVEMENT_REQUEST_SENT,""),(INQUIRY_VIOLATION_REPORT,""),(APP_INFO,""),(HOMEPAGE,"")]
 
-let settingSectionSetting = [(SETTING_PUSH,""),(SETTING_DEZAIN,"")]
+let settingSectionSetting = [(SETTING_PUSH,"")]
 let settingSectionRemoveAD = [(REMOVE_AD,"")]
 let settingSectionRemovedAD = [(REMOVED_AD,"")]
-let settingSectionSetting_dev = [(SETTING_PUSH,""),(SETTING_DEZAIN,""),(SHOW_LOG,""),(SHOW_KANRI,"")]
+let settingSectionSetting_dev = [(SETTING_PUSH,""),(SHOW_LOG,""),(SHOW_KANRI,"")]
 let settingSectionApp = [
     [
         localText(key:"recommended_app_scancamera"),
@@ -575,7 +577,7 @@ let settingSectionAppIntro = [("scancamera",""),("todolist",""),("nanopita",""),
 var settingSectionAD = [("","")]
 let settingSection4 = [("",""),("","")]
 var settingSectionData = [settingSectionSetting, settingSectionAppIntro, settingSectionAppInfo, settingSectionAD, settingSection4]
-let settingSectionData_mukakin = [settingSectionSetting, settingSectionRemoveAD, settingSectionAppIntro, settingSectionAppInfo]
+let settingSectionData_mukakin = [settingSectionSetting, settingSectionRemoveAD, settingSectionAppInfo, settingSectionAppIntro]
 let settingSectionData_dev = [settingSectionSetting_dev, settingSectionRemoveAD, settingSectionAppIntro, settingSectionAppInfo]
 let settingSectionData_kakin = [settingSectionSetting,settingSectionAppIntro, settingSectionAppInfo]
 
@@ -589,13 +591,13 @@ let MAIL_ADDRES = "musicA.App.info@gmail.com"
 var UPDATE_FLG = false
 var FORCE_UPDATE_FLG = false
 var SETTING_STARTUP_NUM : Int = 0
-var SCAN_AD_INTERVAL : Int = 4
-var TRAN_AD_INTERVAL : Int = 4
-var RANKING_AD_INTERVAL : Int = 3
+var SCAN_AD_INTERVAL : Int = 8
+var TRAN_AD_INTERVAL : Int = 8
+var RANKING_AD_INTERVAL : Int = 6
 var MUSIC_LIBRARY_TO_PLAYVIEW : Int = 0
-var MUSIC_LIBRARY_AD_INTERVAL : Int = 5
+var MUSIC_LIBRARY_AD_INTERVAL : Int = 10
 var SEARCH_TO_MV : Int = 0
-var SEARCH_MV_AD_INTERVAL : Int = 3
+var SEARCH_MV_AD_INTERVAL : Int = 6
 var SEARCH_RECOMMEND_AD = false
 
 // Youtube検索ジャンル
@@ -815,7 +817,7 @@ var LYRIC_TRANS_TEXT = ""
  */
 let homepageURL : String = "https://ios-app-develop.com"
 let howToUseURL : String = "https://ios-app-develop.com/houtousefast"
-let ppURL : String = "https://www.ios-app-develop.com/blank-8"
+let ppURL : String = "https://spring-star-c7ea.kurieitajojojo.workers.dev/"
 let drmURL : String = "https://www.ios-app-develop.com/drm"
 
 
@@ -867,9 +869,9 @@ var ADMOB_INTERSTITIAL_LIBRARY : String = "ca-app-pub-1929244717899448/633919215
 
 // youtube検索結果の広告表示位置制御
 var SEARCH_RESULT_AD_START = 0
-var SEARCH_RESULT_AD_INTERVAL = 7
+var SEARCH_RESULT_AD_INTERVAL = 14
 var SEARCH_RESULT_MV_AD_START = 4
-var SEARCH_RESULT_MV_AD_INTERVAL = 7
+var SEARCH_RESULT_MV_AD_INTERVAL = 14
 
 // Amazon広告の読み込み
 let AMAZON_AD_APPLIVATION_KEY : String = "409fcb89d73d46bd8719bad8adfbeb33"

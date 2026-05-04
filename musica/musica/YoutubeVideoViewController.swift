@@ -26,6 +26,7 @@ class YoutubeVideoViewController: UIViewController, AVAudioPlayerDelegate ,WKNav
     let reachability = try! Reachability()
     // お気に入り動画に追加ボタン
     @IBOutlet weak var addOKINIIRIBtn: UIButton!
+    private let customFavBtn = UIButton(type: .custom)
     var addFlg : Bool = true
     var itemsInfoArray = [AnyObject]()
     private var _observers = [NSKeyValueObservation]()
@@ -44,19 +45,20 @@ class YoutubeVideoViewController: UIViewController, AVAudioPlayerDelegate ,WKNav
         let NAVIGATIONBARHEIGHTNAVIGATIONBARHEIGH = self.navigationController?.navigationBar.frame.size.height
         // タブバーの高さを取得する
         let TABBARHEIGHT = self.tabBarController?.tabBar.frame.size.height
-        let disableCalloutScriptString = "document.documentElement.style.webkitTouchCallout='none';"
-        let disableCalloutScript = WKUserScript(source: disableCalloutScriptString, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-        let controller = WKUserContentController()
-        controller.addUserScript(disableCalloutScript)
-        let viewConfiguration = WKWebViewConfiguration()
-        viewConfiguration.userContentController = controller //上記の操作禁止を反映
+        let viewConfiguration = makeYouTubeWebViewConfiguration()
+        // 長押しコールアウトも無効化
+        let disableCallout = WKUserScript(
+            source: "document.documentElement.style.webkitTouchCallout='none';",
+            injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+        viewConfiguration.userContentController.addUserScript(disableCallout)
         youtubeVideoWebView = WKWebView(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: self.view.frame.size.height - STATUSBARHEIGHT - NAVIGATIONBARHEIGHTNAVIGATIONBARHEIGH! - TABBARHEIGHT!), configuration: viewConfiguration)
         youtubeVideoWebView.navigationDelegate = self
         youtubeVideoWebView.uiDelegate = self
-        youtubeVideoWebView.allowsBackForwardNavigationGestures = true
+        youtubeVideoWebView.allowsBackForwardNavigationGestures = false
         youtubeVideoWebView.isOpaque = false
         youtubeVideoWebView.backgroundColor = videoView.backgroundColor
         youtubeVideoWebView.scrollView.backgroundColor = videoView.backgroundColor
+        youtubeBtnHideView.isHidden = true
         self.videoView.addSubview(self.youtubeVideoWebView)
         let edgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         
@@ -77,50 +79,47 @@ class YoutubeVideoViewController: UIViewController, AVAudioPlayerDelegate ,WKNav
         let urlRequest = URLRequest(url: favoriteURL! as URL)
         youtubeVideoWebView.load(urlRequest)
                 
+        // 練習するボタン（お気に入りボタンと並べて配置）
+        let practiceBarBtn = UIBarButtonItem(
+            title: "練習する",
+            style: .plain,
+            target: self,
+            action: #selector(practiceBtnTapped)
+        )
+        customFavBtn.backgroundColor = .clear
+        customFavBtn.isHidden = true
+        customFavBtn.addTarget(self, action: #selector(addOKINIIRIBtnTapped(_:)), for: .touchUpInside)
+        addOKINIIRIBtn = customFavBtn
+        navigationItem.rightBarButtonItems = [UIBarButtonItem(customView: customFavBtn), practiceBarBtn]
+
         waitView.isHidden = false
         _observers.append(youtubeVideoWebView.observe(\.url, options: .new){_,change in
-            if change.newValue == nil{
-                return
-            }
-            // URL 抽出
-            let activeUrl: URL? = change.newValue!
-            let nowURL = activeUrl?.absoluteString
-            // クエリを抽出
-            if nowURL == nil {
-                self.addOKINIIRIBtn.isHidden = true
-                return
-            }
-            if nowURL!.hasPrefix("https://www.youtube.com/watch?") || nowURL!.hasPrefix("https://m.youtube.com/watch?"){
-                self.youtubeBtnHideView.isHidden = false
-            }else{
-                self.youtubeBtnHideView.isHidden = true
-            }
-            let comp: NSURLComponents? = NSURLComponents(string: nowURL!)
-            let fragments = self.generateDictionalyFromUrlComponents(components: comp!)
-            if fragments["v"] == nil {
-                self.addOKINIIRIBtn.isHidden = true
-                return
-            }
+            guard let optURL = change.newValue, let activeUrl = optURL else { return }
+            let nowURL = activeUrl.absoluteString
+            guard let comp = NSURLComponents(string: nowURL),
+                  let videoID = self.generateDictionalyFromUrlComponents(components: comp)["v"]
+            else { return }
             //お気に入りに登録されているか検索する
             let appDelegate:AppDelegate = UIApplication.shared.delegate as! AppDelegate
             let context:NSManagedObjectContext = appDelegate.managedObjectContext
             let fetchRequest:NSFetchRequest<MVModel> = MVModel.fetchRequest()
-            let predicate = NSPredicate(format:"%K = %@","videoID",fragments["v"]!)
+            let predicate = NSPredicate(format:"%K = %@","videoID", videoID)
             fetchRequest.predicate = predicate
             let fetchData = try! context.fetch(fetchRequest)
             if(!fetchData.isEmpty){
                 self.addOKINIIRIBtn.setTitle(localText(key:"okiniiri_delete"), for: .normal)
                 self.addOKINIIRIBtn.setTitleColor(self.color, for: .normal)
-                self.addOKINIIRIBtn.sizeToFit()
+                self.addOKINIIRIBtn.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
                 self.addFlg = false
             } else {
                 self.addOKINIIRIBtn.setTitle(localText(key:"okiniiri_regist"), for: .normal)
-                self.addOKINIIRIBtn.setTitleColor(NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][self.fromView.rawValue], for: .normal)
-                self.addOKINIIRIBtn.sizeToFit()
+                self.addOKINIIRIBtn.setTitleColor(AppColor.accent, for: .normal)
+                self.addOKINIIRIBtn.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .regular)
                 self.addFlg = true
             }
             self.addOKINIIRIBtn.isHidden = false
-            //self.getNowYotebeInfo()
+            self.customFavBtn.sizeToFit()
+            self.navigationItem.rightBarButtonItems = self.navigationItem.rightBarButtonItems
         })
         //videoView.addSubview(youtubeVideoWebView)
         
@@ -144,19 +143,18 @@ class YoutubeVideoViewController: UIViewController, AVAudioPlayerDelegate ,WKNav
             appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][fromView.rawValue]]
             self.navigationController!.navigationBar.standardAppearance = appearance
             self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][fromView.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         } else {
             self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][fromView.rawValue]
             self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][fromView.rawValue]]
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][fromView.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         }
-        
-        color = UIColor.lightGray
+        color = UIColor.systemRed
         NotificationCenter.default.addObserver(self, selector: #selector(self.reachabilityChanged),name: ReachabilityChangedNotification,object: reachability)
         do{
             try reachability.startNotifier()
         }catch{
-            print("could not start reachability notifier")
+            dlog("could not start reachability notifier")
         }
         //お気に入りに登録されているか検索する
         let appDelegate:AppDelegate = UIApplication.shared.delegate as! AppDelegate
@@ -168,15 +166,17 @@ class YoutubeVideoViewController: UIViewController, AVAudioPlayerDelegate ,WKNav
         if(!fetchData.isEmpty){
             addOKINIIRIBtn.setTitle(localText(key:"okiniiri_delete"), for: .normal)
             addOKINIIRIBtn.setTitleColor(color, for: .normal)
-            addOKINIIRIBtn.sizeToFit()
+            addOKINIIRIBtn.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
             addFlg = false
         } else {
             addOKINIIRIBtn.setTitle(localText(key:"okiniiri_regist"), for: .normal)
-            addOKINIIRIBtn.setTitleColor(NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][fromView.rawValue], for: .normal)
-            addOKINIIRIBtn.sizeToFit()
+            addOKINIIRIBtn.setTitleColor(AppColor.accent, for: .normal)
+            addOKINIIRIBtn.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .regular)
             addFlg = true
         }
         self.addOKINIIRIBtn.isHidden = false
+        customFavBtn.sizeToFit()
+        self.navigationItem.rightBarButtonItems = self.navigationItem.rightBarButtonItems
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -186,12 +186,9 @@ class YoutubeVideoViewController: UIViewController, AVAudioPlayerDelegate ,WKNav
     /*******************************************************************
      WKWebView Delegate処理
      *******************************************************************/
-    // 遷移開始時
+    // 遷移開始時（waitView はそのまま — 白背景を隠し続ける）
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-        waitView.isHidden = true
-        youtubeBtnHideView.isHidden = false
     }
-    // Load完了時
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         waitView.isHidden = true
     }
@@ -359,13 +356,14 @@ class YoutubeVideoViewController: UIViewController, AVAudioPlayerDelegate ,WKNav
                             try MVContext.save()
                             try contextC.save()
                         }catch{
-                            print(error)
+                            dlog(error)
                             return
                         }
                         self.addOKINIIRIBtn.setTitle(localText(key:"okiniiri_delete"), for: .normal)
                         self.addOKINIIRIBtn.setTitleColor(self.color, for: .normal)
-                        self.addOKINIIRIBtn.sizeToFit()
                         self.addFlg = false
+                        self.customFavBtn.sizeToFit()
+                        self.navigationItem.rightBarButtonItems = self.navigationItem.rightBarButtonItems
                         showToastMsg(messege:OKINIIRI_ADD_DIALOG_MASSAGE,time:2.0, tab: self.fromView.rawValue)
                         // Firebaseに登録
                         setOkiniiriData(videoId:self.nowYoutubeVideoID,categoryID:SETTING_NOW_CATEGORYID,
@@ -395,7 +393,7 @@ class YoutubeVideoViewController: UIViewController, AVAudioPlayerDelegate ,WKNav
                 try MVContext.save()
                 
             }catch{
-                print(error)
+                dlog(error)
                 return
             }
             // 登録されている「お気に入り動画」数も更新
@@ -423,16 +421,34 @@ class YoutubeVideoViewController: UIViewController, AVAudioPlayerDelegate ,WKNav
                 try contextC.save()
                 
             }catch{
-                print(error)
+                dlog(error)
                 return
             }
             self.addOKINIIRIBtn.setTitle(localText(key:"okiniiri_regist"), for: .normal)
-            self.addOKINIIRIBtn.setTitleColor(NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][self.fromView.rawValue], for: .normal)
-            self.addOKINIIRIBtn.sizeToFit()
+            self.addOKINIIRIBtn.setTitleColor(AppColor.accent, for: .normal)
             self.addFlg = true
+            self.customFavBtn.sizeToFit()
+            self.navigationItem.rightBarButtonItems = self.navigationItem.rightBarButtonItems
             showToastMsg(messege:OKINIIRI_DELETE_DIALOG_MASSAGE,time:2.0, tab: fromView.rawValue)
         }
     }
+    // ディクテーション練習
+    @objc func practiceBtnTapped() {
+        var dummyTrack = TrackData()
+        // youtubeVideoTitle が未取得の場合は WKWebView のページタイトルから取得
+        let webTitle = youtubeVideoWebView.title?
+            .replacingOccurrences(of: " - YouTube", with: "")
+            .trimmingCharacters(in: .whitespaces) ?? ""
+        let title = !youtubeVideoTitle.isEmpty ? youtubeVideoTitle
+                  : !webTitle.isEmpty          ? webTitle
+                  : nowYoutubeVideoID
+        dummyTrack.title = title
+        let setupVC = DictationSetupViewController()
+        setupVC.track = dummyTrack
+        setupVC.youtubeVideoID = nowYoutubeVideoID
+        navigationController?.pushViewController(setupVC, animated: true)
+    }
+
     // ネットワーク確認
     @objc func reachabilityChanged(note: Notification) {
         
@@ -440,13 +456,50 @@ class YoutubeVideoViewController: UIViewController, AVAudioPlayerDelegate ,WKNav
         
         if reachability.isReachable {
             if reachability.isReachableViaWiFi {
-                print("Reachable via WiFi")
+                dlog("Reachable via WiFi")
             } else {
-                print("Reachable via Cellular")
+                dlog("Reachable via Cellular")
             }
         } else {
-            print("Network not reachable")
+            dlog("Network not reachable")
         }
     }
-    
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        stopWebViewPlayback()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        // viewWillDisappear でのロードが完了する前にタブ切替が起きるケースの保険
+        stopWebViewPlayback()
+    }
+
+    private func stopWebViewPlayback() {
+        youtubeVideoWebView.stopLoading()
+        let blankRequest = URLRequest(url: URL(string: "about:blank")!)
+        if #available(iOS 15.0, *) {
+            // pauseAllMediaPlayback は cross-origin iframe の音声も含めて確実に止める。
+            // completion で about:blank をロードし WKWebView のプロセスを解放する。
+            youtubeVideoWebView.pauseAllMediaPlayback { [weak self] in
+                self?.youtubeVideoWebView.load(blankRequest)
+            }
+        } else {
+            let js = """
+                (function(){
+                    document.querySelectorAll('video,audio').forEach(function(m){
+                        m.pause(); m.src=''; m.load();
+                    });
+                    document.querySelectorAll('iframe').forEach(function(f){
+                        try{ f.src='about:blank'; }catch(e){}
+                    });
+                })();
+            """
+            youtubeVideoWebView.evaluateJavaScript(js) { [weak self] _, _ in
+                self?.youtubeVideoWebView.load(blankRequest)
+            }
+        }
+    }
+
 }

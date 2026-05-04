@@ -115,7 +115,7 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
         let manager = ASIdentifierManager.shared()
         if manager.isAdvertisingTrackingEnabled { // 広告トラッキングを許可しているのか？
             let idfaString = manager.advertisingIdentifier.uuidString
-            print(idfaString)
+            dlog(idfaString)
             if idfaString == "1E79435D-5FF2-489C-9C9C-FA3EDA0254CA" {
                 quoSwitch.isHidden = false
             }else{
@@ -141,11 +141,11 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
             appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
             self.navigationController!.navigationBar.standardAppearance = appearance
             self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         } else {
             self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
             self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         }
         
         // Music Player は停止する
@@ -205,7 +205,7 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
             fetchRequest.sortDescriptors = [NSSortDescriptor(key: "indicatoryNum", ascending: true)]
             let fetchData = try! context.fetch(fetchRequest)
             if(!fetchData.isEmpty){
-                print(fetchData)
+                dlog(fetchData)
                 for i in 0..<fetchData.count{
                     self.youtubeVideoIdList.append(fetchData[i].videoID!)
                 }
@@ -324,9 +324,9 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
                 youtubePlaylistVideoIDs = youtubePlaylistVideoIDs + "," + youtubeVideoIdList[regIndex]
             }
         }
-        print(youtubeVideoIdList)
-        print("------uRyAS_F3C20")
-        print(youtubePlaylistVideoIDs)
+        dlog(youtubeVideoIdList)
+        dlog("------uRyAS_F3C20")
+        dlog(youtubePlaylistVideoIDs)
         // playlistを設定
         let playerVars = [
                 "fs": "0",// 1
@@ -480,8 +480,8 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
      *******************************************************************/
     var tapFlg = false
     @objc func playerDidJumped(){
-        print("Jump")
-//        print(AVPlayerViewControllerManager.shared.controller.player?.rate)
+        dlog("Jump")
+//        dlog(AVPlayerViewControllerManager.shared.controller.player?.rate)
 //        if AVPlayerViewControllerManager.shared.controller.player?.rate == 0 {
 //            AVPlayerViewControllerManager.shared.controller.player?.rate = nowRate
 //        }
@@ -782,12 +782,12 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
         let reachability = note.object as! Reachability
         if reachability.isReachable {
             if reachability.isReachableViaWiFi {
-                print("Reachable via WiFi")
+                dlog("Reachable via WiFi")
             } else {
-                print("Reachable via Cellular")
+                dlog("Reachable via Cellular")
             }
         } else {
-            print("Network not reachable")
+            dlog("Network not reachable")
         }
     }
     /*******************************************************************
@@ -807,7 +807,7 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
     func loadInterstitial() {
         InterstitialAd.load(with: ADMOB_INTERSTITIAL_MV, request: Request()) { [weak self] ad, error in
             if let error = error {
-                print("Failed to load interstitial: \(error.localizedDescription)")
+                dlog("Failed to load interstitial: \(error.localizedDescription)")
                 return
             }
             self?.interstitial = ad
@@ -933,7 +933,7 @@ extension YoutubePlayViewController: WKYTPlayerViewDelegate {
         hidePickerView.isHidden = false
     }
     func playerView(_ playerView: WKYTPlayerView, receivedError error: WKYTPlayerError) {
-        print(error.rawValue)
+        dlog(error.rawValue)
     }
     func playerView(_ playerView: WKYTPlayerView, didPlayTime playTime: Float) {
         // Loop設定が単一だった場合は、その曲をもう一度再生

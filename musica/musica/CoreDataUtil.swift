@@ -10,6 +10,20 @@ import Foundation
 import CoreData
 import Firebase
 
+/// CoreData に保存された URL 文字列を解決する。
+/// file:// スキームで保存先が存在しない場合、同一ファイル名を
+/// 現在の Documents ディレクトリで再検索してコンテナ移行を吸収する。
+private func resolvedFileURL(from stored: String) -> URL? {
+    guard let url = URL(string: stored) else { return nil }
+    guard url.scheme == "file" else { return url }          // ipod-library:// 等はそのまま
+    if FileManager.default.fileExists(atPath: url.path) { return url }
+    // ファイルが存在しない → コンテナUUIDが変わった可能性。ファイル名で再検索
+    let filename = url.lastPathComponent
+    let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    let candidate = docs.appendingPathComponent(filename)
+    return FileManager.default.fileExists(atPath: candidate.path) ? candidate : url
+}
+
 /*******************************************************************
  MusicLibraryの作成
  *******************************************************************/
@@ -188,7 +202,7 @@ func getMusicLibraryTrackData(musicLibraryName:String) -> [TrackData]{
             trackData[i].albumName = fetchData[i].albumTitle!
             trackData[i].title = fetchData[i].trackTitle!
             trackData[i].artist = fetchData[i].artist!
-            trackData[i].url = URL(string: fetchData[i].url!)
+            trackData[i].url = resolvedFileURL(from: fetchData[i].url!)
             trackData[i].lyric = fetchData[i].lyric!
             
             if fetchData[i].artworkData == nil {

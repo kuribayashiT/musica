@@ -47,6 +47,7 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
      */
     @IBOutlet weak var iTunesRankingTableView: UITableView!
     @objc dynamic var itemsArray = [AnyObject]()
+    private var isObservingItemsArray = false
     var cellNum : Int = 0
     var keyWard : String = ""
     var artistName : String = ""
@@ -96,6 +97,7 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
         
         // Do any additional setup after loading the view.
         self.addObserver(self, forKeyPath: "itemsArray", options: [.old, .new], context: nil)
+        isObservingItemsArray = true
         
         seachYouTubeVideoInformation(viewMode : selectViewModeBtn.selectedSegmentIndex, waitMode: true)
         errorView.isHidden = true
@@ -131,11 +133,11 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
             appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.RANKING.rawValue]]
             self.navigationController!.navigationBar.standardAppearance = appearance
             self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.RANKING.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         } else {
             self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.RANKING.rawValue]
             self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.RANKING.rawValue]]
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.RANKING.rawValue]
+            self.navigationController!.navigationBar.tintColor = AppColor.accent
         }
         
         iTunesRankingTableView.dg_setPullToRefreshFillColor(NAVIGATION_PTR_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.RANKING.rawValue])
@@ -177,7 +179,7 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
         do{
             try reachability.startNotifier()
         }catch{
-            print("could not start reachability notifier")
+            dlog("could not start reachability notifier")
         }
         if UserDefaults.standard.object(forKey: "rankingLookCount") == nil{
             UserDefaults.standard.set(RANKING_LOOK_NUM, forKey: "rankingLookCount")
@@ -451,7 +453,7 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
         
         let cancel = UIAlertAction(title: localText(key:"btn_cancel"), style: UIAlertAction.Style.cancel, handler: {
             (action: UIAlertAction!) in
-            print("キャンセルをタップした時の処理")
+            dlog("キャンセルをタップした時の処理")
         })
         
         actionSheet.addAction(action1)
@@ -503,19 +505,19 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
         
         if reachability.isReachable {
             if reachability.isReachableViaWiFi {
-                print("Reachable via WiFi")
+                dlog("Reachable via WiFi")
             } else {
-                print("Reachable via Cellular")
+                dlog("Reachable via Cellular")
             }
         } else {
-            print("Network not reachable")
+            dlog("Network not reachable")
         }
     }
     func checkOffline(){
         if reachability.isReachable {
-            print("online")
+            dlog("online")
         }else{
-            print("offlone")
+            dlog("offlone")
             waitView.isHidden = true
             errorView.isHidden = false
             return
@@ -626,7 +628,9 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
     }
     // オブジェクト破棄時に監視を解除
     deinit {
-        self.removeObserver(self, forKeyPath: "itemsArray")
+        if isObservingItemsArray {
+            self.removeObserver(self, forKeyPath: "itemsArray")
+        }
         //イベントリスナーの削除
         NotificationCenter.default.removeObserver(self)
     }

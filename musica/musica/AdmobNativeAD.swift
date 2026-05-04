@@ -147,7 +147,7 @@ extension ITuneRankingViewController : VideoControllerDelegate , NativeAdDelegat
     }
 
     func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
-        print(adLoader.adUnitID)
+        dlog(adLoader.adUnitID)
         if adLoader.adUnitID == ADMOB_NATIVE_ADVANCE_DIALOG_RECOMMEND{
             nativeAd.delegate = self
             nativeAdDialogView!.nativeAd = nativeAd
@@ -576,9 +576,12 @@ extension SettingViewController : VideoControllerDelegate , NativeAdDelegate, Na
 
         // In order for the SDK to process touch events properly, user interaction should be disabled.
         nativeAdView.callToActionView?.isUserInteractionEnabled = false
-        nativeAdView.frame =  CGRect(x: 0, y: 0 , width: Int(myAppFrameSize.width),height:Int(myAppFrameSize.width) * 11 / 16 )
-        myADView.frame =  CGRect(x: 0, y: 0 , width: Int(myAppFrameSize.width),height:Int(myAppFrameSize.width) * 11 / 16 )
-        myADView.addSubview(nativeAdView)
+
+        // おすすめアプリセクションのヘッダーとして表示するためフラグを立ててリロード
+        nativeAdIsLoaded = true
+        DispatchQueue.main.async {
+            self.table.reloadData()
+        }
     }
     func nativeAdDidRecordClick(_ nativeAd: NativeAd) {}
     func nativeAdDidRecordImpression(_ nativeAd: NativeAd) {}

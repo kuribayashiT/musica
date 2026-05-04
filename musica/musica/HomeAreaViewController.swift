@@ -18,6 +18,7 @@ import SDWebImage
 import SWTableViewCell
 import Firebase
 import YoutubePlayer_in_WKWebView
+import StoreKit
 
 
 class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableViewDelegate ,MPMediaPickerControllerDelegate, AVAudioPlayerDelegate ,  CoachMarksControllerDataSource, CoachMarksControllerDelegate, APVAdManagerDelegate,FADDelegate, SWTableViewCellDelegate ,FullScreenContentDelegate{
@@ -31,7 +32,6 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     let myViewtabViewSearchItem : UIView = UIView()
     let myViewtabViewRankingItem : UIView = UIView()
     let myViewtabViewSettingItem : UIView = UIView()
-    var tabSize =  CGSize()
     @IBOutlet weak var corchMusicarea: UIView!
     var musiclibraryExtentFlg = true
     
@@ -69,6 +69,16 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     var newMusicLibraryCode : Int = 0
     var registBtnCell = 0
     var playedFlg = false
+
+    /// ホームのガイドカード表示状態を返す
+    private var libraryGuideState: LibraryGuideState {
+        // システム管理のライブラリ名セット（ユーザーが追加したものはここに含まれない）
+        let systemNames: Set<String> = [MV_LIST_NAME, SampleDataSeeder.sampleLibraryName]
+        let hasUserLibrary = musicLibraryList.contains { !systemNames.contains($0.musicLibraryName) }
+        if hasUserLibrary { return .hidden }
+        let hasSample = musicLibraryList.contains { $0.musicLibraryName == SampleDataSeeder.sampleLibraryName }
+        return hasSample ? .sampleOnly : .noData
+    }
     var ADwaitView = UIView()
     var rewardedAd: RewardedAd?
     var remoteConfig: RemoteConfig!
@@ -98,11 +108,6 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
         // 端末によるサイズの計算とviewの設定
         let size = CGSize(width: myAppFrameSize.width, height: myAppFrameSize.width * 9 / 16)
         musictableview.sectionHeaderHeight = myAppFrameSize.height
-        // ここでタブのサイズを指定
-        tabSize = CGSize(width: size.width / 5, height: (tabBarController?.tabBar.frame.size.height)!)
-        myViewtabViewSearchItem.frame = CGRect(x:  Int(tabSize.width) * 2, y: Int(UIScreen.main.bounds.size.height) -  Int(tabSize.height), width: Int(tabSize.width),height: Int(tabSize.height))
-        myViewtabViewRankingItem.frame = CGRect(x: Int(tabSize.width) * 1, y: Int(UIScreen.main.bounds.size.height) -  Int(tabSize.height) , width: Int(tabSize.width),height: Int(tabSize.height))
-        myViewtabViewSettingItem.frame = CGRect(x: Int(tabSize.width) * 4, y: Int(UIScreen.main.bounds.size.height) -  Int(tabSize.height) , width: Int(tabSize.width),height: Int(tabSize.height))
         myViewtabViewSearchItem.isUserInteractionEnabled = false
         myViewtabViewRankingItem.isUserInteractionEnabled = false
         myViewtabViewSettingItem.isUserInteractionEnabled = false
@@ -114,13 +119,16 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
 
         // tableViewのデザイン設定
         musictableview.estimatedRowHeight = 130
-        musictableview.rowHeight = CGFloat(CELL_ROW_HEIGT_MIDDLE)
+        musictableview.rowHeight = 72
+        musictableview.separatorColor = AppColor.separator
+        musictableview.backgroundColor = AppColor.background
+
         
         // tableヘッダーのサイズを指定
         musictableview.sectionHeaderHeight = size.height
         
         // お気に入りのサイズを確定
-        myViewOKINIIRIAREA.frame = CGRect(x: 0 , y: 0, width: Int(myAppFrameSize.width),height: CELL_ROW_HEIGT_MIDDLE)
+        myViewOKINIIRIAREA.frame = CGRect(x: 0 , y: 0, width: Int(myAppFrameSize.width), height: 72)
 
         // 長押し時の挙動を登録
         let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.cellLongPressed))
@@ -144,9 +152,13 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
         //GADRewardBasedVideoAd.sharedInstance().delegate = self
         splashtimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false, block: { (timer) in
             splashViewAnimation(mainView: self.tabBarController!.view, splashView: self.ADwaitView,logo: self.ADwaitView.subviews[0] as! UIImageView)
-            if startAlert(vc:self) == false {
-                if SETTING_STARTUP_NUM % 4 == 0{
-                    //広告表示？？
+            // オンボーディング中はダイアログを抑制
+            guard UserDefaults.standard.bool(forKey: "onboardingCompleted") else { return }
+            // 課金促進ダイアログは廃止（プレミアム画面から自然誘導）
+            // レビュー誘導のみ残す
+            if SETTING_STARTUP_NUM > 0 && SETTING_STARTUP_NUM % 4 == 0 {
+                if #available(iOS 10.3, *) {
+                    SKStoreReviewController.requestReview()
                 }
             }
         })
@@ -160,8 +172,24 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
         // recommend取得
         getRecommendMV()
         getRecommendWard()
+
+        #if targetEnvironment(simulator)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(demoSeederDidFinish),
+            name: .init("DemoSeederDidFinish"),
+            object: nil
+        )
+        #endif
     }
-    
+
+    #if targetEnvironment(simulator)
+    @objc private func demoSeederDidFinish() {
+        musicLibraryList = getNowMusicLibraryData()
+        musictableview.reloadData()
+    }
+    #endif
+
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         musictableview.reloadData()
@@ -181,41 +209,32 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
         }
         fadeoutAnimesion(view : selectMusicView)
         LYRIC_RESULT_TEXT = ""
-        // navigationbarの色設定
-        self.navigationController?.navigationBar.isTranslucent = false
-        //バーアイテムカラー
-        if #available(iOS 15.0, *) {
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
-            self.navigationController!.navigationBar.standardAppearance = appearance
-            self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-        } else {
-            self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
-            self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-        }
+        // navigationbarの色設定（Apple Music スタイル: ラージタイトル）
+        self.navigationController?.navigationBar.isTranslucent = true
+        self.navigationController?.navigationBar.prefersLargeTitles = true
+        self.navigationItem.largeTitleDisplayMode = .always
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithTransparentBackground()
+        appearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
+        appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: AppColor.textPrimary]
+        appearance.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: AppColor.textPrimary]
+        self.navigationController?.navigationBar.standardAppearance = appearance
+        self.navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        self.navigationController?.navigationBar.compactAppearance = appearance
+        self.navigationController?.navigationBar.tintColor = AppColor.accent
         
         let nibObjects = Bundle.main.loadNibNamed("UnifiedNativeAdView", owner: nil, options: nil)
         let adView = (nibObjects?.first as? NativeAdView)!
         setAdView(adView)
         if rewardADBtn != nil {
-            if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue{
-                rewardADBtn.layer.borderWidth = 1
-                rewardADBtn.layer.borderColor = AppColor.textSecondary.cgColor
-                rewardADBtn.setTitleColor(AppColor.accent, for: .normal)
-            }else{
-                rewardADBtn.setTitleColor(AppColor.accent, for: .normal)
-                rewardADBtn.layer.borderWidth = 0
-                rewardADBtn.layer.borderColor = UIColor.clear.cgColor
-            }
+            rewardADBtn.setTitleColor(AppColor.accent, for: .normal)
+            rewardADBtn.layer.borderWidth = 0
+            rewardADBtn.layer.borderColor = UIColor.clear.cgColor
         }
         let center = NotificationCenter.default
         center.addObserver(self, selector: #selector(self.handleInterruption(_:)), name: AVAudioSession.interruptionNotification, object: nil)
         center.addObserver(self, selector: #selector(self.audioSessionRouteChanged(_:)), name: AVAudioSession.routeChangeNotification, object: nil)
-        musictableview.dg_setPullToRefreshFillColor(NAVIGATION_PTR_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue])
+        musictableview.dg_setPullToRefreshFillColor(AppColor.accent)
         musictableview.dg_setPullToRefreshBackgroundColor(musictableview.backgroundColor!)
         // カラーテーマをUserPropatyにSet
         Analytics.setUserProperty(COLOR_THEMA_NAME[NOW_COLOR_THEMA], forName: "カラーテーマ")
@@ -228,7 +247,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
             KAKIN_FLG = UserDefaults.standard.bool(forKey: "kakin")
         }
         RewardedAd.load(with: ADMOB_REWARD_AD, request: Request()) { [weak self] ad, error in
-            if let error = error { print("RewardedAd failed to load: \(error)"); return }
+            if let error = error { dlog("RewardedAd failed to load: \(error)"); return }
             self?.rewardedAd = ad
             self?.rewardedAd?.fullScreenContentDelegate = self
         }
@@ -279,14 +298,9 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     func makeEditBtn() -> UIBarButtonItem{
         let button = UIButton(type: UIButton.ButtonType.system)
         button.frame.size = CGSize(width: 80, height: 30)
-        button.setTitleColor(AppColor.textSecondary, for: UIControl.State.normal)
-        if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.BLACK.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue {
-            button.layer.borderWidth = 1.0
-            button.layer.borderColor = AppColor.textSecondary.cgColor
-        }else{
-            button.layer.borderWidth = 0
-            button.layer.borderColor = UIColor.clear.cgColor
-        }
+        button.setTitleColor(AppColor.accent, for: UIControl.State.normal)
+        button.layer.borderWidth = 1.0
+        button.layer.borderColor = AppColor.accent.cgColor
         button.layer.cornerRadius = 5
         button.backgroundColor = AppColor.surface
         button.addTarget(self, action: #selector(self.editDoneBtnTapped), for: UIControl.Event.touchUpInside)
@@ -297,27 +311,43 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
         return barButton
     }
     
-    func makeQuestionBtn() -> UIBarButtonItem{
-        let button = UIButton(type: UIButton.ButtonType.custom)
-        button.frame.size = CGSize(width: 36, height: 36)
-        let backImage = UIImage(named: "question")?.withRenderingMode(UIImage.RenderingMode.alwaysTemplate)
-        button.setImage(backImage, for: UIControl.State.normal)
-        button.addTarget(self, action: #selector(self.questionBtnTapped), for: UIControl.Event.touchUpInside)
-        let barButton = UIBarButtonItem(customView: button)
+    func makeRewardAdBarBtn() -> UIBarButtonItem {
+        let button = UIButton(type: .system)
+        if #available(iOS 15.0, *) {
+            var cfg = UIButton.Configuration.plain()
+            cfg.image = UIImage(systemName: "gift",
+                                withConfiguration: UIImage.SymbolConfiguration(pointSize: 13, weight: .medium))
+            cfg.imagePadding = 5
+            cfg.imagePlacement = .leading
+            cfg.title = localText(key: "home_hide_ads")
+            cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+                var a = attrs; a.font = .systemFont(ofSize: 13, weight: .medium); return a
+            }
+            cfg.contentInsets = NSDirectionalEdgeInsets(top: 7, leading: 12, bottom: 7, trailing: 12)
+            button.configuration = cfg
+            button.tintColor = AppColor.accent
+        } else {
+            let img = UIImage(systemName: "gift",
+                              withConfiguration: UIImage.SymbolConfiguration(pointSize: 14, weight: .medium))
+            button.setImage(img, for: .normal)
+            button.setTitle(" " + localText(key: "home_hide_ads"), for: .normal)
+            button.titleLabel?.font = .systemFont(ofSize: 13, weight: .medium)
+            button.tintColor = AppColor.accent
+            button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 10, bottom: 6, right: 10)
+        }
+        button.addTarget(self, action: #selector(self.rewardADBtnTapped), for: .touchUpInside)
+        return UIBarButtonItem(customView: button)
+    }
+
+    func makeQuestionBtn() -> UIBarButtonItem {
         nowBarBtn = 0
-        return barButton
+        return .makeHelpButton(target: self, action: #selector(questionBtnTapped))
     }
     // 画面描画後
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        // "firstLaunch"に紐づく値がtrueなら(=初回起動)、値をfalseに更新して処理を行う
-        let userDefault = UserDefaults.standard
-        if userDefault.bool(forKey: "firstLaunch_Flg") {
-            userDefault.set(false, forKey: "firstLaunch_Flg")
-            
-            let albumsQuery = MPMediaQuery.albums()
-            print(albumsQuery)
-        }
+        // 初回起動: オンボーディング表示
+        OnboardingViewController.presentIfNeeded(from: self)
     }
     
     // 画面切り替え時
@@ -353,7 +383,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
                 musiclibraryExtentFlg = true
                 musicLibraryListNum = musicLibraryList.count + 1
             }
-            musictableview.rowHeight = CGFloat(CELL_ROW_HEIGT_MIDDLE)
+            musictableview.rowHeight = 72
             return musicLibraryListNum// データ数
         }
         
@@ -461,24 +491,11 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
             // ライブラリ登録ボタンのセルを表示する
             let cell = tableView.dequeueReusableCell(withIdentifier: "registerBtncell", for: indexPath) as! registerTableViewCell
             cell.selectionStyle = UITableViewCell.SelectionStyle.none
-            if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue {
-                cell.registerBtn.backgroundColor = NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            }else if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue {
-                cell.registerBtn.backgroundColor = BLACK
-            }else{
-                cell.registerBtn.backgroundColor = AppColor.accent
-            }
+            cell.registerBtn.backgroundColor = AppColor.accent
             tableView.tableFooterView = UIView()
             cell.separatorInset = UIEdgeInsets.init(top: 0, left: myAppFrameSize.width, bottom: 0, right: 0)
-            
-            cell.tutorialBtn.setTitle(localText(key:"home_tutorial_label"),for: .normal)
-            if musiclibraryExtentFlg {
-                cell.tutorialImg.isHidden = true
-                cell.tutorialBtn.isHidden = true
-            }else{
-                cell.tutorialImg.isHidden = false
-                cell.tutorialBtn.isHidden = false
-            }
+
+            cell.setGuideState(libraryGuideState)
             fadeInRanDomAnimesion(view : cell.registerBtn)
             return cell
         }else if indexPath.row == musicLibraryList.count{
@@ -486,23 +503,10 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
             // ライブラリ登録ボタンのセルを表示する
             let cell = tableView.dequeueReusableCell(withIdentifier: "registerBtncell", for: indexPath) as! registerTableViewCell
             cell.selectionStyle = UITableViewCell.SelectionStyle.none
-            if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue {
-                cell.registerBtn.backgroundColor = NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            }else if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue {
-                cell.registerBtn.backgroundColor = BLACK
-            }else{
-                cell.registerBtn.backgroundColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            }
+            cell.registerBtn.backgroundColor = AppColor.accent
             tableView.tableFooterView = UIView()
             cell.separatorInset = UIEdgeInsets.init(top: 0, left: myAppFrameSize.width, bottom: 0, right: 0)
-            cell.tutorialBtn.setTitle(localText(key:"home_tutorial_label"),for: .normal)
-            if musiclibraryExtentFlg {
-                cell.tutorialImg.isHidden = true
-                cell.tutorialBtn.isHidden = true
-            }else{
-                cell.tutorialImg.isHidden = false
-                cell.tutorialBtn.isHidden = false
-            }
+            cell.setGuideState(libraryGuideState)
             fadeInRanDomAnimesion(view : cell.registerBtn)
             return cell
         }else{
@@ -513,56 +517,37 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
             let myMusicLibraryData = musicLibraryList[(indexPath as NSIndexPath).row]
             cell.libraryTitleLabel.text = myMusicLibraryData.musicLibraryName
             if myMusicLibraryData.musicLibraryName == MV_LIST_NAME{
-                cell.libraryContentsTypeLabel.text = CONTENTS_TYPE_MV
                 myViewOKINIIRIAREA.isUserInteractionEnabled = false
                 cell.addSubview(myViewOKINIIRIAREA)
                 cell.libraryTitleLabel.text = localText(key:"home_okiniiri_title")
-                cell.libraryNumLabel.text = ""
+                cell.librarySubTitleLabel.text = "\(myMusicLibraryData.trackNum)動画"
             }else{
-                cell.libraryContentsTypeLabel.text = CONTENTS_TYPE_MUSIC
-                cell.libraryNumLabel.text = String(indexPath.row)
-                
+                cell.librarySubTitleLabel.text = "\(myMusicLibraryData.trackNum)曲"
             }
-            cell.librarySubTitleLabel.text = String(myMusicLibraryData.trackNum)
+            // セパレータをアイコン右端に揃える（Apple Music スタイル）
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 68, bottom: 0, right: 0)
             
             if indexPath.row == 0 {
                 cell.libraryImage.image = UIImage(named: "OKINIIRIICON")
             } else {
                 cell.libraryImage.image = UIImage(named: "onpu00")
             }
-            if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_BLUE.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_RED.rawValue || NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLUE.rawValue {
-                cell.libraryImage.backgroundColor = NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            }else if NOW_COLOR_THEMA == NAVIGATION_COLOR_SETTINGS.WHITE_DARK_BLACK.rawValue {
-                cell.libraryImage.backgroundColor = BLACK
-            }else{
-                cell.libraryImage.backgroundColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            }
-
-            // アイコン設定
+            // アイコン: アプリアイコン風（角丸 + 影）
+            cell.libraryImage.backgroundColor = AppColor.accent
             cell.libraryImage.contentMode = .center
-            cell.libraryImage.layer.cornerRadius = 5
-            
+            cell.libraryImage.layer.cornerRadius = 10
+            cell.libraryImage.clipsToBounds = false
+            cell.libraryImage.layer.shadowColor = UIColor.black.cgColor
+            cell.libraryImage.layer.shadowOpacity = 0.18
+            cell.libraryImage.layer.shadowOffset = CGSize(width: 0, height: 2)
+            cell.libraryImage.layer.shadowRadius = 4
+
             cell.accessoryType = UITableViewCell.AccessoryType.disclosureIndicator
-            // イコライザー設定
+            // イコライザー: ネイティブアニメーションバー
             if NowPlayingMusicLibraryData.nowPlayingLibrary == myMusicLibraryData.musicLibraryName && audioPlayer != nil && audioPlayer.isPlaying {
-            //if indexPath.row != 0 {
-                // イコライザー設定
-                //audioPlayer.delegate = self
-                let gifData = darkPlayGif(vc : self)
-//                let jscript = "var meta = document.createElement('meta'); meta.setAttribute('name', 'viewport'); meta.setAttribute('content', 'width=device-width'); document.getElementsByTagName('head')[0].appendChild(meta);"
-//                let userScript = WKUserScript(source: jscript, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-//                let wkUController = WKUserContentController()
-//                wkUController.addUserScript(userScript)
-//                let wkWebConfig = WKWebViewConfiguration()
-//                wkWebConfig.userContentController = wkUController
-//                //cell.animationGifWebView = WKWebView(frame: self.view.bounds, configuration: wkWebConfig)
-                cell.animationGifWebView.scrollView.isScrollEnabled = false
-                cell.animationGifWebView.load(gifData as Data, mimeType: "image/gif", characterEncodingName: "utf-8", baseURL: NSURL() as URL)
-                cell.libraryImage.isHidden = true
-                cell.animationGifWebView.isHidden = false
+                cell.startEqualizer()
             } else {
-                cell.animationGifWebView.isHidden = true
-                cell.libraryImage.isHidden = false
+                cell.stopEqualizer()
                 fadeInRanDomAnimesion(view : cell.libraryImage)
             }
             
@@ -593,19 +578,20 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
         }
         //移動されたデータを取得する。
         let moveData = musicLibraryList[sourceIndexPath.row]
-        print("moveData: \(moveData)")
+        dlog("moveData: \(moveData)")
         
         //元の位置のデータを配列から削除する。
         musicLibraryList.remove(at: sourceIndexPath.row)
         
         //移動先の位置にデータを配列に挿入する。
         musicLibraryList.insert(moveData , at:destinationIndexPath.row)
-        print("After moveData insert: \(musicLibraryList)")
+        dlog("After moveData insert: \(musicLibraryList)")
         musictableview.reloadData()
     }
     // tableのcellタップ時に呼ばれるメソッド
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath as IndexPath, animated: true)
+        UISelectionFeedbackGenerator().selectionChanged()
         
         // チュートリアルのタップは無視
         if musiclibraryExtentFlg == false && indexPath.row == 1{
@@ -662,7 +648,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     func swipeableTableViewCell(_ cell: SWTableViewCell!, didTriggerRightUtilityButtonWith index: Int) {
         let point = musictableview.convert(cell.frame.origin, from: cell.superview)
         if let indexPath = musictableview.indexPathForRow(at: point) {
-            print("section: \(indexPath.section) - row: \(indexPath.row)")
+            dlog("section: \(indexPath.section) - row: \(indexPath.row)")
             switch index {
             case 0:
                 // テキストフィールド付きアラート表示
@@ -741,7 +727,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
                 getForegroundViewController().present(alert, animated: true, completion: nil)
                 
             default:
-                print("other")
+                dlog("other")
             }
         }
     }
@@ -782,23 +768,18 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     }
     // 「音楽ライブラリを作成する」ボタンタップ時
     @IBAction func makeMusicLibraryBtnTapped(_ sender: Any) {
-        //tappedAnimation(tappedBtn: sender as! UIButton )
-        DispatchQueue.main.async {
-            UIView.animate(withDuration: 0.1, animations: {
-                //縮小の処理
-                (sender as! UIButton).transform = CGAffineTransform(scaleX: 3/4, y: 3/4)
-            }, completion: { _ in
-
-                CUSTOM_LYBRARY_NAME = ""
-                CUSTOM_LYBRARY_FROM_MUSICLIST = false
-                self.performSegue(withIdentifier: "toOSAlbumList", sender: "")
-            })
-            UIView.animate(withDuration: 0.3, animations: {
-                //拡大の処理
-                (sender as! UIButton).transform = CGAffineTransform(scaleX: 1, y: 1)
-            }, completion: { _ in
-            })
-        }
+        let btn = sender as! UIButton
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        UIView.animate(withDuration: 0.12, animations: {
+            btn.transform = CGAffineTransform(scaleX: 0.92, y: 0.92)
+        }, completion: { _ in
+            UIView.animate(withDuration: 0.35, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 6, options: [], animations: {
+                btn.transform = .identity
+            }, completion: nil)
+            CUSTOM_LYBRARY_NAME = ""
+            CUSTOM_LYBRARY_FROM_MUSICLIST = false
+            self.performSegue(withIdentifier: "toOSAlbumList", sender: "")
+        })
     }
     
     // tableのcell「Delete」ボタンタップ時
@@ -831,7 +812,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
                 do{
                     try context.save()
                 }catch{
-                    print(error)
+                    dlog(error)
                 }
             }
         }
@@ -844,7 +825,33 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
         performSegue(withIdentifier: "toOSAlbumList", sender: "")
     }
     // 「？」ボタン押下時
+    private func updateTabItemFrames() {
+        guard let tabBar = tabBarController?.tabBar else { return }
+
+        // UITabBarButton の実際のフレームを取得してウィンドウ座標に変換
+        // iOS 26 の Liquid Glass タブバーはアイテム幅・位置が均等分割とは異なるため
+        let buttons = tabBar.subviews
+            .filter { NSStringFromClass(type(of: $0)).hasSuffix("TabBarButton") }
+            .sorted { $0.frame.minX < $1.frame.minX }
+
+        func screenFrame(at index: Int) -> CGRect {
+            if index < buttons.count {
+                return tabBar.convert(buttons[index].frame, to: nil)
+            }
+            // フォールバック: 均等分割
+            let count = CGFloat(tabBar.items?.count ?? 5)
+            let w = tabBar.bounds.width / count
+            let base = tabBar.convert(tabBar.bounds, to: nil)
+            return CGRect(x: base.minX + w * CGFloat(index), y: base.minY, width: w, height: base.height)
+        }
+
+        myViewtabViewSearchItem.frame  = screenFrame(at: 2)
+        myViewtabViewRankingItem.frame = screenFrame(at: 1)
+        myViewtabViewSettingItem.frame = screenFrame(at: 4)
+    }
+
     @objc func questionBtnTapped(_ sender: Any) {
+        updateTabItemFrames()
         // アラートを作成
         let alert = UIAlertController(
             title: localText(key:"home_help_title"),
@@ -878,11 +885,11 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     // Reward広告準備完了かのチェック
     func checkRewardAD(){
         if ADApearFlg() {
-            navigationItem.leftBarButtonItems = [rewardADAre] // crash
+            navigationItem.leftBarButtonItems = [makeRewardAdBarBtn()]
             if rewardedAd != nil {
-                rewardADBtn.isHidden = false
-            }else{
-                rewardADBtn.isHidden = true
+                rewardADBtn?.isHidden = false
+            } else {
+                rewardADBtn?.isHidden = true
             }
         }else{
             navigationItem.leftBarButtonItems = []
@@ -893,19 +900,19 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
      --------------------*/
     func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         RewardedAd.load(with: DEBUG_FLG ? ADMOB_REWARD_TRANS_test : ADMOB_REWARD_AD, request: Request()) { [weak self] ad, error in
-            if let error = error { print("RewardedAd reload failed: \(error)"); return }
+            if let error = error { dlog("RewardedAd reload failed: \(error)"); return }
             self?.rewardedAd = ad
             self?.rewardedAd?.fullScreenContentDelegate = self
         }
     }
     func adViewDidFail(toLoad view: AmazonAdView!, withError: AmazonAdError!) -> Void {
-        Swift.print("Ad Failed to load. Error code \(withError.errorCode): \(String(describing: withError.errorDescription))")
+        dlog("Ad Failed to load. Error code \(withError.errorCode): \(String(describing: withError.errorDescription))")
     }
     func adViewWillExpand(_ view: AmazonAdView!) -> Void {
-        Swift.print("Ad will expand")
+        dlog("Ad will expand")
     }
     func adViewDidCollapse(_ view: AmazonAdView!) -> Void {
-        Swift.print("Ad has collapsed")
+        dlog("Ad has collapsed")
     }
     
     // FIVE
@@ -913,28 +920,28 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     }
     var fadDelegate:FADDelegate!
     func fiveAdDidReplay(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     func fiveAdDidViewThrough(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     func fiveAdDidResume(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     func fiveAdDidPause(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     func fiveAdDidStart(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     func fiveAdDidClose(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     func fiveAdDidClick(_ ad: FADAdInterface!) {
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     func fiveAd(_ ad: FADAdInterface!, didFailedToReceiveAdWithError errorCode: FADErrorCode) {
-        print(errorCode)
+        dlog(errorCode)
     }
     // 必ず実装してください。
     // AmazonAdViewDelegate APVAdManagerDelegate で使う

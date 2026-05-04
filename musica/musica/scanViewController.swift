@@ -13,8 +13,9 @@ import Instructions
 import SwiftyJSON
 import BubbleTransition
 import Reachability
-import RAMAnimatedTabBarController
 import Firebase
+import AVFoundation
+import Speech
 
 class scanViewController: UIViewController ,CoachMarksControllerDataSource, CoachMarksControllerDelegate, UIImagePickerControllerDelegate,UINavigationControllerDelegate,FullScreenContentDelegate,FADDelegate{
     
@@ -39,11 +40,42 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     @IBOutlet weak var clearBtn: UIBarButtonItem!
     @IBOutlet weak var transSegment: UISegmentedControl!
     var textViewSize = CGRect()
-    
+
+    // MARK: - 音声文字起こしボタン
+    private let micBtn  = UIButton(type: .system)   // WhisperKit（waveform / xmark.circle.fill）
+    private let sfBtn   = UIButton(type: .system)   // SFSpeech / ライブマイク（mic.fill）
+    private let transcribeProgressLabel = UILabel() // SFSpeech ライブ録音用
+    private var whisperTask: Task<Void, Never>?
+    private var whisperIsRunning = false
+
+    // WhisperKit 専用 進捗バナー
+    private let whisperBanner       = UIView()
+    private let whisperBannerLabel  = UILabel()
+    private var cancelSFTranscription: (() -> Void)?
+    // ライブマイク録音
+    private let audioEngine = AVAudioEngine()
+    private var liveRecognitionTasks: [SFSpeechRecognitionTask] = []
+    private var liveRecognitionRequests: [SFSpeechAudioBufferRecognitionRequest] = []
+    private var liveRestartTimer: Timer?
+    private var isLiveRecording = false
+    private var liveTranscribedText = ""
+    private var liveAccumulatedText = ""
+
+    // Layout — frame-based keyboard avoidance
+    private var keyboardOffset: CGFloat = 0
+    private var isKeyboardVisible = false
+
+    // Design — programmatic header card
+    private var statusCard: UIView?
+    private var statusIconView: UIImageView?
+    private var statusTitleLabel: UILabel?
+    private var statusSubtitleLabel: UILabel?
+    private var statusCopyBtn: UIButton?
+
     var ADMOB_REWARD_RECEIVED = false
     var FROM_TRAND_AD = false
     let transition = BubbleTransition()
-    var textAreaEditHeihgt:CGFloat = 0
+    var textAreaEditHeihgt: CGFloat = 0   // kept for legacy paths
     var color = AppColor.inactive
     var toLangCode = Int()
     let jsonEncoder = JSONEncoder()
@@ -86,6 +118,8 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         // Maio.start disabled - use mediation
         
         waitView.isHidden = true
+        helpBtn.image = UIImage(systemName: "questionmark.circle.fill")
+        helpBtn.tintColor = AppColor.accent
         helpBtn.isEnabled = true
         langSelectBtn.layer.borderColor = AppColor.textSecondary.cgColor
         clearOrShareBtn.layer.borderColor = AppColor.textSecondary.cgColor
@@ -120,13 +154,17 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         kbToolBar.items = [spacer, commitButton]
         resultTextView.inputAccessoryView = kbToolBar
         helpBtn.isEnabled = true
-        scrollResultView.frame.origin.y = 8 + (navigationController?.navigationBar.frame.size.height)! + UIApplication.shared.statusBarFrame.height
-
+        // 初回表示前にナビゲーションバースタイルを確定（タブ切り替えチラつき防止）
+        applySharedNavBarStyle()
+        setupTranscribeButtons()
+        redesignLayout()
     }
     /*******************************************************************
      画面描画時の処理
      *******************************************************************/
     override func viewWillAppear(_ animated: Bool) {
+        // ナビゲーションバースタイルを super より先に確定してチラつきを防ぐ
+        applySharedNavBarStyle()
         super.viewWillAppear(animated)
         // 動画は一旦止める
         if AVPlayerViewControllerManager.shared.controller.player != nil {
@@ -136,13 +174,19 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(self.keyboardWillBeShown(notification:)),
-            name: UIResponder.keyboardDidShowNotification,
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(self.keyboardWillBeHiddenNotif),
+            name: UIResponder.keyboardWillHideNotification,
             object: nil
         )
         // 広告の準備
         setupFiveSDK()
         InterstitialAd.load(with: ADMOB_INTERSTITIAL_SCAN_OR_TRANS, request: Request()) { [weak self] ad, error in
-                if let error = error { print("Error: \(error)"); return }
+                if let error = error { dlog("Error: \(error)"); return }
                 self?.interstitial = ad
                 self?.interstitial?.fullScreenContentDelegate = self
             }
@@ -153,34 +197,30 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             interstitial_five?.loadAd()
         }
 
-        scrollResultView.translatesAutoresizingMaskIntoConstraints = false
-        self.navigationController?.navigationBar.isTranslucent = false
         // 翻訳が成功し、広告から帰ってきた場合
         if transSuccessFlg {
             transSuccessFlg = false
             transSegment.selectedSegmentIndex = AFTER_TRANS
         }
+        // editTrackUrl がなければ確実にスキャンモードに戻す（EDIT_FLG が残留するケース対策）
+        if editTrackUrl == nil { EDIT_FLG = false }
+        // タブ切り替えで来た場合でも、再生中 or 選択中の曲があれば micBtn を活性化する
+        if editTrackUrl == nil, NowPlayingMusicLibraryData.nowPlaying != NOW_NOT_PLAYING {
+            let tracks = SHUFFLE_FLG
+                ? NowPlayingMusicLibraryData.trackDataShuffled
+                : NowPlayingMusicLibraryData.trackData
+            let idx = NowPlayingMusicLibraryData.nowPlaying
+            if idx < tracks.count { editTrackUrl = tracks[idx].url }
+        }
+        updateStatusCard()
+        updateTranscribeBtnState()
         if EDIT_FLG {
-            clearOrShareBtn.setTitle(localText(key:"trans_btn_clear"), for: UIControl.State.normal)
-            registerBtn.setTitle(localText(key:"trans_btn_lyric_regist"), for: UIControl.State.normal)
             registerBtn.isHidden = false
-            resetBtn.isHidden = false
+            registerBtn.isEnabled = true
+            registerBtn.alpha = 1.0
+            resetBtn.isHidden = true
+            clearOrShareBtn.isHidden = true
             FROM_SCAN_CAMERA = false
-            // navigationbarの設定
-            self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            if #available(iOS 15.0, *) {
-                let appearance = UINavigationBarAppearance()
-                appearance.configureWithOpaqueBackground()
-                appearance.backgroundColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-                appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
-                self.navigationController!.navigationBar.standardAppearance = appearance
-                self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
-                self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            } else {
-                self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-                self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
-                self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            }
             color = AppColor.destructive
             // 既存の歌詞をセット
             if LYRIC_RESULT_TEXT == ""{
@@ -213,38 +253,11 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
                 CAMERAVIEW_LYRIC_RESULT_TEXT = ""
             }
         }else{
-            clearOrShareBtn.setTitle(localText(key:"text_share"), for: UIControl.State.normal)
-            if UserDefaults.standard.object(forKey: "scancamera_regist_cancel_flg") == nil{
-                REGIST_CANCEL_FLG = false
-                UserDefaults.standard.set(REGIST_CANCEL_FLG, forKey: "scancamera_regist_cancel_flg")
-            }else{
-                REGIST_CANCEL_FLG = UserDefaults.standard.bool(forKey: "scancamera_regist_cancel_flg")
-            }
-            if REGIST_CANCEL_FLG {
-                registerBtn.isHidden = true
-            }else{
-                registerBtn.setTitle(localText(key:"text_moreuse"), for: UIControl.State.normal)
-                registerBtn.isHidden = false
-            }
+            // スキャンモード（非歌詞編集モード）
+            clearOrShareBtn.isHidden = true
+            registerBtn.isHidden = true
             resetBtn.isHidden = true
             FROM_SCAN_CAMERA = true
-            // navigationbarの色設定
-            self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SCAN.rawValue]
-            //バーアイテムカラー
-            if #available(iOS 15.0, *) {
-                let appearance = UINavigationBarAppearance()
-                appearance.configureWithOpaqueBackground()
-                appearance.backgroundColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SCAN.rawValue]
-                appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SCAN.rawValue]]
-                self.navigationController!.navigationBar.standardAppearance = appearance
-                self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
-                self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SCAN.rawValue]
-            } else {
-                self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SCAN.rawValue]
-                self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SCAN.rawValue]]
-                self.navigationController!.navigationBar.tintColor = NAVIGATION_BTN_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.SCAN.rawValue]
-            }
-        
             color = AppColor.destructive
             self.navigationItem.title = localText(key:"trans_title")
             
@@ -279,7 +292,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         do{
             try reachability.startNotifier()
         }catch{
-            print("could not start reachability notifier")
+            dlog("could not start reachability notifier")
         }
         // オンラインだったら翻訳言語取得
         if reachability.isReachable {
@@ -291,10 +304,12 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         fadeInRanDomAnimesion(view : clearOrShareBtn)
         fadeInRanDomAnimesion(view : resetBtn)
         fadeInRanDomAnimesion(view : nowimageBtn)
-        fadeInRanDomAnimesion(view : registerBtn)
         fadeInRanDomAnimesion(view : imageListBtn)
         fadeInRanDomAnimesion(view : cameraBtn)
+        fadeInRanDomAnimesion(view : langSelectBtn)
+        fadeInRanDomAnimesion(view : transSegment)
         self.langSelectBtn.setTitle(TRANS_LANG_SETTING.name, for: UIControl.State.normal)
+        updateStatusCard()
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -305,10 +320,9 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
      *******************************************************************/
     @IBAction func helpBtnTapped(_ sender: Any) {
         helpBtn.isEnabled = false
-        //キーボードを閉じる
-        if self.scrollResultView.translatesAutoresizingMaskIntoConstraints {
+        // キーボードを閉じる
+        if isKeyboardVisible {
             resultTextView.resignFirstResponder()
-            keyboardWillBeHidden()
         }
         helpBtn.isEnabled = true
         // アラートを作成
@@ -320,40 +334,19 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         alert.addAction(UIAlertAction(title: localText(key:"text_help_nolook"), style: .cancel))
         alert.addAction(UIAlertAction(title: localText(key:"text_help_look"), style: .default, handler: { action in
             self.previewImageView.isHidden = true
-            if self.scrollResultView.translatesAutoresizingMaskIntoConstraints {
-                self.resultTextView.endEditing(true)
-                self.scrollResultView.translatesAutoresizingMaskIntoConstraints = false
-                UIView.animate(withDuration: 0.1, animations: { () in
-                    let frame = CGRect(x:self.scrollResultView.frame.origin.x, y:self.scrollResultView.frame.origin.y, width:self.scrollResultView.frame.width, height:CGFloat(self.textAreaEditHeihgt))
-                    self.scrollResultView.frame = frame
-                })
-            }
+            self.resultTextView.endEditing(true)
             self.HELPMODE = self.ALL_HELP
             self.coachMarksController.start(in: .newWindow(over: self, at: nil))
         }))
         alert.addAction(UIAlertAction(title: localText(key:"text_help_look_scan"), style: .default, handler: { action in
             self.previewImageView.isHidden = true
-            if self.scrollResultView.translatesAutoresizingMaskIntoConstraints {
-                self.resultTextView.endEditing(true)
-                self.scrollResultView.translatesAutoresizingMaskIntoConstraints = false
-                UIView.animate(withDuration: 0.1, animations: { () in
-                    let frame = CGRect(x:self.scrollResultView.frame.origin.x, y:self.scrollResultView.frame.origin.y, width:self.scrollResultView.frame.width, height:CGFloat(self.textAreaEditHeihgt))
-                    self.scrollResultView.frame = frame
-                })
-            }
+            self.resultTextView.endEditing(true)
             self.HELPMODE = self.SCAN_HELP
             self.coachMarksController.start(in: .newWindow(over: self, at: nil))
         }))
         alert.addAction(UIAlertAction(title: localText(key:"text_help_look_trans"), style: .default, handler: { action in
             self.previewImageView.isHidden = true
-            if self.scrollResultView.translatesAutoresizingMaskIntoConstraints {
-                self.resultTextView.endEditing(true)
-                self.scrollResultView.translatesAutoresizingMaskIntoConstraints = false
-                UIView.animate(withDuration: 0.1, animations: { () in
-                    let frame = CGRect(x:self.scrollResultView.frame.origin.x, y:self.scrollResultView.frame.origin.y, width:self.scrollResultView.frame.width, height:CGFloat(self.textAreaEditHeihgt))
-                    self.scrollResultView.frame = frame
-                })
-            }
+            self.resultTextView.endEditing(true)
             self.HELPMODE = self.TRANS_HELP
             self.coachMarksController.start(in: .newWindow(over: self, at: nil))
         }))
@@ -362,22 +355,11 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     }
     // クリア/シェアボタンタップ時
     @IBAction func clearOrShareBtnTapped(_ sender: Any) {
+        // 歌詞編集モード時のみ「クリア」として動作（スキャンモードではボタン非表示のため通常到達しない）
         if EDIT_FLG {
-            // クリアボタンタップ時
             resultTextView.text = ""
             RESULT_TEXT = ""
             TRANS_TEXT = ""
-            
-        }else{
-            // シェアボタンタップ時
-            let shareText = resultTextView.text
-            let shareWebsite = NSURL(string: INTRODUCTION_URL)!
-            let activityItems = [shareText!, shareWebsite] as [Any]
-            
-            // 初期化処理
-            let activityVC = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
-            // UIActivityViewControllerを表示
-            self.present(activityVC, animated: true, completion: nil)
         }
     }
     // 翻訳切り替え
@@ -496,7 +478,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
                 if let interstitial = interstitial {
                     interstitial.present(from: self)
                 } else {
-                    print("Admob wasn't ready")
+                    dlog("Admob wasn't ready")
                     // 初期化
                     let interstitial_five = FADInterstitial(slotId: "252628")
                     interstitial_five?.delegate = self
@@ -512,9 +494,18 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     }
     //「閉じるボタン」で呼び出されるメソッド
     @objc func editCloseBtnTapped() {
-        //キーボードを閉じる
+        saveCurrentText()
         resultTextView.resignFirstResponder()
-        keyboardWillBeHidden()
+    }
+
+    @objc func copyAllTextTapped() {
+        let text = resultTextView.text ?? ""
+        guard !text.isEmpty else {
+            showToastMsg(messege: localText(key: "scan_copy_empty"), time: 1.5, tab: COLOR_THEMA.SEARCH.rawValue)
+            return
+        }
+        UIPasteboard.general.string = text
+        showToastMsg(messege: localText(key: "scan_copy_done"), time: 1.5, tab: COLOR_THEMA.SEARCH.rawValue)
     }
     // カメラボタンタップ時
     @IBAction func cameraBtnTapped(_ sender: Any) {
@@ -584,7 +575,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
 //                                if SHUFFLE_FLG{
 //                                    trackTitle = NowPlayingMusicLibraryData.trackDataShuffled[self.editPlayNum].title
 //                                }else{
-//                                    print(self.editPlayNum)
+//                                    dlog(self.editPlayNum)
 //                                    trackTitle = NowPlayingMusicLibraryData.trackData[self.editPlayNum].title
 //                                }
 //                            }
@@ -659,10 +650,12 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
                             }
                         }
                     }catch{
-                        print(error)
+                        dlog(error)
                         msgBody = localText(key:"musiclibrary_lylic_regist_failure")
                     }
                     showToastMsg(messege:msgBody,time:2.0, tab: COLOR_THEMA.SEARCH.rawValue)
+                    self.EDIT_FLG = false
+                    self.editTrackUrl = nil
                     self.navigationController?.popViewController(animated: true)
                     
 //                    let resuleAlert = UIAlertController(
@@ -686,19 +679,8 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             alert.addAction(action2)
             // アラート表示
             present(alert, animated: true, completion: nil)
-        }else{
-            // アラートを作成
-            let alert = UIAlertController(title: APP_INTRO_SCANCAMERA_TITLE,message: APP_INTRO_SCANCAMERA_BODY,preferredStyle: .alert)
-            // アラートにボタンをつける
-            alert.addAction(UIAlertAction(title: MESSAGE_YES, style: .default, handler: { action in
-                REGIST_CANCEL_FLG = true
-                UserDefaults.standard.set(REGIST_CANCEL_FLG, forKey: "scancamera_regist_cancel_flg")
-                UIApplication.shared.open(URL(string: SCANCAMERA_INTRODUCTION_URL)!, options: [:], completionHandler: nil)
-            }))
-            alert.addAction(UIAlertAction(title: MESSAGE_NO, style: .default, handler: { action in}))
-            // アラート表示
-            getForegroundViewController().present(alert, animated: true, completion: nil)
         }
+        // EDIT_FLG=false 時は registerBtn は非表示のため、ここには到達しない
     }
     // プレビューボタンタップ時
     @IBAction func nowImageBtnTapped(_ sender: Any) {
@@ -927,7 +909,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         }
         let cancel = UIAlertAction(title: localText(key:"btn_cancel"), style: UIAlertAction.Style.cancel, handler: {
             (action: UIAlertAction!) in
-            print("キャンセルをタップした時の処理")
+            dlog("キャンセルをタップした時の処理")
         })
         actionSheet.addAction(cancel)
         
@@ -1016,7 +998,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             return
         }
         let numberOfTranslations = langTranslations!.count - 1
-        print(langTranslations!.count)
+        dlog(langTranslations!.count)
         
         //Put response on main thread to update UI
         DispatchQueue.main.async {
@@ -1133,47 +1115,54 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     /*******************************************************************
      テキスト編集周りの処理
      *******************************************************************/
-    //キーボードが閉じられるときの呼び出しメソッド
-    func keyboardWillBeHidden(/*notification:NSNotification*/){
+    /// テキストを現在のセグメントに合わせて保存する（キーボード非表示時に呼ぶ）
+    private func saveCurrentText() {
         switch transSegment.selectedSegmentIndex {
         case BEFORE_TRANS:
-            if  self.registerBtn.isHidden {
+            if self.registerBtn.isHidden {
                 RESULT_TEXT = resultTextView.text
-            }else{
+            } else {
                 LYRIC_RESULT_TEXT = resultTextView.text
             }
         case AFTER_TRANS:
-            if  self.registerBtn.isHidden {
+            if self.registerBtn.isHidden {
                 TRANS_TEXT = resultTextView.text
-            }else{
+            } else {
                 LYRIC_TRANS_TEXT = resultTextView.text
             }
-        default: break;
+        default: break
         }
-        
-        self.scrollResultView.translatesAutoresizingMaskIntoConstraints = false
-        UIView.animate(withDuration: 0.1, animations: { () in
-            let frame = CGRect(x:self.scrollResultView.frame.origin.x, y:self.scrollResultView.frame.origin.y, width:self.scrollResultView.frame.width, height:CGFloat(self.textAreaEditHeihgt))
-            self.scrollResultView.frame = frame
-            //self.scrollResultView.translatesAutoresizingMaskIntoConstraints = false
-        })
     }
-    //キーボードが開くときの呼び出しメソッド
-    @objc func keyboardWillBeShown(notification:NSNotification) {
-        var tc = UIApplication.shared.keyWindow?.rootViewController;
-        while ((tc!.presentedViewController) != nil) {
-            tc = tc!.presentedViewController
-            
-            return
+
+    /// キーボード非表示（IBActionから直接呼ばれるパス）
+    func keyboardWillBeHidden() {
+        saveCurrentText()
+        // constraint animation は keyboardWillHide notification で行う
+        resultTextView.resignFirstResponder()
+    }
+
+    @objc private func keyboardWillBeHiddenNotif() {
+        saveCurrentText()
+        isKeyboardVisible = false
+        keyboardOffset = 0
+        UIView.animate(withDuration: 0.25) {
+            self.view.setNeedsLayout()
+            self.view.layoutIfNeeded()
         }
-        scrollResultView.translatesAutoresizingMaskIntoConstraints = true
-        let rect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue
-    
-        let duration: TimeInterval? = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
-        UIView.animate(withDuration: duration!, animations: { () in
-            let frame = CGRect(x:self.scrollResultView.frame.origin.x, y:self.scrollResultView.frame.origin.y, width:self.scrollResultView.frame.width, height:CGFloat(self.textAreaEditHeihgt - (rect?.size.height)! + (self.tabBarController?.tabBar.frame.size.height)! + self.cameraBtn.frame.size.height) )
-            self.scrollResultView.frame = frame
-        })
+    }
+
+    // キーボード表示
+    @objc func keyboardWillBeShown(notification: NSNotification) {
+        guard let rect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue,
+              let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else { return }
+
+        isKeyboardVisible = true
+        // キーボード分だけコントロールパネルを上げる（セーフエリア分は layoutViews 内で吸収済み）
+        keyboardOffset = rect.height - view.safeAreaInsets.bottom
+        UIView.animate(withDuration: duration) {
+            self.view.setNeedsLayout()
+            self.view.layoutIfNeeded()
+        }
     }
     /*******************************************************************
      HELPの処理
@@ -1330,7 +1319,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             FADSettings.enableLoading(true)// interstitialの生成と表示
             interstitial_five?.loadAd()
         }
-        print(FADAdInterface.self)
+        dlog(FADAdInterface.self)
     }
     func fiveAdDidClick(_ ad: FADAdInterface!) {
         // ここで報酬ゲット
@@ -1348,7 +1337,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         }
     }
     func fiveAd(_ ad: FADAdInterface!, didFailedToReceiveAdWithError errorCode: FADErrorCode) {
-        print(errorCode)
+        dlog(errorCode)
     }
     /*******************************************************************
      ネットワーク確認処理
@@ -1360,15 +1349,15 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         
         if reachability.isReachable {
             if reachability.isReachableViaWiFi {
-                print("Reachable via WiFi")
+                dlog("Reachable via WiFi")
             } else {
-                print("Reachable via Cellular")
+                dlog("Reachable via Cellular")
             }
             DispatchQueue.global(qos: .default).async {
                 self.getLanguages()
             }
         } else {
-            print("Network not reachable")
+            dlog("Network not reachable")
         }
     }
     /*******************************************************************
@@ -1380,19 +1369,1008 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         //イベントリスナーの削除
         NotificationCenter.default.removeObserver(self)
         self.coachMarksController.stop(immediately: true)
-        
+        // 音声認識停止
+        if isLiveRecording { stopLiveMicRecording() }
+        whisperTask?.cancel()
+        cancelSFTranscription?()
     }
     // オブジェクト破棄時に監視を解除
     deinit {
         //イベントリスナーの削除
         NotificationCenter.default.removeObserver(self)
     }
+
+    // MARK: - Redesign
+
+    /// 他タブと同じ glassmorphism ナビゲーションバースタイルを適用
+    /// configureWithTransparentBackground() は Blur レンダリング遅延で背後の黒が透けるため使わない。
+    /// configureWithOpaqueBackground() + 半透明ベース色 + backgroundEffect で同等の見た目を実現。
+    private func applySharedNavBarStyle() {
+        // navigationController.view の背景を app 背景色で塗り、透明 nav bar 越しの「黒透け」を防ぐ
+        navigationController?.view.backgroundColor = AppColor.background
+
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = AppColor.background.withAlphaComponent(0.85)
+        appearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
+        appearance.shadowColor = .clear          // セパレータ線を非表示
+        appearance.titleTextAttributes = [.foregroundColor: AppColor.textPrimary]
+        navigationController?.navigationBar.standardAppearance   = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance    = appearance
+        navigationController?.navigationBar.tintColor            = AppColor.accent
+    }
+
+    private func redesignLayout() {
+        view.backgroundColor = AppColor.background
+        navigationItem.largeTitleDisplayMode = .never
+
+        // ── テキストエリア（スクロール中カード）────────────────────────
+        resultTextView.backgroundColor     = AppColor.surface
+        resultTextView.textColor           = AppColor.textPrimary
+        resultTextView.font                = UIFont.systemFont(ofSize: 16, weight: .regular)
+        resultTextView.layer.cornerRadius  = 0   // scrollView 側でクリップ
+        resultTextView.layer.masksToBounds = false
+        resultTextView.layer.borderWidth   = 0
+        resultTextView.textContainerInset  = UIEdgeInsets(top: 16, left: 14, bottom: 16, right: 14)
+        resultTextView.keyboardDismissMode = .interactive
+
+        scrollResultView.backgroundColor   = AppColor.surface
+        scrollResultView.layer.cornerRadius = 16
+        scrollResultView.layer.masksToBounds = true
+        scrollResultView.layer.shadowColor  = AppColor.shadow.cgColor
+        scrollResultView.layer.shadowOpacity = 1.0
+        scrollResultView.layer.shadowRadius  = 8
+        scrollResultView.layer.shadowOffset  = CGSize(width: 0, height: 2)
+        scrollResultView.layer.masksToBounds = false
+
+        // ── コントロールパネル ────────────────────────────────────────
+        controlView.backgroundColor    = AppColor.surface
+        controlView.layer.cornerRadius = 20
+        controlView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        controlView.layer.masksToBounds = false
+        controlView.layer.shadowColor   = AppColor.shadow.cgColor
+        controlView.layer.shadowOpacity = 1.0
+        controlView.layer.shadowOffset  = CGSize(width: 0, height: -4)
+        controlView.layer.shadowRadius  = 16
+
+        // ── セグメント ────────────────────────────────────────────────
+        transSegment.selectedSegmentTintColor = AppColor.accent
+        transSegment.setTitleTextAttributes([.foregroundColor: AppColor.textPrimary,
+                                             .font: UIFont.systemFont(ofSize: 13, weight: .medium)], for: .normal)
+        transSegment.setTitleTextAttributes([.foregroundColor: UIColor.white,
+                                             .font: UIFont.systemFont(ofSize: 13, weight: .semibold)], for: .selected)
+        if #available(iOS 13, *) {
+            transSegment.backgroundColor = AppColor.surfaceSecondary
+        }
+
+        // ── ボタン ────────────────────────────────────────────────────
+        applyButtonStyle(cameraBtn,     filled: true,   tinted: false, symbol: "camera.fill")
+        applyButtonStyle(imageListBtn,  filled: true,   tinted: false, symbol: "photo.on.rectangle")
+        applyButtonStyle(langSelectBtn, filled: false,  tinted: false, symbol: "globe")
+
+        // クリア・戻す・登録: アイコン上＋ラベル下の縦積みレイアウト
+        applyIconLabelBtn(clearOrShareBtn, symbol: "xmark",                 label: localText(key: "scan_btn_clear"),    filled: false, tinted: true)
+        applyIconLabelBtn(resetBtn,        symbol: "arrow.counterclockwise", label: localText(key: "scan_btn_undo"),     filled: false, tinted: true)
+        applyIconLabelBtn(registerBtn,     symbol: "checkmark",              label: localText(key: "scan_btn_register"), filled: true,  tinted: false)
+
+        // nowimageBtn: サムネイル風（枠線 + 角丸）
+        nowimageBtn.layer.cornerRadius  = 10
+        nowimageBtn.layer.masksToBounds = true
+        nowimageBtn.layer.borderWidth   = 1.5
+        nowimageBtn.layer.borderColor   = AppColor.textSecondary.withAlphaComponent(0.3).cgColor
+        nowimageBtn.backgroundColor     = AppColor.surfaceSecondary
+        nowimageBtn.imageView?.contentMode = .scaleAspectFill
+
+        // langSelectBtn: ちゃんと枠線付きチップに
+        langSelectBtn.layer.cornerRadius  = 10
+        langSelectBtn.layer.masksToBounds = true
+        langSelectBtn.layer.borderWidth   = 1.5
+        langSelectBtn.layer.borderColor   = AppColor.accent.withAlphaComponent(0.4).cgColor
+
+        // ── コンテナから引き剥がして controlView 直下に再配置 ──────────
+        // storyboard では langSelectBtn/transSegment/各ボタンが別コンテナの
+        // 中にネストされているため、フレーム管理するには直下に移す必要がある。
+        let toReparent: [UIView] = [
+            langSelectBtn, transSegment,
+            cameraBtn, imageListBtn, nowimageBtn,
+            clearOrShareBtn, resetBtn, registerBtn
+        ]
+        for v in toReparent {
+            if v.superview !== controlView {
+                v.removeFromSuperview()
+                controlView.addSubview(v)
+            }
+            v.translatesAutoresizingMaskIntoConstraints = true
+        }
+
+        // 空になったコンテナ・装飾ビューは非表示
+        coachMarkLangView.isHidden  = true
+        coachMarkTransView.isHidden = true
+        coachMarkScanView.isHidden  = true
+
+        // controlView の制約を全解除
+        controlView.constraints.forEach { controlView.removeConstraint($0) }
+        for sv in controlView.subviews {
+            sv.translatesAutoresizingMaskIntoConstraints = true
+        }
+
+        // セパレーターライン（初回のみ追加）
+        if controlView.viewWithTag(9901) == nil {
+            let sep = UIView()
+            sep.tag = 9901
+            sep.backgroundColor = AppColor.textSecondary.withAlphaComponent(0.15)
+            sep.translatesAutoresizingMaskIntoConstraints = true
+            controlView.addSubview(sep)
+        }
+
+        // ── ヘッダーカードを構築 ──────────────────────────────────────
+        buildStatusCard()
+
+        // ── ストーリーボード制約を除去 → フレーム管理に切替 ────────────
+        for v in [scrollResultView!, controlView!] as [UIView] {
+            v.superview?.constraints
+                .filter { $0.firstItem === v || $0.secondItem === v }
+                .forEach { v.superview?.removeConstraint($0) }
+            v.translatesAutoresizingMaskIntoConstraints = true
+        }
+    }
+
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        layoutViews()
+    }
+
+    private func layoutViews() {
+        let W = view.bounds.width
+        let H = view.bounds.height
+        guard W > 0 else { return }
+
+        let safeTop    = view.safeAreaInsets.top
+        let safeBottom = view.safeAreaInsets.bottom
+        let pad: CGFloat = 12
+        let gap: CGFloat = 8
+        let statusH: CGFloat = 66
+        // コントロールパネル: 2行分 + セパレーター + 上下パディング + safeBottom
+        let cvInner: CGFloat = 14 + 36 + 9 + 1 + 9 + 46 + 14
+        let cvH: CGFloat = cvInner + safeBottom
+
+        // 1. ステータスカード
+        statusCard?.frame = CGRect(x: pad,
+                                   y: safeTop + gap,
+                                   width: W - pad * 2,
+                                   height: statusH)
+
+        // 2. コントロールパネル（キーボードで上昇）
+        let cvY = H - keyboardOffset - cvH
+        controlView.frame = CGRect(x: 0, y: cvY, width: W, height: cvH)
+
+        // 3. テキストエリア（ステータスカード下〜コントロール上）
+        let textY = safeTop + gap + statusH + gap
+        let textH = max(cvY - gap - textY, 60)
+        scrollResultView.frame = CGRect(x: pad, y: textY,
+                                        width: W - pad * 2, height: textH)
+
+        // 4. コントロールパネル内部レイアウト
+        layoutControlSubviews()
+    }
+
+    private func layoutControlSubviews() {
+        let W = controlView.bounds.width
+        guard W > 0 else { return }
+
+        let hPad: CGFloat  = 16
+        let vPad: CGFloat  = 14
+        let row1H: CGFloat = 36   // 言語＋セグメント行
+        let row2H: CGFloat = 46   // アクションボタン行
+        let sepH:  CGFloat = 1
+        let gap:   CGFloat = 9
+        let btnGap: CGFloat = 8
+        let innerW = W - hPad * 2
+
+        // ── Row 1: 言語 (42%) | 翻訳セグメント (58%) ─────────────────
+        // コンテナを経由せず直接 controlView 上に配置
+        let y1    = vPad
+        let langW = innerW * 0.42
+        let segW  = innerW - langW - btnGap
+
+        langSelectBtn.frame = CGRect(x: hPad,                   y: y1, width: langW, height: row1H)
+        transSegment.frame  = CGRect(x: hPad + langW + btnGap,  y: y1, width: segW,  height: row1H)
+
+        // ── セパレーター ──────────────────────────────────────────────
+        let sepY = y1 + row1H + gap
+        controlView.viewWithTag(9901)?.frame = CGRect(x: hPad, y: sepY, width: innerW, height: sepH)
+
+        // ── Row 2: ボタン行 ───────────────────────────────────────────
+        let y2    = sepY + sepH + gap
+        let btnW: CGFloat = 48
+
+        // 左グループ: [📷] [📸] [🖼サムネ]
+        imageListBtn.frame = CGRect(x: hPad,                       y: y2, width: btnW, height: row2H)
+        cameraBtn.frame    = CGRect(x: hPad + btnW + btnGap,       y: y2, width: btnW, height: row2H)
+        nowimageBtn.frame  = CGRect(x: hPad + (btnW + btnGap) * 2, y: y2, width: btnW, height: row2H)
+
+        // 右グループ: [クリア] [戻す] [登録]
+        // isHidden で表示を切り替えるが、位置は常に固定（条件分岐なし）
+        let regW:   CGFloat = 64
+        let smBtnW: CGFloat = 48
+        let rightEdge = W - hPad
+
+        // 右端: 登録ボタン
+        registerBtn.frame = CGRect(x: rightEdge - regW,
+                                    y: y2, width: regW, height: row2H)
+        // 登録の左: リセットボタン
+        resetBtn.frame = CGRect(x: rightEdge - regW - btnGap - smBtnW,
+                                 y: y2, width: smBtnW, height: row2H)
+        // リセットの左: クリアボタン
+        clearOrShareBtn.frame = CGRect(x: rightEdge - regW - btnGap - smBtnW - btnGap - smBtnW,
+                                        y: y2, width: smBtnW, height: row2H)
+    }
+
+    // MARK: ステータスカード（練習タブのヘッダーカードと同じ構造）
+
+    private func buildStatusCard() {
+        let card = UIView()
+        card.backgroundColor    = AppColor.surface
+        card.layer.cornerRadius = 16
+        card.layer.masksToBounds = false
+        card.layer.shadowColor   = AppColor.shadow.cgColor
+        card.layer.shadowOpacity = 1.0
+        card.layer.shadowRadius  = 8
+        card.layer.shadowOffset  = CGSize(width: 0, height: 2)
+        // frame は layoutViews() で管理するので TAMIC = true（デフォルト）
+        view.addSubview(card)
+        statusCard = card
+
+        // アクセントバー（左端）
+        let accent = UIView()
+        accent.backgroundColor    = AppColor.accent
+        accent.layer.cornerRadius = 2
+        accent.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(accent)
+
+        // アイコン
+        let icon = UIImageView()
+        icon.tintColor = AppColor.accent
+        icon.contentMode = .scaleAspectFit
+        icon.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(icon)
+        statusIconView = icon
+
+        // タイトル
+        let title = UILabel()
+        title.font      = UIFont.systemFont(ofSize: 15, weight: .semibold)
+        title.textColor = AppColor.textPrimary
+        title.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(title)
+        statusTitleLabel = title
+
+        // サブタイトル
+        let sub = UILabel()
+        sub.font      = UIFont.systemFont(ofSize: 12, weight: .regular)
+        sub.textColor = AppColor.textSecondary
+        sub.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(sub)
+        statusSubtitleLabel = sub
+
+        // 全コピーボタン（右端）
+        let copyBtn = UIButton(type: .system)
+        let copyCfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+        copyBtn.setImage(UIImage(systemName: "doc.on.doc", withConfiguration: copyCfg), for: .normal)
+        copyBtn.tintColor = AppColor.textSecondary
+        copyBtn.addTarget(self, action: #selector(copyAllTextTapped), for: .touchUpInside)
+        copyBtn.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(copyBtn)
+        statusCopyBtn = copyBtn
+
+        NSLayoutConstraint.activate([
+            // アクセントバー
+            accent.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+            accent.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+            accent.widthAnchor.constraint(equalToConstant: 4),
+            accent.heightAnchor.constraint(equalToConstant: 28),
+
+            // アイコン
+            icon.leadingAnchor.constraint(equalTo: accent.trailingAnchor, constant: 12),
+            icon.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+            icon.widthAnchor.constraint(equalToConstant: 28),
+            icon.heightAnchor.constraint(equalToConstant: 28),
+
+            // 全コピーボタン（右端）
+            copyBtn.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
+            copyBtn.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+            copyBtn.widthAnchor.constraint(equalToConstant: 36),
+            copyBtn.heightAnchor.constraint(equalToConstant: 44),
+
+            // タイトル
+            title.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 10),
+            title.topAnchor.constraint(equalTo: card.topAnchor, constant: 13),
+            title.trailingAnchor.constraint(lessThanOrEqualTo: copyBtn.leadingAnchor, constant: -8),
+
+            // サブタイトル
+            sub.leadingAnchor.constraint(equalTo: title.leadingAnchor),
+            sub.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 2),
+            sub.trailingAnchor.constraint(lessThanOrEqualTo: copyBtn.leadingAnchor, constant: -8),
+            sub.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -13),
+        ])
+    }
+
+    private func updateStatusCard() {
+        let symConf = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+        if EDIT_FLG {
+            statusIconView?.image = UIImage(systemName: "music.note.list", withConfiguration: symConf)
+            // 編集対象の曲名・アーティストを表示
+            let tracks = displayMusicLibraryData.trackData
+            if editPlayNum < tracks.count {
+                let track = tracks[editPlayNum]
+                statusTitleLabel?.text    = track.title.isEmpty ? localText(key: "scan_unknown_title") : track.title
+                statusSubtitleLabel?.text = track.artist.isEmpty ? editLibraryName : "\(track.artist)  —  \(editLibraryName)"
+            } else {
+                statusTitleLabel?.text    = localText(key: "scan_edit_mode")
+                statusSubtitleLabel?.text = editLibraryName
+            }
+            // コピーボタンを有効化
+            statusCopyBtn?.isHidden = false  // 曲選択済みはコピーボタン表示
+        } else {
+            statusIconView?.image    = UIImage(systemName: "doc.text.viewfinder", withConfiguration: symConf)
+            statusTitleLabel?.text   = localText(key: "scan_status_title")
+            statusSubtitleLabel?.text = localText(key: "scan_status_sub")
+            statusCopyBtn?.isHidden = true
+        }
+    }
+
+    // MARK: - 音声文字起こしボタン セットアップ
+
+    private func setupTranscribeButtons() {
+        micBtn.addTarget(self, action: #selector(micBtnTapped), for: .touchUpInside)
+        sfBtn.addTarget(self, action: #selector(sfBtnTapped), for: .touchUpInside)
+
+        let micBarBtn = UIBarButtonItem(customView: micBtn)
+        let sfBarBtn  = UIBarButtonItem(customView: sfBtn)
+        // rightBarButtonItems: index 0 = 右端 → helpBtn を右端に保持
+        navigationItem.rightBarButtonItems = [helpBtn, sfBarBtn, micBarBtn]
+
+        updateTranscribeBtnState()
+
+        // ── SFSpeech ライブ録音用ラベル (controlView 直上) ──────────────
+        transcribeProgressLabel.font = UIFont.systemFont(ofSize: 12)
+        transcribeProgressLabel.textColor = .white
+        transcribeProgressLabel.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        transcribeProgressLabel.layer.cornerRadius = 8
+        transcribeProgressLabel.clipsToBounds = true
+        transcribeProgressLabel.numberOfLines = 2
+        transcribeProgressLabel.textAlignment = .center
+        transcribeProgressLabel.isHidden = true
+        transcribeProgressLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(transcribeProgressLabel)
+        view.bringSubviewToFront(transcribeProgressLabel)
+        NSLayoutConstraint.activate([
+            transcribeProgressLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            transcribeProgressLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            transcribeProgressLabel.bottomAnchor.constraint(equalTo: controlView.topAnchor, constant: -8),
+            transcribeProgressLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 36),
+        ])
+
+        // ── WhisperKit 専用バナー (画面上部フロート) ──────────────────────
+        setupWhisperBanner()
+    }
+
+    private func updateTranscribeBtnState() {
+        if isLiveRecording {
+            configureTranscribeBtn(sfBtn,  icon: "stop.circle.fill", color: .systemRed,   enabled: true)
+            configureTranscribeBtn(micBtn, icon: "waveform",          color: .systemGray,  enabled: false)
+        } else if editTrackUrl != nil {
+            configureTranscribeBtn(micBtn, icon: "waveform",  color: AppColor.accent,  enabled: true)
+            configureTranscribeBtn(sfBtn,  icon: "mic.fill",  color: .systemGreen,     enabled: true)
+        } else {
+            configureTranscribeBtn(micBtn, icon: "waveform",  color: .systemGray,      enabled: false)
+            configureTranscribeBtn(sfBtn,  icon: "mic.fill",  color: .systemGreen,     enabled: true)
+        }
+    }
+
+    private func configureTranscribeBtn(_ btn: UIButton, icon: String, color: UIColor, enabled: Bool) {
+        var cfg = UIButton.Configuration.plain()
+        cfg.image = UIImage(systemName: icon,
+                            withConfiguration: UIImage.SymbolConfiguration(pointSize: 16, weight: .medium))
+        cfg.baseForegroundColor = color
+        btn.configuration = cfg
+        btn.isEnabled = enabled
+        btn.alpha = enabled ? 1.0 : 0.35
+    }
+
+    // MARK: - WhisperKit バナー
+
+    private func setupWhisperBanner() {
+        // 影ラッパー
+        whisperBanner.backgroundColor = .clear
+        whisperBanner.layer.shadowColor = UIColor.black.cgColor
+        whisperBanner.layer.shadowOpacity = 0.22
+        whisperBanner.layer.shadowRadius  = 14
+        whisperBanner.layer.shadowOffset  = CGSize(width: 0, height: 5)
+        whisperBanner.translatesAutoresizingMaskIntoConstraints = false
+        whisperBanner.isHidden = true
+        whisperBanner.alpha = 0
+
+        // ブラーコンテナ
+        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
+        blur.layer.cornerRadius = 18
+        blur.clipsToBounds = true
+        blur.translatesAutoresizingMaskIntoConstraints = false
+        whisperBanner.addSubview(blur)
+
+        // 半透明オーバーレイ
+        let overlay = UIView()
+        overlay.backgroundColor = UIColor(white: 0, alpha: 0.1)
+        overlay.translatesAutoresizingMaskIntoConstraints = false
+        blur.contentView.addSubview(overlay)
+
+        // waveform アイコン
+        let icon = UIImageView(image: UIImage(systemName: "waveform",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)))
+        icon.tintColor = AppColor.accent
+        icon.contentMode = .scaleAspectFit
+        icon.translatesAutoresizingMaskIntoConstraints = false
+
+        // 進捗ラベル
+        whisperBannerLabel.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
+        whisperBannerLabel.textColor = .white
+        whisperBannerLabel.numberOfLines = 2
+        whisperBannerLabel.text = localText(key: "scan_analyzing")
+        whisperBannerLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        // キャンセルボタン
+        let cancelBtn = UIButton(type: .system)
+        cancelBtn.setImage(UIImage(systemName: "xmark.circle.fill",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)), for: .normal)
+        cancelBtn.tintColor = UIColor.white.withAlphaComponent(0.65)
+        cancelBtn.addTarget(self, action: #selector(cancelWhisperTapped), for: .touchUpInside)
+        cancelBtn.translatesAutoresizingMaskIntoConstraints = false
+
+        blur.contentView.addSubview(overlay)
+        blur.contentView.addSubview(icon)
+        blur.contentView.addSubview(whisperBannerLabel)
+        blur.contentView.addSubview(cancelBtn)
+
+        NSLayoutConstraint.activate([
+            blur.topAnchor.constraint(equalTo: whisperBanner.topAnchor),
+            blur.bottomAnchor.constraint(equalTo: whisperBanner.bottomAnchor),
+            blur.leadingAnchor.constraint(equalTo: whisperBanner.leadingAnchor),
+            blur.trailingAnchor.constraint(equalTo: whisperBanner.trailingAnchor),
+
+            overlay.topAnchor.constraint(equalTo: blur.contentView.topAnchor),
+            overlay.bottomAnchor.constraint(equalTo: blur.contentView.bottomAnchor),
+            overlay.leadingAnchor.constraint(equalTo: blur.contentView.leadingAnchor),
+            overlay.trailingAnchor.constraint(equalTo: blur.contentView.trailingAnchor),
+
+            icon.leadingAnchor.constraint(equalTo: blur.contentView.leadingAnchor, constant: 16),
+            icon.centerYAnchor.constraint(equalTo: blur.contentView.centerYAnchor),
+            icon.widthAnchor.constraint(equalToConstant: 22),
+
+            whisperBannerLabel.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 10),
+            whisperBannerLabel.trailingAnchor.constraint(equalTo: cancelBtn.leadingAnchor, constant: -8),
+            whisperBannerLabel.topAnchor.constraint(equalTo: blur.contentView.topAnchor, constant: 12),
+            whisperBannerLabel.bottomAnchor.constraint(equalTo: blur.contentView.bottomAnchor, constant: -12),
+
+            cancelBtn.trailingAnchor.constraint(equalTo: blur.contentView.trailingAnchor, constant: -12),
+            cancelBtn.centerYAnchor.constraint(equalTo: blur.contentView.centerYAnchor),
+            cancelBtn.widthAnchor.constraint(equalToConstant: 28),
+        ])
+
+        view.addSubview(whisperBanner)
+        // statusCard は safeTop+8 に height:66 で表示されるため、その下に配置
+        // gap(8) + statusH(66) + gap(8) = 82
+        NSLayoutConstraint.activate([
+            whisperBanner.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 82),
+            whisperBanner.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            whisperBanner.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+        ])
+
+        // waveform パルスアニメーション（icon を外部参照可能にする）
+        startWaveformPulse(icon)
+    }
+
+    private func startWaveformPulse(_ icon: UIImageView) {
+        let pulse = CABasicAnimation(keyPath: "opacity")
+        pulse.fromValue = 1.0
+        pulse.toValue   = 0.3
+        pulse.duration  = 0.7
+        pulse.autoreverses = true
+        pulse.repeatCount  = .infinity
+        pulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        icon.layer.add(pulse, forKey: "whisperPulse")
+    }
+
+    private func showWhisperBanner() {
+        view.bringSubviewToFront(whisperBanner)
+        whisperBanner.isHidden = false
+        whisperBanner.transform = CGAffineTransform(scaleX: 0.92, y: 0.92).translatedBy(x: 0, y: -8)
+        UIView.animate(withDuration: 0.42, delay: 0,
+                       usingSpringWithDamping: 0.72, initialSpringVelocity: 0.4) {
+            self.whisperBanner.alpha = 1
+            self.whisperBanner.transform = .identity
+        }
+        configureTranscribeBtn(micBtn, icon: "xmark.circle.fill", color: .systemRed, enabled: true)
+        sfBtn.isEnabled = false; sfBtn.alpha = 0.35
+    }
+
+    private func hideWhisperBanner() {
+        UIView.animate(withDuration: 0.25, delay: 0, options: .curveEaseIn) {
+            self.whisperBanner.alpha = 0
+            self.whisperBanner.transform = CGAffineTransform(translationX: 0, y: -12)
+        } completion: { _ in
+            self.whisperBanner.isHidden = true
+            self.whisperBanner.transform = .identity
+        }
+        updateTranscribeBtnState()
+        sfBtn.isEnabled = true; sfBtn.alpha = 1
+    }
+
+    @objc private func cancelWhisperTapped() {
+        whisperTask?.cancel()
+        whisperTask = nil
+        whisperIsRunning = false
+        hideWhisperBanner()
+    }
+
+    // MARK: - WhisperKit ボタン
+
+    @objc private func micBtnTapped() {
+        // 実行中ならキャンセル
+        if whisperIsRunning {
+            cancelWhisperTapped()
+            return
+        }
+        guard let url = editTrackUrl else {
+            showTranscribeAlert(title: localText(key: "scan_no_music_title"),
+                                message: localText(key: "scan_no_music_body"))
+            return
+        }
+        if #available(iOS 16, *) {
+            // Small モデル・言語全自動で即開始
+            startWhisperTranscription(url: url, modelName: "openai_whisper-small", languages: [])
+        } else {
+            showTranscribeAlert(title: localText(key: "scan_unsupported_title"), message: localText(key: "scan_unsupported_body"))
+        }
+    }
+
+    @available(iOS 16, *)
+    private func startWhisperTranscription(url: URL, modelName: String, languages: [String]) {
+        whisperTask?.cancel()
+        whisperIsRunning = true
+        showWhisperBanner()
+        AVPlayerViewControllerManager.shared.controller.player?.pause()
+
+        whisperTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let text = try await WhisperKitService.shared.transcribe(
+                    url: url, modelName: modelName, languages: languages,
+                    onProgress: { msg in
+                        Task { @MainActor in self.whisperBannerLabel.text = msg }
+                    }
+                )
+                await MainActor.run {
+                    self.whisperIsRunning = false
+                    self.hideWhisperBanner()
+                    if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        self.showTranscribeAlert(title: localText(key: "scan_no_result_title"), message: localText(key: "scan_no_result_body"))
+                    } else {
+                        self.applyTranscribeResult(text)
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.whisperIsRunning = false
+                    self.hideWhisperBanner()
+                    if !(error is CancellationError) {
+                        self.showTranscribeAlert(title: localText(key: "scan_error_title"), message: error.localizedDescription)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - SFSpeech ボタン
+
+    @objc private func sfBtnTapped() {
+        if isLiveRecording { stopLiveMicRecording(); return }
+        if let url = editTrackUrl {
+            showSFSpeechLanguagePicker(url: url)
+        } else {
+            showLiveMicLanguagePicker()
+        }
+    }
+
+    private func showSFSpeechLanguagePicker(url: URL) {
+        let sheet = UIAlertController(title: localText(key: "scan_lang_sf_title"), message: nil, preferredStyle: .actionSheet)
+        for lang in TranscriptionService.languages {
+            sheet.addAction(UIAlertAction(title: lang.label, style: .default) { [weak self] _ in
+                self?.startSFSpeechTranscription(url: url, locales: lang.locales)
+            })
+        }
+        sheet.addAction(UIAlertAction(title: localText(key: "btn_cancel"), style: .cancel))
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = sfBtn; pop.sourceRect = sfBtn.bounds
+        }
+        present(sheet, animated: true)
+    }
+
+    private func startSFSpeechTranscription(url: URL, locales: [Locale]) {
+        cancelSFTranscription?()
+        setTranscribeLoading(true)
+        AVPlayerViewControllerManager.shared.controller.player?.pause()
+
+        cancelSFTranscription = TranscriptionService.transcribe(
+            url: url, locales: locales,
+            onChunkProgress: { [weak self] partial, chunk, total in
+                self?.transcribeProgressLabel.text = "(\(chunk+1)/\(total)) \(partial.suffix(60))"
+            },
+            completion: { [weak self] result in
+                guard let self else { return }
+                self.setTranscribeLoading(false)
+                switch result {
+                case .success(let text):
+                    if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        self.showTranscribeAlert(title: localText(key: "scan_no_result_title"), message: localText(key: "scan_no_result_body"))
+                    } else {
+                        self.applyTranscribeResult(text)
+                    }
+                case .failure(let error):
+                    self.showTranscribeAlert(title: localText(key: "scan_transcribe_fail_title"), message: error.localizedDescription)
+                }
+            }
+        )
+    }
+
+    // MARK: - ライブマイク入力
+
+    private func showLiveMicLanguagePicker() {
+        // デバイスのロケールを取得し、対応する TranscriptionService の言語オプションを探す
+        let deviceLocale = Locale.current
+        let deviceLangName: String = {
+            let code = deviceLocale.languageCode ?? deviceLocale.identifier
+            return Locale.current.localizedString(forLanguageCode: code)
+                ?? deviceLocale.localizedString(forLanguageCode: code)
+                ?? code
+        }()
+
+        // デバイス言語に一致する TranscriptionService.LanguageOption を探す
+        let deviceOption = TranscriptionService.languages.first {
+            $0.locales.count == 1 &&
+            $0.locales[0].languageCode == deviceLocale.languageCode
+        }
+        let deviceLocales = deviceOption?.locales ?? [deviceLocale]
+
+        let sheet = UIAlertController(
+            title: localText(key: "scan_lang_live_title"),
+            message: localText(key: "scan_lang_live_msg"),
+            preferredStyle: .actionSheet
+        )
+
+        // ── デバイスのデフォルト言語（先頭・チェック付き）──
+        sheet.addAction(UIAlertAction(
+            title: String(format: localText(key: "scan_lang_device_default_fmt"), deviceLangName),
+            style: .default
+        ) { [weak self] _ in
+            self?.startLiveMicRecording(locales: deviceLocales)
+        })
+
+        // ── 自動判定モード ──
+        let autoModes = TranscriptionService.languages.filter { $0.locales.count > 1 }
+        if !autoModes.isEmpty {
+            for lang in autoModes {
+                sheet.addAction(UIAlertAction(title: lang.label, style: .default) { [weak self] _ in
+                    self?.startLiveMicRecording(locales: lang.locales)
+                })
+            }
+        }
+
+        // ── 他の単一言語（デバイス言語と重複するものは除く）──
+        let singleLangs = TranscriptionService.languages.filter {
+            $0.locales.count == 1 &&
+            $0.locales[0].languageCode != deviceLocale.languageCode
+        }
+        for lang in singleLangs {
+            sheet.addAction(UIAlertAction(title: lang.label, style: .default) { [weak self] _ in
+                self?.startLiveMicRecording(locales: lang.locales)
+            })
+        }
+
+        sheet.addAction(UIAlertAction(title: localText(key: "btn_cancel"), style: .cancel))
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = sfBtn; pop.sourceRect = sfBtn.bounds
+        }
+        present(sheet, animated: true)
+    }
+
+    private func startLiveMicRecording(locales: [Locale]) {
+        SFSpeechRecognizer.requestAuthorization { [weak self] status in
+            DispatchQueue.main.async {
+                guard status == .authorized else {
+                    self?.showTranscribeAlert(title: localText(key: "scan_perm_error_title"),
+                        message: localText(key: "scan_perm_speech_body"))
+                    return
+                }
+                AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                    DispatchQueue.main.async {
+                        if granted { self?.beginLiveRecording(locales: locales) }
+                        else { self?.showTranscribeAlert(title: localText(key: "scan_perm_error_title"),
+                            message: localText(key: "scan_perm_mic_body")) }
+                    }
+                }
+            }
+        }
+    }
+
+    /// 複数ロケールを並列認識しながら録音を開始。55s ごとに自動再起動して1分制限を回避。
+    private func beginLiveRecording(locales: [Locale]) {
+        let pairs: [(SFSpeechRecognizer, SFSpeechAudioBufferRecognitionRequest)] = locales.compactMap { locale in
+            guard let r = SFSpeechRecognizer(locale: locale), r.isAvailable else { return nil }
+            let req = SFSpeechAudioBufferRecognitionRequest()
+            req.shouldReportPartialResults = true
+            if #available(iOS 16, *) { req.addsPunctuation = true }
+            return (r, req)
+        }
+        guard !pairs.isEmpty else {
+            showTranscribeAlert(title: localText(key: "scan_error_title"), message: localText(key: "scan_no_engine_body"))
+            return
+        }
+        do {
+            AVPlayerViewControllerManager.shared.controller.player?.pause()
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.record, mode: .measurement, options: .duckOthers)
+            try session.setActive(true, options: .notifyOthersOnDeactivation)
+
+            liveRecognitionRequests = pairs.map { $0.1 }
+            let inputNode = audioEngine.inputNode
+            let fmt = inputNode.outputFormat(forBus: 0)
+            inputNode.installTap(onBus: 0, bufferSize: 1024, format: fmt) { [weak self] buf, _ in
+                self?.liveRecognitionRequests.forEach { $0.append(buf) }
+            }
+            audioEngine.prepare()
+            try audioEngine.start()
+
+            isLiveRecording  = true
+            liveTranscribedText  = ""
+            liveAccumulatedText  = ""
+            updateTranscribeBtnState()
+            transcribeProgressLabel.text    = localText(key: "scan_recording_label")
+            transcribeProgressLabel.isHidden = false
+            view.bringSubviewToFront(transcribeProgressLabel)
+
+            liveRecognitionTasks = pairs.map { (recognizer, req) in
+                recognizer.recognitionTask(with: req) { [weak self] result, _ in
+                    guard let self, let result else { return }
+                    let text = result.bestTranscription.formattedString
+                    if text.count > self.liveTranscribedText.count { self.liveTranscribedText = text }
+                    DispatchQueue.main.async {
+                        let full = self.liveAccumulatedText.isEmpty
+                            ? self.liveTranscribedText
+                            : self.liveAccumulatedText + "\n" + self.liveTranscribedText
+                        self.transcribeProgressLabel.text = "🎙 \(full.suffix(50))"
+                    }
+                }
+            }
+            scheduleLiveRestartTimer(locales: locales)
+        } catch {
+            isLiveRecording = false
+            showTranscribeAlert(title: "録音エラー", message: error.localizedDescription)
+        }
+    }
+
+    /// 55s ごとに認識タスクを再起動して iOS の1分制限を回避
+    private func scheduleLiveRestartTimer(locales: [Locale]) {
+        liveRestartTimer?.invalidate()
+        liveRestartTimer = Timer.scheduledTimer(withTimeInterval: 55, repeats: false) { [weak self] _ in
+            guard let self, self.isLiveRecording else { return }
+            self.restartLiveRecording(locales: locales)
+        }
+    }
+
+    private func restartLiveRecording(locales: [Locale]) {
+        // 今セグメントのテキストを累積
+        let seg = liveTranscribedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !seg.isEmpty {
+            liveAccumulatedText += (liveAccumulatedText.isEmpty ? "" : "\n") + seg
+        }
+        liveTranscribedText = ""
+
+        // 旧タスク停止
+        liveRecognitionRequests.forEach { $0.endAudio() }
+        liveRecognitionTasks.forEach    { $0.finish() }
+        liveRecognitionRequests = []
+        liveRecognitionTasks    = []
+        audioEngine.inputNode.removeTap(onBus: 0)
+
+        // 新リクエスト作成
+        let pairs: [(SFSpeechRecognizer, SFSpeechAudioBufferRecognitionRequest)] = locales.compactMap { locale in
+            guard let r = SFSpeechRecognizer(locale: locale), r.isAvailable else { return nil }
+            let req = SFSpeechAudioBufferRecognitionRequest()
+            req.shouldReportPartialResults = true
+            if #available(iOS 16, *) { req.addsPunctuation = true }
+            return (r, req)
+        }
+        guard !pairs.isEmpty else { stopLiveMicRecording(); return }
+
+        liveRecognitionRequests = pairs.map { $0.1 }
+        let inputNode = audioEngine.inputNode
+        let fmt = inputNode.outputFormat(forBus: 0)
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: fmt) { [weak self] buf, _ in
+            self?.liveRecognitionRequests.forEach { $0.append(buf) }
+        }
+        liveRecognitionTasks = pairs.map { (recognizer, req) in
+            recognizer.recognitionTask(with: req) { [weak self] result, _ in
+                guard let self, let result else { return }
+                let text = result.bestTranscription.formattedString
+                if text.count > self.liveTranscribedText.count { self.liveTranscribedText = text }
+                DispatchQueue.main.async {
+                    let full = self.liveAccumulatedText.isEmpty
+                        ? self.liveTranscribedText
+                        : self.liveAccumulatedText + "\n" + self.liveTranscribedText
+                    self.transcribeProgressLabel.text = "🎙 \(full.suffix(50))"
+                }
+            }
+        }
+        scheduleLiveRestartTimer(locales: locales)
+    }
+
+    private func stopLiveMicRecording() {
+        liveRestartTimer?.invalidate()
+        liveRestartTimer = nil
+        audioEngine.stop()
+        audioEngine.inputNode.removeTap(onBus: 0)
+        liveRecognitionRequests.forEach { $0.endAudio() }
+        liveRecognitionTasks.forEach    { $0.finish() }
+        liveRecognitionRequests = []
+        liveRecognitionTasks    = []
+        isLiveRecording = false
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        updateTranscribeBtnState()
+        transcribeProgressLabel.isHidden = true
+
+        let seg = liveTranscribedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let acc = liveAccumulatedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let combined = acc.isEmpty ? seg : (seg.isEmpty ? acc : acc + "\n" + seg)
+        liveTranscribedText  = ""
+        liveAccumulatedText  = ""
+
+        if combined.isEmpty {
+            showTranscribeAlert(title: "結果なし", message: "音声を認識できませんでした。")
+        } else {
+            applyTranscribeResult(combined)
+        }
+    }
+
+    // MARK: - 共通ヘルパー
+
+    // SFSpeech（ファイル文字起こし）専用ローディング状態
+    private func setTranscribeLoading(_ loading: Bool) {
+        if loading {
+            micBtn.isEnabled = false; micBtn.alpha = 0.35
+            sfBtn.isEnabled  = false; sfBtn.alpha  = 0.35
+            transcribeProgressLabel.text    = localText(key: "scan_transcribing")
+            transcribeProgressLabel.isHidden = false
+            view.bringSubviewToFront(transcribeProgressLabel)
+        } else {
+            updateTranscribeBtnState()
+            transcribeProgressLabel.isHidden = true
+        }
+    }
+
+    private func applyTranscribeResult(_ text: String) {
+        let preview = String(text.prefix(200)) + (text.count > 200 ? "…" : "")
+        let alert = UIAlertController(
+            title: localText(key: "scan_transcribe_complete_title"),
+            message: String(format: localText(key: "scan_transcribe_apply_body"), preview),
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: localText(key: "scan_transcribe_apply_btn"), style: .default) { [weak self] _ in
+            self?.resultTextView.text = text
+            self?.LATEST_RESULT_TEXT = text
+            LYRIC_RESULT_TEXT = text
+        })
+        alert.addAction(UIAlertAction(title: localText(key: "btn_cancel"), style: .cancel))
+        present(alert, animated: true)
+    }
+
+    private func showTranscribeAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: localText(key: "btn_ok"), style: .default))
+        present(alert, animated: true)
+    }
+
+    /// アイコン上 ＋ ラベル下 の縦積みボタン（クリア・戻す・登録など用）
+    private func applyIconLabelBtn(_ btn: UIButton?, symbol: String, label: String, filled: Bool, tinted: Bool = false) {
+        guard let btn else { return }
+        if #available(iOS 15.0, *) {
+            var cfg = tinted ? UIButton.Configuration.tinted() : (filled ? UIButton.Configuration.filled() : UIButton.Configuration.plain())
+            let symCfg = UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold)
+            cfg.image          = UIImage(systemName: symbol, withConfiguration: symCfg)
+            cfg.imagePlacement = .top
+            cfg.imagePadding   = 3
+            cfg.title          = label
+            cfg.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+                var a = attrs
+                a.font = UIFont.systemFont(ofSize: 9, weight: .medium)
+                return a
+            }
+            if !tinted && !filled {
+                cfg.background.backgroundColor = AppColor.surfaceSecondary
+                cfg.background.cornerRadius    = 10
+                cfg.baseForegroundColor        = AppColor.textPrimary
+            } else if !tinted {
+                cfg.background.cornerRadius = 10
+            } else {
+                cfg.background.cornerRadius = 10
+            }
+            cfg.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 4, bottom: 5, trailing: 4)
+            btn.configuration = cfg
+            if tinted || filled { btn.tintColor = AppColor.accent }
+        } else {
+            btn.layer.cornerRadius = 10
+            btn.layer.masksToBounds = true
+            let fg: UIColor = filled ? .white : AppColor.accent
+            btn.backgroundColor = filled ? AppColor.accent : AppColor.accent.withAlphaComponent(0.12)
+            btn.setTitleColor(fg, for: .normal)
+            btn.titleLabel?.font = UIFont.systemFont(ofSize: 10, weight: .medium)
+            let symCfg = UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold)
+            btn.setImage(UIImage(systemName: symbol, withConfiguration: symCfg), for: .normal)
+            btn.tintColor = fg
+            btn.setTitle(label, for: .normal)
+        }
+    }
+
+    private func applyButtonStyle(_ btn: UIButton?, filled: Bool, tinted: Bool = false, symbol: String?) {
+        guard let btn = btn else { return }
+
+        if #available(iOS 15.0, *) {
+            var config = tinted ? UIButton.Configuration.tinted() : (filled ? UIButton.Configuration.filled() : UIButton.Configuration.plain())
+            if !tinted && !filled {
+                config.background.backgroundColor = AppColor.surfaceSecondary
+            }
+            config.background.cornerRadius = 10
+            config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 10, bottom: 6, trailing: 10)
+            config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+                var a = attrs
+                a.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
+                return a
+            }
+            if let sym = symbol {
+                config.image = UIImage(systemName: sym,
+                                       withConfiguration: UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold))
+                config.imagePadding   = 4
+                config.imagePlacement = .leading
+            }
+            btn.configuration = config
+            if tinted || filled { btn.tintColor = AppColor.accent }
+            btn.titleLabel?.numberOfLines = 1
+            btn.titleLabel?.adjustsFontSizeToFitWidth = true
+            btn.titleLabel?.minimumScaleFactor = 0.7
+        } else {
+            btn.layer.cornerRadius  = 10
+            btn.layer.masksToBounds = true
+            btn.layer.borderWidth   = 0
+            btn.titleLabel?.font    = UIFont.systemFont(ofSize: 14, weight: .semibold)
+            let bg: UIColor = filled ? AppColor.accent : (tinted ? AppColor.accent.withAlphaComponent(0.12) : AppColor.surfaceSecondary)
+            let fg: UIColor = filled ? .white : AppColor.accent
+            btn.backgroundColor = bg
+            btn.setTitleColor(fg, for: .normal)
+            btn.tintColor = fg
+            if let sym = symbol,
+               let img = UIImage(systemName: sym,
+                                 withConfiguration: UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)) {
+                btn.setImage(img, for: .normal)
+                btn.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 6)
+                btn.titleEdgeInsets = UIEdgeInsets(top: 0, left: 6, bottom: 0, right: 0)
+            }
+        }
+    }
+
 }
 extension scanViewController : UIViewControllerTransitioningDelegate{
     
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         transition.transitionMode = .present
-        transition.startingPoint = CGPoint(x:myAppFrameSize.width / 2 ,y:myAppFrameSize.height - cameraBtn.center.y + (cameraBtn.frame.height / 4))
+        transition.startingPoint = CGPoint(x: myAppFrameSize.width / 2, y: myAppFrameSize.height - cameraBtn.center.y + (cameraBtn.frame.height / 4))
         transition.bubbleColor = AppColor.overlay
         return transition
     }
