@@ -17,6 +17,7 @@ final class PracticeHistoryViewController: UIViewController {
     private let segment    = UISegmentedControl(items: [localText(key: "history_tab_track"), localText(key: "history_tab_period")])
     private let scrollView = UIScrollView()
     private let stack      = UIStackView()
+    private var typeFilter: PracticeType? = nil
 
     // MARK: Lifecycle
 
@@ -57,10 +58,10 @@ final class PracticeHistoryViewController: UIViewController {
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            stack.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 16),
+            stack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 16),
             stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            stack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -40),
+            stack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -40),
         ])
     }
 
@@ -80,8 +81,10 @@ final class PracticeHistoryViewController: UIViewController {
     // MARK: 曲別ビュー（成長確認・達成感）
 
     private func buildTrackView() {
+        stack.addArrangedSubview(buildTypeFilterRow())
+
         let service   = PracticeHistoryService.shared
-        let summaries = service.allTrackSummaries()
+        let summaries = service.allTrackSummaries(filterType: typeFilter)
 
         if summaries.isEmpty {
             stack.addArrangedSubview(buildEmptyCard(message: localText(key: "history_empty_start")))
@@ -100,6 +103,59 @@ final class PracticeHistoryViewController: UIViewController {
         for summary in summaries.prefix(50) {
             stack.addArrangedSubview(buildTrackCard(summary))
         }
+    }
+
+    private func buildTypeFilterRow() -> UIView {
+        let items: [(String, PracticeType?)] = [
+            ("すべて", nil),
+            ("フラッシュカード", .flashCard),
+            ("ディクテーション", .dictation),
+        ]
+        let scroll = UIScrollView()
+        scroll.showsHorizontalScrollIndicator = false
+
+        let pillStack = UIStackView()
+        pillStack.axis    = .horizontal
+        pillStack.spacing = 8
+        pillStack.translatesAutoresizingMaskIntoConstraints = false
+        scroll.addSubview(pillStack)
+
+        NSLayoutConstraint.activate([
+            pillStack.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor),
+            pillStack.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor),
+            pillStack.leadingAnchor.constraint(equalTo: scroll.contentLayoutGuide.leadingAnchor),
+            pillStack.trailingAnchor.constraint(equalTo: scroll.contentLayoutGuide.trailingAnchor),
+            pillStack.heightAnchor.constraint(equalTo: scroll.frameLayoutGuide.heightAnchor),
+        ])
+
+        for (label, type) in items {
+            let btn = UIButton(type: .system)
+            btn.setTitle(label, for: .normal)
+            btn.titleLabel?.font = UIFont.systemFont(ofSize: 13, weight: .medium)
+            btn.contentEdgeInsets = UIEdgeInsets(top: 6, left: 14, bottom: 6, right: 14)
+            btn.layer.cornerRadius = 14
+            btn.clipsToBounds = true
+            let selected = type == typeFilter
+            btn.backgroundColor = selected ? AppColor.accent : AppColor.surfaceSecondary
+            btn.setTitleColor(selected ? .white : AppColor.textPrimary, for: .normal)
+            btn.tag = type == nil ? -1 : (type == .flashCard ? 0 : 1)
+            btn.addTarget(self, action: #selector(typeFilterTapped(_:)), for: .touchUpInside)
+            pillStack.addArrangedSubview(btn)
+        }
+
+        scroll.translatesAutoresizingMaskIntoConstraints = false
+        scroll.heightAnchor.constraint(equalToConstant: 36).isActive = true
+        return scroll
+    }
+
+    @objc private func typeFilterTapped(_ sender: UIButton) {
+        switch sender.tag {
+        case 0:  typeFilter = .flashCard
+        case 1:  typeFilter = .dictation
+        default: typeFilter = nil
+        }
+        buildContent()
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
     private func buildTrackCard(_ s: PracticeHistoryService.TrackSummary) -> UIView {

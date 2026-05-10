@@ -17,6 +17,7 @@ import AdSupport
 
 class SettingViewController: UIViewController , UITableViewDataSource, UITableViewDelegate , MFMailComposeViewControllerDelegate,APVAdManagerDelegate,FADDelegate{
     var size = CGSize()
+    private var isReturningFromPush = false
     /*
      広告関連
      */
@@ -81,26 +82,23 @@ class SettingViewController: UIViewController , UITableViewDataSource, UITableVi
     /*******************************************************************
      画面描画時の処理
      *******************************************************************/
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        isReturningFromPush = navigationController?.viewControllers.last != self
+    }
+
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         // 動画は一旦止める
         if AVPlayerViewControllerManager.shared.controller.player != nil {
             AVPlayerViewControllerManager.shared.controller.player?.pause()
         }
         selectMusicView.isHidden = true
-        super.viewWillAppear(animated)
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.largeTitleDisplayMode = .always
-        // navigationbarの色設定（AppColor ベース）
-        self.navigationController?.navigationBar.isTranslucent = true
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithTransparentBackground()
-        appearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
-        appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: AppColor.textPrimary]
-        appearance.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: AppColor.textPrimary]
-        self.navigationController?.navigationBar.standardAppearance = appearance
-        self.navigationController?.navigationBar.scrollEdgeAppearance = appearance
-        self.navigationController?.navigationBar.compactAppearance = appearance
-        self.navigationController?.navigationBar.tintColor = AppColor.accent
+        if let naviBar = navigationController?.navigationBar {
+            setContentNavigationBarStyle(naviBar: naviBar)
+        }
         
         // バックグラウンドでも再生できるカテゴリに設定する
         let session = AVAudioSession.sharedInstance()
@@ -131,16 +129,25 @@ class SettingViewController: UIViewController , UITableViewDataSource, UITableVi
             setAdView(adView)
         }
         table.reloadData()
+        if !isReturningFromPush {
+            resetScrollForLargeTitle()
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        DispatchQueue.main.async {
-            self.table.setContentOffset(
-                CGPoint(x: 0, y: -self.table.adjustedContentInset.top),
-                animated: false
-            )
+        if !isReturningFromPush {
+            resetScrollForLargeTitle()
         }
+        isReturningFromPush = false
+    }
+
+    private func resetScrollForLargeTitle() {
+        let topInset = table.adjustedContentInset.top
+        guard topInset > 0 else { return }
+        let navBarHeight = navigationController?.navigationBar.frame.height ?? 44
+        let targetY = navBarHeight <= 55 ? -(topInset + 52) : -topInset
+        table.setContentOffset(CGPoint(x: 0, y: targetY), animated: false)
     }
 
     /*******************************************************************

@@ -37,8 +37,8 @@ final class DictationSetupViewController: UIViewController {
 
     // MARK: Language Selection
 
-    /// nil = すべての言語を対象
-    private var selectedLyricLang: NLLanguage? = nil
+    /// nil = すべての言語を対象（初期値: 英語）
+    private var selectedLyricLang: NLLanguage? = .english
     private var detectedLanguages: [NLLanguage] = []
     private let langScrollView = UIScrollView()
     private let langStack      = UIStackView()
@@ -633,6 +633,11 @@ final class DictationSetupViewController: UIViewController {
             .map { $0.key }
 
         guard !detectedLanguages.isEmpty else { return }
+
+        // 選択中の言語が未検出なら英語 → 最初の言語 → nil にフォールバック
+        if let cur = selectedLyricLang, !detectedLanguages.contains(cur) {
+            selectedLyricLang = detectedLanguages.first
+        }
 
         // ピルボタンを再構築
         langStack.arrangedSubviews.forEach { $0.removeFromSuperview() }

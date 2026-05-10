@@ -111,6 +111,29 @@ extension CALayer {
         self.borderColor = color.cgColor
     }
 }
+/// サムネイルがない曲に使うグラデーション＋音符のデフォルト画像
+func makeDefaultArtwork(size: CGSize = CGSize(width: 600, height: 600)) -> UIImage {
+    let renderer = UIGraphicsImageRenderer(size: size)
+    return renderer.image { ctx in
+        let gradient = CGGradient(
+            colorsSpace: CGColorSpaceCreateDeviceRGB(),
+            colors: [UIColor(white: 0.20, alpha: 1).cgColor,
+                     UIColor(white: 0.32, alpha: 1).cgColor] as CFArray,
+            locations: [0, 1]
+        )!
+        ctx.cgContext.drawLinearGradient(gradient,
+            start: .zero, end: CGPoint(x: size.width, y: size.height), options: [])
+        let symbolSize = size.width * 0.38
+        let cfg = UIImage.SymbolConfiguration(pointSize: symbolSize, weight: .thin)
+        if let symbol = UIImage(systemName: "music.note", withConfiguration: cfg)?
+            .withTintColor(UIColor(white: 1.0, alpha: 0.18), renderingMode: .alwaysOriginal) {
+            let origin = CGPoint(x: (size.width - symbol.size.width) / 2,
+                                 y: (size.height - symbol.size.height) / 2)
+            symbol.draw(at: origin)
+        }
+    }
+}
+
 func setNavigationberStyle(naviBar:UINavigationBar, place:Int){
     let appearance = UINavigationBarAppearance()
     appearance.configureWithOpaqueBackground()
@@ -124,6 +147,24 @@ func setNavigationberStyle(naviBar:UINavigationBar, place:Int){
     naviBar.scrollEdgeAppearance = appearance
     naviBar.compactAppearance    = appearance
     naviBar.tintColor            = AppColor.navigationForeground
+}
+
+/// Practice / Options タブ用: 大きいタイトル時は透明、スクロール後は白背景のシステム標準スタイル
+func setContentNavigationBarStyle(naviBar: UINavigationBar) {
+    let compact = UINavigationBarAppearance()
+    compact.configureWithDefaultBackground()
+    compact.titleTextAttributes      = [.foregroundColor: AppColor.textPrimary]
+    compact.largeTitleTextAttributes = [.foregroundColor: AppColor.textPrimary]
+
+    let edge = UINavigationBarAppearance()
+    edge.configureWithTransparentBackground()
+    edge.largeTitleTextAttributes = [.foregroundColor: AppColor.textPrimary]
+    edge.titleTextAttributes      = [.foregroundColor: AppColor.textPrimary]
+
+    naviBar.standardAppearance   = compact
+    naviBar.compactAppearance    = compact
+    naviBar.scrollEdgeAppearance = edge
+    naviBar.tintColor            = AppColor.accent
 }
 // Dark Mode対応 - Navigation Color
 func darkModeNaviWhiteUIcolor() -> UIColor{

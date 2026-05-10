@@ -132,7 +132,6 @@
 		BB0000001ED0000000000003 /* RegionRepeatSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000001ED0000000000004 /* RegionRepeatSheetViewController.swift */; };
 		BB0000001ED0000000000005 /* MusicLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000001ED0000000000006 /* MusicLibrary.swift */; };
 		BB0000001ED0000000000007 /* MusicLibraryTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000001ED0000000000008 /* MusicLibraryTableViewController.swift */; };
-		BB0000001ED0000000000009 /* SettingViewController_.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000100000000000000A /* SettingViewController_.swift */; };
 		BB1111001ED0000000000001 /* MusicPlayListViewControllerRedesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1111001ED0000000000002 /* MusicPlayListViewControllerRedesign.swift */; };
 		BE1234567890ABCDEF123456 /* WhisperKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE1234567890ABCDEF123457 /* WhisperKitService.swift */; };
 		CCCCCC0000000002CCCCCC01 /* SpeedSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCCCC0000000001CCCCCC01 /* SpeedSheetViewController.swift */; };
@@ -317,7 +316,6 @@
 		AAAAAA0000000001AAAAAA01 /* AppColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColor.swift; sourceTree = "<group>"; };
 		AAAAAA0000000001AAAAAA02 /* AppFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFont.swift; sourceTree = "<group>"; };
 		AAAAAA0000000001AAAAAA03 /* DiscoverViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverViewController.swift; sourceTree = "<group>"; };
-		BB000000100000000000000A /* SettingViewController_.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingViewController_.swift; sourceTree = "<group>"; };
 		BB0000001ED0000000000002 /* PlayMusicViewControllerNewUI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayMusicViewControllerNewUI.swift; sourceTree = "<group>"; };
 		BB0000001ED0000000000004 /* RegionRepeatSheetViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegionRepeatSheetViewController.swift; sourceTree = "<group>"; };
 		BB0000001ED0000000000006 /* MusicLibrary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicLibrary.swift; sourceTree = "<group>"; };
@@ -527,7 +525,6 @@
 				BB0000001ED0000000000004 /* RegionRepeatSheetViewController.swift */,
 				BB0000001ED0000000000006 /* MusicLibrary.swift */,
 				BB0000001ED0000000000008 /* MusicLibraryTableViewController.swift */,
-				BB000000100000000000000A /* SettingViewController_.swift */,
 				AAAAAA0000000003AAAAAA01 /* Theme */,
 				0C052EC721DA129000EDC8D0 /* CBAutoScrollLabel.h */,
 				0C052EC821DA129100EDC8D0 /* CBAutoScrollLabel.m */,
@@ -1089,7 +1086,6 @@
 				BB0000001ED0000000000003 /* RegionRepeatSheetViewController.swift in Sources */,
 				BB0000001ED0000000000005 /* MusicLibrary.swift in Sources */,
 				BB0000001ED0000000000007 /* MusicLibraryTableViewController.swift in Sources */,
-				BB0000001ED0000000000009 /* SettingViewController_.swift in Sources */,
 				AAAAAA0000000002AAAAAA01 /* AppColor.swift in Sources */,
 				AAAAAA0000000002AAAAAA02 /* AppFont.swift in Sources */,
 				0CA7DAD124D304C8003BF76F /* SettingViewController.swift in Sources */,
@@ -1401,7 +1397,7 @@
 				CODE_SIGN_ENTITLEMENTS = musica/musica.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5.1.1;
+				CURRENT_PROJECT_VERSION = 5.1.3;
 				DEVELOPMENT_TEAM = SCU9EZ2EKX;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1416,7 +1412,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.1.1;
+				MARKETING_VERSION = 5.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = kuriFCTmusica;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1437,7 +1433,7 @@
 				CODE_SIGN_ENTITLEMENTS = musica/musica.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5.1.1;
+				CURRENT_PROJECT_VERSION = 5.1.3;
 				DEVELOPMENT_TEAM = SCU9EZ2EKX;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1452,7 +1448,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.1.1;
+				MARKETING_VERSION = 5.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = kuriFCTmusica;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

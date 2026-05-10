@@ -30,7 +30,7 @@ enum AppColor {
     static let background = UIColor { trait in
         trait.userInterfaceStyle == .dark
             ? UIColor(hex: "#121218")
-            : UIColor(hex: "#F4F3FA")
+            : UIColor(hex: "#F2F2F7")
     }
 
     static let surface = UIColor { trait in

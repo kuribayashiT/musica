@@ -10,7 +10,7 @@ import UIKit
 
 // MARK: - PracticeViewController
 
-final class PracticeViewController: UIViewController {
+final class PracticeViewController: UIViewController, UIAdaptivePresentationControllerDelegate {
 
     // MARK: Models
 
@@ -82,6 +82,7 @@ final class PracticeViewController: UIViewController {
 
     // 再生ボタン参照（状態更新用）
     private weak var nowPlayingPlayBtn: UIButton?
+    private var isReturningFromPush = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -104,20 +105,30 @@ final class PracticeViewController: UIViewController {
         )
     }
 
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        isReturningFromPush = navigationController?.viewControllers.last != self
+    }
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.largeTitleDisplayMode = .always
+        if let naviBar = navigationController?.navigationBar {
+            setContentNavigationBarStyle(naviBar: naviBar)
+        }
         buildContent()
+        if !isReturningFromPush {
+            resetScrollForLargeTitle()
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        DispatchQueue.main.async {
-            self.scrollView.setContentOffset(
-                CGPoint(x: 0, y: -self.scrollView.adjustedContentInset.top),
-                animated: false
-            )
+        if !isReturningFromPush {
+            resetScrollForLargeTitle()
         }
+        isReturningFromPush = false
     }
 
     @objc private func onPlaybackStateChanged(_ notification: Notification) {
@@ -136,6 +147,16 @@ final class PracticeViewController: UIViewController {
 
     // MARK: Layout
 
+    private func resetScrollForLargeTitle() {
+        let topInset = scrollView.adjustedContentInset.top
+        guard topInset > 0 else { return }
+        // Nav bar height: 44pt compact, 96pt large title.
+        // When compact, push content 52pt past the compact top so the nav bar expands.
+        let navBarHeight = navigationController?.navigationBar.frame.height ?? 44
+        let targetY = navBarHeight <= 55 ? -(topInset + 52) : -topInset
+        scrollView.setContentOffset(CGPoint(x: 0, y: targetY), animated: false)
+    }
+
     private func setupScrollView() {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.alwaysBounceVertical = true
@@ -152,10 +173,10 @@ final class PracticeViewController: UIViewController {
         stack.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(stack)
         NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 16),
+            stack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 16),
             stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            stack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -40),
+            stack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -40),
         ])
     }
 
@@ -265,7 +286,7 @@ final class PracticeViewController: UIViewController {
 
         let bgImg = UIImageView()
         bgImg.contentMode = .scaleAspectFill
-        bgImg.image = track.artworkImg ?? UIImage(named: "onpu_BL")
+        bgImg.image = track.artworkImg ?? makeDefaultArtwork()
         bgImg.translatesAutoresizingMaskIntoConstraints = false
         card.addSubview(bgImg)
 
@@ -283,14 +304,9 @@ final class PracticeViewController: UIViewController {
         artView.clipsToBounds = true
         artView.layer.cornerRadius = 10
         artView.backgroundColor = AppColor.surfaceSecondary
+        artView.contentMode = .scaleAspectFill
+        artView.image = track.artworkImg ?? makeDefaultArtwork()
         artView.translatesAutoresizingMaskIntoConstraints = false
-        if let img = track.artworkImg {
-            artView.image = img
-            artView.contentMode = .scaleAspectFill
-        } else {
-            artView.image = UIImage(named: "onpu_BL")
-            artView.contentMode = .center
-        }
         card.addSubview(artView)
 
         let titleLbl = UILabel()
@@ -735,6 +751,7 @@ final class PracticeViewController: UIViewController {
         settingsLink.setTitle(localText(key: "practice_change_settings"), for: .normal)
         settingsLink.titleLabel?.font = UIFont.systemFont(ofSize: 12)
         settingsLink.setTitleColor(AppColor.textSecondary, for: .normal)
+        settingsLink.contentHorizontalAlignment = .trailing
         settingsLink.addTarget(self, action: #selector(dictationSettings), for: .touchUpInside)
         settingsLink.translatesAutoresizingMaskIntoConstraints = false
         settingsLink.isHidden = true
@@ -805,6 +822,7 @@ final class PracticeViewController: UIViewController {
             ctaBtn.heightAnchor.constraint(equalToConstant: 46),
 
             settingsLink.topAnchor.constraint(equalTo: ctaBtn.bottomAnchor, constant: 8),
+            settingsLink.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 18),
             settingsLink.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -18),
             settingsLink.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14),
         ])
@@ -924,6 +942,7 @@ final class PracticeViewController: UIViewController {
 
         let vc    = FlashCardViewController()
         vc.track  = track
+        vc.onDismiss = { [weak self] in self?.buildContent() }
         let nav   = UINavigationController(rootViewController: vc)
         nav.modalPresentationStyle = .pageSheet
         if #available(iOS 15.0, *),
@@ -931,6 +950,7 @@ final class PracticeViewController: UIViewController {
             sheet.detents = [.large()]
             sheet.prefersGrabberVisible = true
         }
+        nav.presentationController?.delegate = self
         present(nav, animated: true)
     }
 
@@ -1277,6 +1297,12 @@ final class PracticeViewController: UIViewController {
 
     @objc private func openHistoryDetail() {
         navigationController?.pushViewController(PracticeHistoryViewController(), animated: true)
+    }
+
+    // MARK: UIAdaptivePresentationControllerDelegate
+
+    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        buildContent()
     }
 
     // MARK: Coming Soon

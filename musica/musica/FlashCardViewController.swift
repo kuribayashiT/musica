@@ -64,6 +64,7 @@ final class FlashCardViewController: UIViewController {
     var track: TrackData?
     var preloadedWeakWords: [WeakWord]?
     var weakWordMode: Bool { preloadedWeakWords != nil }
+    var onDismiss: (() -> Void)?
 
     // MARK: State
     private var words: [FlashWord] = []
@@ -556,7 +557,7 @@ final class FlashCardViewController: UIViewController {
 
     @objc private func closeTapped() {
         synthesizer.stopSpeaking(at: .immediate)
-        dismiss(animated: true)
+        dismiss(animated: true) { [weak self] in self?.onDismiss?() }
     }
 
     override func viewWillDisappear(_ animated: Bool) {

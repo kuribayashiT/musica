@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Models
 
-enum PracticeType: String, Codable {
+enum PracticeType: String, Codable, CaseIterable {
     case dictation, sectionRepeat, flashCard
 
     var displayName: String {
@@ -171,16 +171,18 @@ final class PracticeHistoryService {
     }
 
     /// All practiced tracks, sorted by most recently practiced first.
-    func allTrackSummaries() -> [TrackSummary] {
+    /// Pass `filterType` to include only sessions of that type.
+    func allTrackSummaries(filterType: PracticeType? = nil) -> [TrackSummary] {
+        let source = filterType == nil ? allRecords() : allRecords().filter { $0.type == filterType! }
         var dict: [String: [PracticeRecord]] = [:]
-        for r in allRecords() {  // allRecords() is already newest-first
+        for r in source {
             let key = "\(r.trackTitle)\u{0}\(r.trackArtist)"
             dict[key, default: []].append(r)
         }
         return dict.values.map { sessions in
             TrackSummary(title: sessions[0].trackTitle,
                          artist: sessions[0].trackArtist,
-                         sessions: sessions)  // insertion order preserves newest-first
+                         sessions: sessions)
         }.sorted { $0.latestDate > $1.latestDate }
     }
 
