@@ -183,6 +183,16 @@ class DiscoverViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         isNavigatingToPlayer = false  // ポップ完了後にリセット（インタラクティブポップ中の再プッシュを防ぐ）
+        if isLoading {
+            let skeletons = tableView.visibleCells.compactMap { $0 as? DiscoverSkeletonCell }
+            if skeletons.isEmpty {
+                // viewDidLoad時にboundsが0でcellが生成されていないケース
+                tableView.reloadData()
+            } else {
+                // cellは存在するがboundsが0だったためshimmerが未構築のケース
+                skeletons.forEach { $0.startShimmer() }
+            }
+        }
     }
 
     // MARK: Layout
@@ -539,7 +549,14 @@ final class DiscoverSkeletonCell: UITableViewCell {
     private let artworkPlaceholder = UIView()
     private let titlePlaceholder   = UIView()
     private let artistPlaceholder  = UIView()
-    private var shimmerLayer: CAGradientLayer?
+
+    private var shimmerWrapper:   CALayer?
+    private var shimmerGradient:  CAGradientLayer?
+    private var needsShimmer = false   // startShimmer後にboundsが0でも再トライするためのフラグ
+
+    private var placeholders: [UIView] {
+        [rankPlaceholder, artworkPlaceholder, titlePlaceholder, artistPlaceholder]
+    }
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -547,7 +564,7 @@ final class DiscoverSkeletonCell: UITableViewCell {
         selectionStyle  = .none
         isUserInteractionEnabled = false
 
-        for v in [rankPlaceholder, artworkPlaceholder, titlePlaceholder, artistPlaceholder] {
+        for v in placeholders {
             v.backgroundColor = AppColor.surfaceSecondary
             v.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview(v)
@@ -585,30 +602,85 @@ final class DiscoverSkeletonCell: UITableViewCell {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        shimmerLayer?.frame = contentView.bounds
+        // needsShimmer=true かつまだ構築されていない場合にだけ構築を試みる
+        // （removeShimmerでwrapperがnilになってもフラグで再トライできる）
+        if needsShimmer && shimmerWrapper == nil {
+            buildShimmerIfNeeded()
+        }
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        needsShimmer = false
+        removeShimmer()
     }
 
     func startShimmer() {
-        guard shimmerLayer == nil else { return }
+        needsShimmer = true
+        removeShimmer()           // 既存を消す
+        buildShimmerIfNeeded()    // bounds有効なら即構築、無効なら layoutSubviews に委ねる
+    }
+
+    // ── Private ──────────────────────────────────────────────────────
+
+    private func removeShimmer() {
+        shimmerWrapper?.removeFromSuperlayer()
+        shimmerWrapper  = nil
+        shimmerGradient = nil
+    }
+
+    private func buildShimmerIfNeeded() {
+        let w = contentView.bounds.width
+        let h = contentView.bounds.height
+        guard w > 0 else { return }
+
+        // 既存を除去して作り直す（何度呼ばれても1本）
+        shimmerWrapper?.removeFromSuperlayer()
+
+        // ── ラッパー（プレースホルダー形状のマスク付き）────────────────
+        let wrapper = CALayer()
+        wrapper.frame = contentView.bounds
+        wrapper.mask  = buildMask(width: w, height: h)
+        contentView.layer.addSublayer(wrapper)
+        shimmerWrapper = wrapper
+
+        // ── グラデーション（cell幅の3倍、左から右へスライド）────────────
+        // transform.translation.x アニメなので全幅でピクセル速度が一定になる
         let gradient = CAGradientLayer()
         gradient.colors = [
             UIColor.clear.cgColor,
-            UIColor.white.withAlphaComponent(0.55).cgColor,
+            UIColor.white.withAlphaComponent(0.28).cgColor,
             UIColor.clear.cgColor,
         ]
-        gradient.locations  = [0.3, 0.5, 0.7]
+        gradient.locations  = [0.4, 0.5, 0.6]   // 細い光の帯
         gradient.startPoint = CGPoint(x: 0, y: 0.5)
         gradient.endPoint   = CGPoint(x: 1, y: 0.5)
-        gradient.frame      = contentView.bounds
-        contentView.layer.addSublayer(gradient)
-        shimmerLayer = gradient
+        // 3倍幅にして「帯が左端から来て右端へ抜ける」ようにする
+        gradient.frame           = CGRect(x: -w, y: 0, width: w * 3, height: h)
+        gradient.backgroundColor = AppColor.surfaceSecondary.cgColor
+        wrapper.addSublayer(gradient)
+        shimmerGradient = gradient
 
-        let anim = CABasicAnimation(keyPath: "locations")
-        anim.fromValue   = [-0.4, -0.2, 0.0]
-        anim.toValue     = [1.0, 1.2, 1.4]
-        anim.duration    = 1.4
+        let anim = CABasicAnimation(keyPath: "transform.translation.x")
+        anim.fromValue   = 0
+        anim.toValue     = w * 2   // 左端(-w)→右端(+w) の移動量
+        anim.duration    = 1.5
         anim.repeatCount = .infinity
         gradient.add(anim, forKey: "shimmer")
+    }
+
+    // プレースホルダーの形だけグラデーションを通すマスクレイヤー
+    private func buildMask(width: CGFloat, height: CGFloat) -> CALayer {
+        let mask = CALayer()
+        mask.frame = CGRect(x: 0, y: 0, width: width, height: height)
+        for v in placeholders {
+            let s = CALayer()
+            s.frame           = v.frame
+            s.backgroundColor = UIColor.white.cgColor
+            s.cornerRadius    = v.layer.cornerRadius
+            mask.addSublayer(s)
+        }
+        return mask
     }
 }
 
