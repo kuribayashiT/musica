@@ -27,7 +27,9 @@ final class SpeedSheetViewController: UIViewController {
     private let snapPoints: [Double] = [
         0.5, 0.6, 0.7, 0.75, 0.8, 0.9,
         1.0, 1.1, 1.2, 1.25, 1.3, 1.4, 1.5, 1.6, 1.7, 1.75, 1.8, 1.9,
-        2.0
+        2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
+        6.0, 7.0, 8.0, 9.0, 10.0,
+        12.0, 15.0, 17.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0
     ]
 
     // ── UI ────────────────────────────────────────────────────────
@@ -37,16 +39,20 @@ final class SpeedSheetViewController: UIViewController {
     private let speedLabel      = UILabel()
     private let slider          = UISlider()
     private let lowPresetStack  = UIStackView()   // 0.5×〜2.0×
+    private let highPresetStack = UIStackView()   // 3×〜50×
     private let doneButton      = UIButton(type: .system)
 
     private let lowPresets: [(label: String, value: Double)] = [
         ("0.5×", 0.5), ("0.75×", 0.75), ("1.0×", 1.0), ("1.5×", 1.5), ("2.0×", 2.0)
     ]
+    private let highPresets: [(label: String, value: Double)] = [
+        ("3×", 3.0), ("5×", 5.0), ("10×", 10.0), ("20×", 20.0), ("50×", 50.0)
+    ]
 
     // ── スケール定数 ──────────────────────────────────────────────
-    // speed = 0.5 * 4^pos  →  pos ∈ [0, 1] で speed ∈ [0.5, 2.0]
+    // speed = 0.5 * 100^pos  →  pos ∈ [0, 1] で speed ∈ [0.5, 50]
     private let minSpeed = 0.5
-    private let maxSpeed = 2.0
+    private let maxSpeed = 50.0
 
     // ── Init ──────────────────────────────────────────────────────
     init(currentSpeed: Double) {
@@ -90,7 +96,7 @@ final class SpeedSheetViewController: UIViewController {
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             containerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            containerView.heightAnchor.constraint(equalToConstant: 290),
+            containerView.heightAnchor.constraint(equalToConstant: 330),
         ])
 
         let pan = UIPanGestureRecognizer(target: self, action: #selector(panGesture(_:)))
@@ -130,12 +136,18 @@ final class SpeedSheetViewController: UIViewController {
 
         // ── スライダー端ラベル ─────────────────────────────────────
         let minLabel = makeScaleLabel("0.5×")
-        let maxLabel = makeScaleLabel("2×")
+        let maxLabel = makeScaleLabel("50×")
 
         // ── 低速プリセット行 ──────────────────────────────────────
         setupPresetStack(lowPresetStack)
         for preset in lowPresets {
             lowPresetStack.addArrangedSubview(makePresetButton(title: preset.label, value: preset.value))
+        }
+
+        // ── 高速プリセット行 ──────────────────────────────────────
+        setupPresetStack(highPresetStack)
+        for preset in highPresets {
+            highPresetStack.addArrangedSubview(makePresetButton(title: preset.label, value: preset.value))
         }
 
         // ── 完了ボタン ────────────────────────────────────────────
@@ -177,7 +189,13 @@ final class SpeedSheetViewController: UIViewController {
             lowPresetStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
             lowPresetStack.heightAnchor.constraint(equalToConstant: 36),
 
-            doneButton.topAnchor.constraint(equalTo: lowPresetStack.bottomAnchor, constant: 16),
+            // 高速プリセット
+            highPresetStack.topAnchor.constraint(equalTo: lowPresetStack.bottomAnchor, constant: 8),
+            highPresetStack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
+            highPresetStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
+            highPresetStack.heightAnchor.constraint(equalToConstant: 36),
+
+            doneButton.topAnchor.constraint(equalTo: highPresetStack.bottomAnchor, constant: 14),
             doneButton.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
         ])
     }
@@ -244,7 +262,7 @@ final class SpeedSheetViewController: UIViewController {
         slider.setValue(speedToSlider(speed), animated: animated)
 
         // 全プリセットボタンのハイライト更新
-        for stack in [lowPresetStack] {
+        for stack in [lowPresetStack, highPresetStack] {
             for view in stack.arrangedSubviews {
                 guard let btn = view as? UIButton else { continue }
                 let presetValue = Double(btn.tag) / 1000.0

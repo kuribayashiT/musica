@@ -459,6 +459,11 @@
 "speed_fast" = "Fast";
 "speed_fairly_fast" = "Fairly Fast";
 "speed_double" = "2x Speed";
+"speed_triple" = "3x Speed";
+"speed_5x" = "5x Speed";
+"speed_10x" = "10x Speed";
+"speed_20x" = "20x Speed";
+"speed_50x" = "50x Speed";
 
 /*******************************************************************
  Practice Screen

@@ -44,6 +44,11 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
             SpeedPreset(label: "1.5x", emoji: "🔥", description: localText(key: "speed_fast"),           rowIndex: 10),
             SpeedPreset(label: "1.7x", emoji: "💨", description: localText(key: "speed_fairly_fast"),   rowIndex: 12),
             SpeedPreset(label: "2.0x", emoji: "🚀", description: localText(key: "speed_double"),         rowIndex: 15),
+            SpeedPreset(label: "3.0x", emoji: "🌪️", description: localText(key: "speed_triple"),        rowIndex: 25),
+            SpeedPreset(label: "5.0x", emoji: "💫", description: localText(key: "speed_5x"),             rowIndex: 45),
+            SpeedPreset(label: "10x",  emoji: "☄️", description: localText(key: "speed_10x"),            rowIndex: 73),
+            SpeedPreset(label: "20x",  emoji: "🛸", description: localText(key: "speed_20x"),            rowIndex: 83),
+            SpeedPreset(label: "50x",  emoji: "⚡⚡", description: localText(key: "speed_50x"),          rowIndex: 89),
         ]
     }
 
