@@ -1,44 +1,34 @@
-# macOS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-Thumbs.db
-*.un~
-
-# Xcode
+# Build artifacts
 build/
 DerivedData/
-*.pbxuser
-!default.pbxuser
-*.mode1v3
-!default.mode1v3
-*.mode2v3
-!default.mode2v3
-*.perspectivev3
-!default.perspectivev3
-xcuserdata/
-*.xccheckout
-*.moved-aside
+*.o
+*.a
+*.d
+*.dia
+__.SYMDEF
+
+# Xcode user data
 *.xcuserstate
-*.xcscmblueprint
+xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
 
-# CocoaPods
-musica/Pods/
+# CocoaPods - exclude generated sources, keep Podfile + Podfile.lock
+Pods/
 
-# Carthage
-musica/Carthage/Build/
+# Carthage - exclude compiled binaries, keep Cartfile + Cartfile.resolved
+Carthage/Build/
 
-# Swift Package Manager
-.build/
-*.resolved
+# macOS
+.DS_Store
+.AppleDouble
 
-# fastlane
+# Fastlane
 fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 
-# Code Injection
-iOSInjectionProject/
+# SPM
+.build/
+.swiftpm/
