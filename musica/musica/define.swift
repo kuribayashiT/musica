@@ -382,7 +382,7 @@ var changeTrackList:[TrackData] = []
 // 歌詞表示状態
 var LYRIC_IMG_SEGMENT_STATE = 0
 // 音楽再生関連の定数/変数
-var audioPlayer:AVAudioPlayer!
+var audioPlayer: HighSpeedAudioPlayer!
 var audioTestPlayer:AVAudioPlayer!
 var defaultCenter = MPNowPlayingInfoCenter.default()
 let NOW_NOT_PLAYING = -1

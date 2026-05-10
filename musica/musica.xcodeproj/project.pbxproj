@@ -135,6 +135,7 @@
 		BB1111001ED0000000000001 /* MusicPlayListViewControllerRedesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1111001ED0000000000002 /* MusicPlayListViewControllerRedesign.swift */; };
 		BE1234567890ABCDEF123456 /* WhisperKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE1234567890ABCDEF123457 /* WhisperKitService.swift */; };
 		CCCCCC0000000002CCCCCC01 /* SpeedSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCCCC0000000001CCCCCC01 /* SpeedSheetViewController.swift */; };
+		CCCCCC0000000002CCCCCC03 /* HighSpeedAudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCCCC0000000001CCCCCC03 /* HighSpeedAudioPlayer.swift */; };
 		CCCCCC0000000002CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCCCC0000000001CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift */; };
 		DDDDDD0000000002DDDDDD01 /* DemoDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDDDD0000000001DDDDDD01 /* DemoDataSeeder.swift */; };
 		E02F87B1DD0BF3CBD16B8934 /* Pods_musicaUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1EEA973D479AE8143214A070 /* Pods_musicaUITests.framework */; };
@@ -324,6 +325,7 @@
 		BE1234567890ABCDEF123457 /* WhisperKitService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WhisperKitService.swift; sourceTree = "<group>"; };
 		BF9862B196B85C662F61F2E5 /* Pods-musica.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-musica.debug.xcconfig"; path = "Target Support Files/Pods-musica/Pods-musica.debug.xcconfig"; sourceTree = "<group>"; };
 		CCCCCC0000000001CCCCCC01 /* SpeedSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedSheetViewController.swift; sourceTree = "<group>"; };
+		CCCCCC0000000001CCCCCC03 /* HighSpeedAudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighSpeedAudioPlayer.swift; sourceTree = "<group>"; };
 		CCCCCC0000000001CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayMusicViewControllerPlayerUI.swift; sourceTree = "<group>"; };
 		DDDDDD0000000001DDDDDD01 /* DemoDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoDataSeeder.swift; sourceTree = "<group>"; };
 		EEEEEE0000000001EEEEEE01 /* SampleDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleDataSeeder.swift; sourceTree = "<group>"; };
@@ -521,6 +523,7 @@
 				EEEEEE0000000001EEEEEE09 /* lesson_06.caf */,
 				CCCCCC0000000001CCCCCC01 /* SpeedSheetViewController.swift */,
 				CCCCCC0000000001CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift */,
+				CCCCCC0000000001CCCCCC03 /* HighSpeedAudioPlayer.swift */,
 				BB0000001ED0000000000002 /* PlayMusicViewControllerNewUI.swift */,
 				BB0000001ED0000000000004 /* RegionRepeatSheetViewController.swift */,
 				BB0000001ED0000000000006 /* MusicLibrary.swift */,
@@ -1082,6 +1085,7 @@
 				EEEEEE0000000002EEEEEE01 /* SampleDataSeeder.swift in Sources */,
 				CCCCCC0000000002CCCCCC01 /* SpeedSheetViewController.swift in Sources */,
 				CCCCCC0000000002CCCCCC02 /* PlayMusicViewControllerPlayerUI.swift in Sources */,
+				CCCCCC0000000002CCCCCC03 /* HighSpeedAudioPlayer.swift in Sources */,
 				BB0000001ED0000000000001 /* PlayMusicViewControllerNewUI.swift in Sources */,
 				BB0000001ED0000000000003 /* RegionRepeatSheetViewController.swift in Sources */,
 				BB0000001ED0000000000005 /* MusicLibrary.swift in Sources */,

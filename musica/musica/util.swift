@@ -273,9 +273,8 @@ class MusicController{
             if audioPlayer != nil{
                 audioPlayer.delegate = nil
             }
-            audioPlayer = try AVAudioPlayer(contentsOf: audioUrl!)
+            audioPlayer = try HighSpeedAudioPlayer(contentsOf: audioUrl!)
             audioPlayer.delegate = vc as? AVAudioPlayerDelegate
-            audioPlayer.enableRate = true
             audioPlayer.prepareToPlay()
             try? AVAudioSession.sharedInstance().setActive(true)
             try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [])

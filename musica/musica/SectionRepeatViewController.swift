@@ -95,9 +95,8 @@ final class SectionRepeatViewController: UIViewController {
 
     private func setupAudio() {
         guard let url = track.url else { return }
-        audioPlayer = try? AVAudioPlayer(contentsOf: url)
+        audioPlayer = try? HighSpeedAudioPlayer(contentsOf: url)
         audioPlayer?.prepareToPlay()
-        audioPlayer?.enableRate = true
         let rate = Float(speedList[min(speedRow, speedList.count - 1)])
         audioPlayer?.rate = rate
     }
