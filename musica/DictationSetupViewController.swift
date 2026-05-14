@@ -1139,7 +1139,6 @@ private final class WaveformBarsView: UIView {
                 bar.leadingAnchor.constraint(equalTo: bars[i - 1].trailingAnchor, constant: 5).isActive = true
             }
         }
-        bars.last?.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
     }
 
     func startAnimating() {
@@ -1250,7 +1249,7 @@ final class TranscriptionLoadingOverlay: UIView {
         card.addSubview(contentStack)
 
         NSLayoutConstraint.activate([
-            waveform.widthAnchor.constraint(equalToConstant: 65),
+            waveform.widthAnchor.constraint(equalToConstant: 45),
             waveform.heightAnchor.constraint(equalToConstant: 44),
             progressBar.widthAnchor.constraint(equalTo: contentStack.widthAnchor),
             contentStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 36),
