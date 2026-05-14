@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import NaturalLanguage
 
 // MARK: - PracticeViewController
 
@@ -897,6 +898,13 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
         let vc = DictationViewController()
         vc.track  = track
         vc.lyrics = lyrics
+        // SetupVCを経由しない場合、歌詞全体の支配的言語を検出してフィルタ
+        // （nil = "すべて" という DictationVC の意味論を壊さないよう呼び出し元で解決）
+        let rec = NLLanguageRecognizer()
+        rec.processString(lyrics)
+        if let dominant = rec.dominantLanguage, dominant != .undetermined {
+            vc.selectedLyricLang = dominant
+        }
         navigationController?.pushViewController(vc, animated: true)
     }
 
