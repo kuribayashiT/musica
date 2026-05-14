@@ -1,0 +1,747 @@
+/* 
+  Localizable.strings
+  musica
+
+  Created by 栗林貴大 on 2019/09/02.
+  Copyright © 2019 K.T. All rights reserved.
+*/
+/*******************************************************************
+ 共通
+ *******************************************************************/
+// アラート
+"btn_yes" = "Yes";
+"btn_no" = "No";
+"btn_ok" = "OK";
+"btn_cancel" = "Cancel";
+"btn_success" = "Success!";
+"btn_failure" = "Failure...";
+"btn_delete" = "Delete";
+"btn_msg" = "Message";
+"btn_edit" = "Edit";
+"btn_close" = "Close";
+
+// お気に入り
+"okiniiri_longtap" = "Long press to register Favorite videos";
+
+// エラー
+"err" = "Error";
+"err_nocontents" = "There seems to be no video content on the web yet.";
+"network_err_msg" = "It looks like the network is bad or the server is under maintenance. Please try to access after a while.";
+
+//　PUSHタイトル
+"push_title" = "Notice";
+
+// アプリ誘導
+"app_intro_title" = "There are apps that allow you to use this function more conveniently.";
+"app_intro_body_scancamera" = "Do you want to install \"Translation Scan Camera App\"?\n・Scan result history management can be used.\n";
+
+// レビュー誘導
+"review_app_title" = "Thank you for always using it.";
+"review_app_body" = "I would appreciate it if you could review it on Appstore for better service in the future.";
+"review_app_yes" = "To review";
+"review_app_no" = "Do not review";
+"review_app_layter" = "To do later";
+
+// 課金誘導
+"kakin_app_title" = "Want to use the app without displaying ads?";
+"kakin_app_body" = "With just two juices each month, you can use the app comfortably! (All ads except the scan / translate function will be deleted!)";
+"kakin_app_yes" = "view the details!";
+"kakin_app_stay" = "Watch later";
+"kakin_app_no" = "Never";
+
+//　アップデート関連
+"update_newver_force_title" = "New version is released.";
+"update_newver_force_body" = "Please update the app.";
+"update_newver_title" = "New version is released.";
+"update_newver_body" = "Do you want to update the app?";
+
+// 許諾
+"plist_camera_title" = "Permission to access the camera";
+"plist_camera_body" = "This app does not have permission to access the camera. Allow access from the settings.";
+
+// 紹介
+"intro_message" = "music Application \nitunes.apple.com/jp/app/apple-store/id1288959420";
+
+// Push
+"local_push_ranking_title" = "This week's ranking has been updated!";
+"local_push_ranking_body" = "Hooray!";
+
+// Firebase向け
+"firebase_local_country" = "en";
+"youtube_local_country" = "us";
+/*******************************************************************
+ 設定画面Tab
+ *******************************************************************/
+"setting" = "Settings";
+"setting_recommend_app" = "Recommended apps";
+"setting_help" = "Help";
+"setting_about_ad" = "About advertisement";
+"setting_about_app" = "About the app";
+"setting_ad" = "Sponsored ads";
+"debug_log" = "Log output";
+
+// デザインテーマ名
+"design_theme_setting_title" = "Design theme";
+"design_theme_setting_body" = "Set the theme for the app's color theme";
+"design_theme_old" = "Old design";
+"design_theme_pop" = "Pop";
+"design_theme_popred" = "White (light blue)";
+"design_theme_sharpblue" = "White (black)";
+"design_theme_sharpred" = "White (dark blue)";
+"design_theme_sharpnomal" = "White (dark red)";
+"design_theme_sharpdark" = "Dark blue";
+"design_theme_sharpblack" = "Black";
+"design_theme_now" = "Dark red";
+"design_theme_setting_comp" = "Design changed";
+
+// アプリについて
+"app_info" = "App information";
+"app_management" = "App management";
+"app_oss" = "Open source license";
+"app_review" = "Review the app";
+"app_introduction" = "Tell your friends about the app";
+
+// おすすめアプリ
+"recommended_app_todolist" = "todolist";
+"recommended_app_todolist_title" = "ToDo List";
+"recommended_app_todolist_des" = "The ultimate in task management! It is a simple and powerful ToDo list application.";
+"recommended_app_scancamera" = "scancamera";
+"recommended_app_scancamera_title" = "Translation scan camera";
+"recommended_app_scancamera_des" = "This is a handy tool that can scan characters with a camera and translate them as they are.";
+"recommended_app_mr_stick" = "mr_stick";
+"recommended_app_mr_stick_title" = "Mr STICK";
+"recommended_app_mr_stick_des" = "It is a killing action game. Deep inside.";
+"recommended_app_nanopita" = "nanopita";
+"recommended_app_nanopita_title" = "ナノピタッ";
+"recommended_app_nanopita_des" = "It is a game that stops in just 0 seconds, often done with a stopwatch. Come in nanoseconds.";
+
+// 関連サイト
+"homepage_musicahoutouse" = "How to use";
+"homepage_musica" = "musicA official";
+"homepage_pp" = "Terms of Service / Privacy Policy";
+"to_homepage_musica" = "To musicA official site";
+
+// 問い合わせ
+"qa" = "FAQ";
+"qa_request" = "Send improvement requests and requests";
+"qa_report" = "Inquiry, violation report";
+
+// 設定項目
+"setting_item_resultnum" = "Number of search results / ranking display.";
+"setting_item_resultnum_des" = "Set the number of search results / ranking display.";
+"setting_item_help_des" = "Display of HELP.";
+"setting_item_cashclear" = "Clear cache";
+"setting_item_cashclear_des" = "Solve some youtube errors.";
+"setting_item_adclear" = "Remove ads";
+"setting_item_adclear_des" = "Monthly payment ($ 1.99 per month) is automatically renewed. Do you want to delete the ad?";
+"setting_item_cashclear_alert" = "Clear cache";
+"setting_item_cashclear_alert_des" = "When playing outube videos, an error may occur due to caching. You may be able to play by deleting the cache.";
+"setting_item_helpappear" = "Sets whether to display the ? Button.";
+"setting_item_push" = "Notification settings";
+"setting_item_kakinkaijo" = "Cancel billing";
+"setting_item_design" = "Design settings";
+
+// 問い合わせメール
+"mail_title_req" = "Request for improvement, request";
+"mail_title_faq" = "Inquiry, violation report";
+
+// 秘密の項目
+"setting_secret_item_title" = "This item rarely appears. It's a bug";
+"setting_secret_item_body" = "Thank you for using the app!";
+
+/*******************************************************************
+ 検索Tab
+ *******************************************************************/
+"search" = "Search";
+"search_janre_setting_title" = "Search video type";
+"search_janre_setting_body" = "Set search video type.";
+
+// 検索ジャンル
+"search_janre_sougou" = "General";
+"search_janre_eigaanime" = "Movies and anime";
+"search_janre_norimono" = "Car and vehicle";
+"search_janre_music" = "Musics";
+"search_janre_animal" = "Pets and animals";
+"search_janre_sports" = "Sports";
+"search_janre_tripevent" = "Travel / Event";
+"search_janre_game" = "Game";
+"search_janre_blog" = "Blog";
+"search_janre_comedy" = "Comedy";
+"search_janre_entertainment" = "Entertainment";
+"search_janre_news" = "News";
+"search_janre_howto" = "How-to";
+"search_janre_education" = "Education";
+"search_janre_technology" = "Science and technology";
+"search_janre_society" = "Society";
+"search_janre_anime" = "Anime";
+"search_janre_movietrailer" = "Movie trailer";
+
+// 検索文言
+"search_word_blank" = "";
+
+"search_recommend_mv_message" = "Popular with users!";
+"search_recommend_mv_tapped_message" = "A list of videos most recently played by users.";
+"search_recommend_wards" = "Frequently searched words";
+"youtube_server_quota_err" = "The server is currently unable to connect due to access load. Please try again later.";
+/*******************************************************************
+ Home Tab
+ *******************************************************************/
+"home_tutorial_label" = "Let's add Music Library!!";
+"home_tutorial_label_tapped" = "Tap the 「+」 button to create a music library!";
+"home_rename_btn" = "Rename";
+"home_addtrack_btn" = "Add track";
+"home_deletetrack_btn" = "Delete";
+// 歌詞の文字サイズ
+"moji_size_0" = "Minimal";
+"moji_size_1" = "Small";
+"moji_size_2" = "During";
+"moji_size_3" = "Big";
+"moji_size_4" = "Oversized";
+"moji_size_5" = "Huge";
+"moji_size_setting_title" = "Lyric display size setting";
+"moji_size_setting_body" = "Set the text size of the lyrics";
+
+// 歌詞登録
+"lyric_regist_msg_library" = "Library:";
+"lyric_regist_msg_track" = "\nSong name:";
+"lyric" = "Lyrics";
+
+// 音楽ライブラリ作成、編集、削除
+"musiclibrary_selected_track_num" = "songs selected";
+"musiclibrary_edit" = "Edit library name";
+"musiclibrary_editname" = "Editing of Music Library name is complete.";
+"musiclibrary_err_nomusic" = "No music";
+"musiclibrary_err_album_nomusic" = "This album has no music that can be registered";
+"musiclibrary_err_playlist_nomusic" = "There are no music that can be registered in this playlist";
+"musiclibrary_delete_conform_title" = "Are you sure you want to delete it?";
+"musiclibrary_delete_conform_body" = "If you delete a library, it cannot be recovered. Also, the lyrics registered for each song will be deleted.";
+"musiclibrary_delete_msg" = "Music library deleted";
+"musiclibrary_delete_track_msg" = "Music removed from library";
+"musictrack_delete_conform_title" = "The lyrics registered in the song will also be deleted.";
+"musictrack_howto_download" = "How to download";
+"musictrack_howto_drm" = "About DRM content and how to remove it";
+
+// お気に入り動画
+"okiniiri_failure_playmv" = "Video playback failed.";
+"okiniiri_cantplaymv" = "Playlist A playlist for which playback is prohibited.\nThe video will be played individually on the site.";
+"okiniiri_failure_setspeed" = "Failed to set playback speed";
+"okiniiri_incompatible_speed1" = "This video has a playback speed of [×";
+"okiniiri_incompatible_speed2" = "] May not be supported...";
+"okiniiri_incompatible_speed2_setneer" = "] May not be supported...\n※Closest[×";
+"okiniiri_setspeed" = "] Was set.";
+"okiniiri_err_incompatible_spped" = "It is an error. The video may not support speed changes.";
+"okiniiri_err_network" = "The network connection seems unstable.";
+
+//　音楽ライブラリ登録
+"musiclibrary_select_fromalbum" = "Choose a song for each album!";
+"musiclibrary_select_library" = "Choose a song for each library!";
+
+// 音楽再生
+"musiclibrary_not_play" = "Not playing";
+"musiclibrary_err_cantplay_title" = "This is not playable...";
+"musiclibrary_err_cantplay_nodownload" = "This song cannot be played with this app because the song data has not been downloaded to your device.\nYou can play music by downloading songs from the standard music app or iTunes Store!";
+"musiclibrary_err_cantplay" = "I can't play music";
+"musiclibrary_err_cantplay_nowedit" = "Music cannot be played while editing the player. Tap \"Edit Complete\" to complete the edit mode.";
+"musiclibrary_err_cantregister_title" = "This music cannot be registered...";
+"musiclibrary_err_cantregister_body" = "There is no data for this music on the device.\nYou can play music by downloading songs from the standard music app or iTunes Store!";
+"musiclibrary_err_cantregister_title_drm" = "This music cannot be registered...";
+"musiclibrary_err_cantregister_body_drm" = "This song cannot be played or registered because it is DRM content. To play, you need to remove DRM. (Registration is possible after cancellation!)";
+
+// 音楽プレイヤー
+"musiclibrary_play_section_label" = "Section Play";
+"musiclibrary_play_section_repeat_setting" = "Section setting";
+"musiclibrary_play_section_repeat_setting_comp" = "Complete";
+"musiclibrary_fast_display_tuto" = "You can sort songs by long pressing.";
+
+// 歌詞編集
+"musiclibrary_lylic_regist_title" = "Are you sure you want to update the lyrics with this content?";
+"musiclibrary_lylic_regist_success" = "The lyrics have been updated.";
+"musiclibrary_lylic_regist_failure" = "The lyrics update failed.";
+"musiclibrary_lylic_copy" = "Copy and close.";
+"musiclibrary_scan_text" = "This is a confirmed string.";
+
+// TOP画面
+"musiclibrary_regist_comp_toast" = "Music library registration is complete!";
+"musiclibrary_err_cant_delete" = "Cannot delete";
+"musiclibrary_err_cant_delete_okiniiri" = "\"Favorite video\" cannot be deleted";
+
+// MusicLibraly登録画面
+"musiclibrary_regist_comp_title" = "Music Libarary registration completed";
+"musiclibrary_regist_comp_body" = "Thank you for your hard work!";
+"musiclibrary_regist_err" = "Registration of Music Libarary failed.";
+"musiclibrary_regist_err_humei" = "Unknown error. Please try again later.";
+"musiclibrary_regist_err_noname_title" = "The name is empty ...";
+"musiclibrary_regist_err_noname_body" = "Give it a name for Music Library.";
+"musiclibrary_regist_err_noselect_title" = "Nothing selected";
+"musiclibrary_regist_err_noselect_body" = "Please select one or more music.";
+"musiclibrary_regist_err_samename_title" = "A Music Library with the same name already exists";
+"musiclibrary_regist_err_samename_body" = "Change the name of the registered Music Library.";
+"library_resist_name_placeholder" = "Please enter the library name";
+
+// Youtube再生画面
+"okiniiri_regist" = "Add to \"Favorite Video\"";
+"okiniiri_delete" = "Remove from \"Favorite Video\"";
+"okiniiri_regist_title" = "Add to Favourites";
+"okiniiri_regist_body" = "Would you like to add this video to your Favorite videos?";
+"okiniiri_delete_title" = "Remove from Favorite videos";
+"okiniiri_delete_body" = "Are you sure you want to remove this video from your Favorite videos?";
+"okiniiri_regist_comp_title" = "Completion of registration";
+"okiniiri_regist_comp_body" = "Added to \"Favorite videos\"";
+"okiniiri_delete_comp_title" = "Deletion complete";
+"okiniiri_delete_comp_body" = "Remove from \"Favorite videos\"";
+
+// テキスト画面
+"musiclibrary_err_network_title" = "Network error";
+"musiclibrary_err_network_body" = "Make sure that the network is connected.";
+
+// 画面内文言
+"home_okiniiri_title" = "Favorite videos";
+"home_okiniiri" = "お気に入り動画"; // DB登録のため、変えられない
+"home_track_num" = "Songs num　:";
+"home_mv_num" = "Videos num :";
+"home_edit_comp" = "Complete";
+
+// HELP
+"home_help_title" = "How to use musica";
+"home_help_body" = "Here's a quick overview of how to use musica.";
+"home_help_nolook" = "Skip";
+"home_help_look" = "Show me";
+"home_help_1" = "Music videos play here.";
+"home_help_2" = "Tap here to watch your saved Favorite Videos.";
+"home_help_3" = "In the Discovery tab you can search YouTube and browse world rankings. You can also save videos to Favorites from there!";
+"home_help_4" = "In the Practice tab you can do dictation drills and loop-section practice — perfect for language learning!";
+"home_help_5" = "Your music libraries appear here alongside your Favorite Videos.";
+"home_help_6" = "Tap this \"+\" button to create a music library.";
+"home_help_7" = "Tap the \"?\" button any time to see this guide again.";
+"home_help_8" = "For more help, check \"How to Use\" in the Options tab. See you!";
+"home_help_9" = "You can create a music library here!";
+
+"home_tutorial_mv_message" = "Let's find your favorite videos!!";
+"home_tutorial_tapped_message" = "Find videos from the ranking and search tabs!";
+
+// How To Download
+"how_to_download_page1" = "Downloading can be done from the \"Music\" app that comes with the iPhone / iPad, or from the iTunes Store app.";
+"how_to_download_page2" = "In the \"Music\" app, find the song you want to download from the library and tap the cloud to download it.\n※After downloading, please kill this app and restart it";
+"how_to_download_page3" = "From the \"iTunes Store\" app, you can download from [Others] tab, [Download] or \"Purchased\" ⇨ \"Music\" ⇨ \"Items not on this iPhone\".\n※After downloading, please kill this app and restart it.";
+/*******************************************************************
+ ランキング Tab
+ *******************************************************************/
+// 国の設定
+"ranking_default_settings" = "us";
+"ranking_default_settings_" = "en";
+"ranking_change_country_title" = "Change ranking country";
+"ranking_change_country_body" = "Change chart country.";
+
+// 国
+"ranking_country_jp" = "Japan";
+"ranking_country_ame" = "America";
+"ranking_country_trk" = "Turkey";
+"ranking_country_egi" = "England";
+"ranking_country_kan" = "Korea";
+"ranking_country_tyu" = "China";
+"ranking_country_tai" = "Thailand";
+"ranking_country_spe" = "Spain";
+
+// 動画について
+"ranking_neer_mv" = "Related videos";
+"ranking_more_look" = "See more";
+
+/*******************************************************************
+ Text Tab
+ *******************************************************************/
+"trans_tutorial" = "textTabTutorial_en";
+// 画面内文言
+"trans_title" = "Text scanning & translation";
+"trans_btn_clear" = "Clear";
+"trans_btn_lyric_regist" = "Regist";
+
+// 翻訳言語
+"trans_lang_jp" = "Japanese";
+"trans_lang_en" = "English";
+"trans_lang_ch" = "Chinese";
+"text_share" = "Share";
+
+// 翻訳機能
+"text_moreuse" = "Use more";
+"text_selectlang_title" = "Language to translate";
+"text_selectlang_body" = "Set the language to translate.";
+
+// HELP
+"text_help_title" = "How to use Scan & Translate";
+"text_help_body" = "Here's how to use the scan and translation features.";
+"text_help_nolook" = "Skip";
+"text_help_look" = "Show both";
+"text_help_look_scan" = "Scan only";
+"text_help_look_trans" = "Translation only";
+"text_help_1" = "Use the scan feature to read text from images.";
+"text_help_2" = "Tap here to scan from images saved on your device!";
+"text_help_3" = "Tap here to take a new photo for scanning!";
+"text_help_4" = "The image being scanned is shown here.";
+"text_help_5" = "Scan results appear in the text area.\nNote: ads may appear during scanning.";
+"text_help_6" = "Scan results appear in the text area.\nNote: ads may appear during scanning. That's it!";
+"text_help_7" = "Translate the text into many languages. (Usage limit applies.)\n※Watch or tap an ad to reset the limit.";
+"text_help_8" = "Scan results appear in the text area.\nNote: ads may appear during scanning.";
+"text_help_9" = "Switch to Translation Result to translate the text. (Usage limit applies.)\nSwitch back to Original to restore. ※Watch or tap an ad to reset the limit.";
+"text_help_10" = "Switch to Translation Result to translate.\nSwitch back to Original to restore the original text.";
+"text_help_11" = "Just switch to Translation Result to translate.\nSwitch back to Original to restore.";
+"text_help_12" = "Scan results appear in the text area.\nNote: ads may appear during scanning.";
+"text_help_13" = "Choose your translation language here.\nLots to explore — that's it!";
+"text_help_14" = "You're all set!";
+
+// エラー
+"text_err_network" = "This feature is not available when offline.";
+"text_err_notextorigin" = "There is no original text.";
+"text_err_unsupported_title" = "This feature is not available on your device";
+"text_err_unsupported_body" = "This function cannot be used unless iOS10 or higher. Please update your device.";
+"text_err_textnum_title" = "Character limit error";
+"text_err_textnum_body1" = "The number of characters that can be translated is currently";
+"text_err_textnum_body2" = "characters. Please make it a little shorter.\n ※Currently the number of characters is";
+"text_err_textnum_body3" = "characters.";
+"text_err_usecount_title" = "You have reached the maximum number of translations";
+"text_err_usecount_body" = "You can continue to use the translation function for free by watching the advertisements displayed from now on until the end!";
+"text_err_usecount_body_tap" = "You can continue to use the translation function for free by tapping the advertisement that is displayed now!";
+"text_err_nolookad" = "Stop now";
+"text_err_trans_failure" = "ERR:Translation failed.";
+"text_err_failure" = "I failed.";
+"text_err_scan_failure_title" = "Scan failed. . .";
+"text_err_scan_failure_body" = "Scan failed. . . Check the signal condition of the terminal.";
+"text_err_scan_nochara" = "Text could not be detected from the image. . .";
+"text_err_scan_retry" = "Take one more time";
+
+/*******************************************************************
+ 広告
+ *******************************************************************/
+"rewordad_title" = "You can hide ads for a certain time.";
+"rewordad_body_Or" = " or ";
+"rewordad_body_AD" = "\"Watch the advertisement until the end\"";
+"rewordad_body_Twitter" = "\"Introduce this application\"";
+"rewordad_body_Review" = "\"Please review\"";
+"rewordad_base" = "Then you can hide all ads except the Text tab for the next three hours.";
+"rewordad_body_Review_End" = "\n※We would appreciate if you could give us a star of 5 when reviewing so that we can continue to provide the app for free.";
+"rewordad_look_AD" = "See ads to the end";
+"rewordad_look_Twitter" = "Introduce on Twitter";
+"rewordad_look_Review" = "To review";
+"rewordad_nolook" = "Pro version";
+/*******************************************************************
+ 課金
+ *******************************************************************/
+"kakin_restore" = "Successfully restored";
+"kakin_restore_fail_title" = "Restore failed";
+"kakin_restore_fail_body" = "The purchase history could not be found from the Apple ID currently logged in at the store." ;
+"kakin_rule" = "☆ \"Home\" tab\n・ MV advertisement displayed at the top of the screen\n・ Banner advertisement on each screen such as music playlist\n・ Full screen advertisements that sometimes appear when playing your favorite videos\n☆ \"Ranking\" tab\n・ MV advertisement displayed at the top of the screen\n・ MV advertisement displayed in related video list\n☆ \"Search\" tab\n・ MV advertisement displayed at the top of the screen\n・ MV advertisement displayed in related video list\n・ Full screen advertisements that sometimes appear during search\n☆ \"Options\" tab\n・ MV advertisement\n* All advertisements other than the \"Text\" tab are subject to deletion.\n--Please read below--\n!!Note!!\n・ You cannot delete videos that have advertisements inserted into the Youtube video itself.\n・ Advertising during scanning of the \"Text\" tab and translation function execution will be a burden to reduce server load.\nPlease note.\n\n◇ About \"automatic continuous billing\"\nIf the automatic renewal is not canceled within 24 hours, the contract period will be automatically renewed.\nYou will be charged for auto-renewal within 24 hours of expiration.\n\n◇ Confirmation and cancellation of contract period\nYou can check and cancel the contract period from Device Settings-> iTunes Store and App Store-> Tap Apple ID-> Display Apple ID-> Register-> musicA.\n* If there is no \"Register\", automatic update is not registered.\n\n◇ Restore purchase information\nWhen changing models, the purchase status can be restored free of charge.\nLog in to the device with the same Apple ID as when you purchased and press the \"Restore from previous purchases\" button.\n\n◇ Notes\n・ Cancellation for those who have been charged cannot be made by any other means.\n・ We do not accept cancellations for the current month.\n・ You will be charged via your iTunes account.\n\n◇ Terms of Use / Privacy Policy\n(Link: https://www.ios-app-develop.com/blank-8)\nWe do not provide personally identifiable information to third parties.\nPay close attention to the management of personal information and treat it as listed below.\n\n・ When supporting\nNo personally identifiable information will be sent.\nOnly the device type / OS version for analysis is included in the support email.\n\n・ Data analysis\nIn order to improve the convenience of the app, data analysis is performed when a problem occurs.\nData handled by developers here does not include personally identifiable data.\n\n◇ Disclaimer\nAlthough we provide support for problems and inconveniences as much as possible, the developer will not be liable for damages caused by users using this application.";
+
+/*******************************************************************
+ Tabs
+ *******************************************************************/
+"tab_home" = "Home";
+"tab_practice" = "Practice";
+"tab_discovery" = "Discover";
+"tab_text" = "Text";
+"tab_options" = "Options";
+
+/*******************************************************************
+ Player State Labels
+ *******************************************************************/
+"player_state_on" = "On";
+"player_state_off" = "Off";
+"player_repeat_all" = "All";
+"player_repeat_one" = "1 Song";
+
+/*******************************************************************
+ Playback Speed
+ *******************************************************************/
+"speed_very_slow" = "Very Slow";
+"speed_slow" = "Slow";
+"speed_somewhat_slow" = "Somewhat Slow";
+"speed_slightly_slow" = "Slightly Slow";
+"speed_normal" = "Normal";
+"speed_slightly_fast" = "Slightly Fast";
+"speed_fast" = "Fast";
+"speed_fairly_fast" = "Fairly Fast";
+"speed_double" = "2x Speed";
+"speed_triple" = "3x Speed";
+"speed_5x" = "5x Speed";
+"speed_10x" = "10x Speed";
+"speed_20x" = "20x Speed";
+"speed_50x" = "50x Speed";
+
+/*******************************************************************
+ Practice Screen
+ *******************************************************************/
+"practice_title" = "Practice";
+"practice_mode_header" = "Practice Mode";
+"practice_speed_header" = "Playback Speed";
+"practice_mode_loop" = "Loop Section";
+"practice_mode_loop_sub" = "Loop chorus only";
+"practice_coming_soon" = "Coming Soon";
+"practice_no_track_hint" = "Select a song in the Home tab to get started";
+"practice_go_home_btn" = "Go to Home →";
+"practice_go_home_short" = "Home";
+"practice_unknown" = "Unknown";
+"practice_library" = "Library";
+"practice_dictation_title" = "Dictation";
+"practice_dictation_desc" = "Listen → Fill in the blanks";
+"practice_change_settings" = "Change text / language";
+"practice_no_track_state" = "No song selected";
+"practice_no_track_state_sub" = "Play a song from the Home tab to start";
+"practice_lyrics_ready" = "Lyrics registered";
+"practice_start_btn" = "Start Practice";
+"practice_no_lyrics_hint" = "No lyrics — auto-fetch via AI or photo";
+"practice_prepare_text_btn" = "Prepare Text";
+"practice_no_track_alert_title" = "No song selected";
+"practice_no_track_alert_msg" = "Please select a song from the Home tab.";
+"practice_coming_soon_ok" = "Can't wait!";
+
+/*******************************************************************
+ Dictation Screen
+ *******************************************************************/
+"dictation_title" = "Dictation";
+"dictation_input_placeholder" = "Type your answer here";
+"dictation_speak_hint" = "Play this line only";
+"dictation_check_btn" = "Check Answer";
+"dictation_skip_btn" = "Skip";
+"dictation_track_changed_title" = "Track Changed";
+"dictation_track_changed_msg" = "%@ has lyrics. Switch dictation to this track?";
+"dictation_switch_practice" = "Switch & Practice";
+"dictation_keep_current" = "Continue current";
+"dictation_no_lyrics_title" = "No Lyrics";
+"dictation_no_lyrics_msg" = "%@ has no lyrics registered.\nYou can continue with the current practice.";
+"dictation_this_song" = "this song";
+"dictation_result_title" = "Results";
+"dictation_review_header" = "Review";
+"dictation_retry_btn" = "Practice Again";
+"dictation_done_btn" = "Finish Practice";
+"dictation_accuracy_fmt" = "Accuracy %.0f%%";
+"dictation_skipped" = "(Skipped)";
+
+/*******************************************************************
+ Dictation Setup Screen
+ *******************************************************************/
+"dictsetup_fetch_btn" = "Search lyrics by watching an ad";
+"dictsetup_transcribe_btn" = "Transcribe from audio (AI)";
+"dictsetup_whisper_btn" = "🎵  Auto-transcribe from audio";
+"dictsetup_recommended_badge" = "Recommended";
+"dictsetup_image_ocr_btn" = "📷  Read text from photo / image";
+"dictsetup_camera_ocr_btn" = "📸  Read text with camera";
+"dictsetup_manual_btn" = "✏️  Enter text manually";
+"dictsetup_analyzing" = "Analyzing audio...";
+"dictsetup_loading_model" = "Loading model...";
+"dictsetup_overlay_title" = "Transcribing Lyrics\nfrom Audio";
+"dictsetup_other_methods_close" = "Close other methods";
+"dictsetup_other_methods_open" = "Other methods";
+"dictsetup_caption_input_btn" = "Enter subtitles";
+"dictsetup_caption_edit_btn" = "Edit subtitles";
+"dictsetup_youtube_open_btn" = "Open transcript in YouTube";
+"dictsetup_caption_hint" = "Enter subtitles";
+"dictsetup_caption_instruction" = "Copy and paste text from YouTube's \"…\" → \"Open transcript\" to practice dictation.";
+"dictsetup_lang_header" = "Question language";
+"dictsetup_lang_all" = "All";
+"dictsetup_text_registered" = "Text registered";
+"dictsetup_text_registered_sub" = "Text is registered for this audio. You can start practice.";
+"dictsetup_text_empty" = "Prepare text";
+"dictsetup_text_empty_sub" = "Auto-fetch from audio (recommended) or read text from a photo.";
+"dictsetup_transcribing_fmt" = "Transcribing... (%d chunks total)";
+"dictsetup_transcribing" = "Transcribing...";
+"dictsetup_reading_image" = "Reading image...";
+"dictsetup_lyrics_saved" = "Lyrics saved";
+"dictsetup_alert_ad_loading" = "Loading ad";
+"dictsetup_alert_ad_wait" = "Please wait a moment.";
+"dictsetup_alert_no_url_msg" = "Could not get audio file URL.";
+"dictsetup_alert_no_result" = "No transcription result";
+"dictsetup_alert_no_result_msg" = "Could not extract text from audio.";
+"dictsetup_alert_whisper_error" = "WhisperKit Error";
+"dictsetup_alert_incompatible" = "This model is not compatible with your device. Try a smaller model (Small or below).";
+"dictsetup_alert_image_load_error_msg" = "Failed to load image.";
+"dictsetup_alert_no_text_title" = "No text found";
+"dictsetup_alert_no_text_msg" = "Please choose a clear photo showing text.";
+"dictsetup_alert_lyrics_not_found_title" = "Lyrics not found";
+"dictsetup_alert_lyrics_not_found_msg" = "\"%@\" lyrics are not in the database.\nPlease enter them manually.";
+"dictsetup_alert_ad_failed" = "Failed to show ad";
+"dictsetup_alert_ad_failed_msg" = "Please try again later.";
+"dictsetup_lang_select_title" = "① Select Language";
+"dictsetup_lang_select_msg" = "Choose \"Auto\" if languages are mixed";
+"dictsetup_chunk_select_title" = "② Select chunk duration";
+"dictsetup_chunk_select_msg" = "Shorter = higher accuracy but more processing time";
+"dictsetup_chunk_10s" = "10s (short, high accuracy)";
+"dictsetup_chunk_20s" = "20s (balanced)";
+"dictsetup_chunk_30s" = "30s (recommended)";
+"dictsetup_chunk_45s" = "45s";
+"dictsetup_chunk_55s" = "55s (max, fast)";
+"dictsetup_transcribe_confirm_title" = "Start Transcription";
+"dictsetup_transcribe_confirm_msg" = "Audio: ~%dm %ds\nChunks: %ds × %d splits%@\n\nThis may take a moment.";
+"dictsetup_auto_detect_note" = " (%d-lang auto detect)";
+"dictsetup_start_btn" = "Start";
+"dictsetup_no_result_alt_msg" = "Could not extract text. Try a different language.";
+"dictsetup_transcribe_fail_title" = "Transcription failed";
+"dictsetup_ocr_copy_btn" = "Copy";
+
+/*******************************************************************
+ Language Names
+ *******************************************************************/
+"lang_japanese" = "Japanese";
+"lang_english" = "English";
+"lang_chinese_simplified" = "Chinese (Simplified)";
+"lang_chinese_traditional" = "Chinese (Traditional)";
+"lang_korean" = "Korean";
+"lang_spanish" = "Spanish";
+"lang_french" = "French";
+"lang_german" = "German";
+
+/*******************************************************************
+ Onboarding
+ *******************************************************************/
+"onboarding_next" = "Next";
+"onboarding_skip" = "Skip";
+"onboarding_start" = "Get Started 🎵";
+"onboarding_welcome_title" = "Welcome to musica";
+"onboarding_welcome_body" = "Use music and YouTube videos to\nlearn languages, transcribe by ear,\nor practice instruments.\n\nLet us know how you'll use it on the next page!";
+"onboarding_goal_title" = "How will you use musica?";
+"onboarding_goal_sub" = "You can change this later";
+"onboarding_goal_music_title" = "Practice with favorite songs";
+"onboarding_goal_music_sub" = "Fill-in-the-blank lyrics & loop sections";
+"onboarding_goal_youtube_title" = "Language learning with YouTube";
+"onboarding_goal_youtube_sub" = "Get subtitles for dictation practice";
+"onboarding_goal_earcopy_title" = "Transcribe by ear / instrument practice";
+"onboarding_goal_earcopy_sub" = "Master phrases with slow play & loop";
+"onboarding_ready_title" = "You're all set 🎉";
+"onboarding_howto_music_title" = "Dictation with your songs";
+"onboarding_howto_music_step1" = "Select and play a song from Home";
+"onboarding_howto_music_step2" = "AI auto-fetches lyrics or transcribes audio";
+"onboarding_howto_music_step3" = "Start fill-in-the-blank practice!";
+"onboarding_howto_youtube_title" = "Dictation with YouTube subtitles";
+"onboarding_howto_youtube_step1" = "Save your favorite videos";
+"onboarding_howto_youtube_step2" = "Get subtitles from the YouTube app";
+"onboarding_howto_youtube_step3" = "Start fill-in-the-blank practice!";
+"onboarding_howto_earcopy_title" = "Ear Copy / Instrument Practice";
+"onboarding_howto_earcopy_step1" = "Select a library song from Home";
+"onboarding_howto_earcopy_step2" = "Slow down playback to listen carefully";
+"onboarding_howto_earcopy_step3" = "Master difficult phrases with loop section";
+
+"btn_done" = "Done";
+
+"discover_search_title" = "YouTube Search";
+"discover_back_ranking" = "Ranking";
+"discover_search_placeholder" = "Search songs & artists (YouTube)";
+"discover_segment_songs" = "Songs";
+"discover_segment_mv" = "Music Videos";
+"discover_load_error" = "Failed to load";
+
+"home_hide_ads" = "Hide Ads";
+"ad_reward_title" = "Mute Ads for 3 Hours";
+"ad_reward_body" = "Watch a video ad to the end and enjoy 3 hours ad-free.";
+"ad_reward_watch" = "Watch Ad";
+"ad_reward_premium" = "Go Premium";
+
+"mv_add_title" = "Add YouTube Video";
+"mv_add_message" = "Paste the YouTube URL";
+"mv_add_btn" = "Add";
+"mv_invalid_url" = "Invalid URL";
+"mv_already_added" = "Already added";
+"mv_added_fmt" = "Added \"%@\"";
+"mv_play" = "▶︎ Play";
+"mv_dictation" = "Dictation Practice";
+"mv_caption_badge" = "Sub";
+
+"mv_howto_title" = "How to Use Favorite Videos";
+"mv_howto_subtitle" = "Practice dictation with YouTube videos.\nFollow the steps below to get started!";
+"mv_howto_step1_title" = "Copy the video URL from YouTube";
+"mv_howto_step1_body" = "Open the video you want to practice on YouTube.\nTap \"Share\" → \"Copy Link\" to copy the URL.\n\n💡 You can also find and add videos directly from the Discovery tab.";
+"mv_howto_step2_title" = "Add the video to musica";
+"mv_howto_step2_body" = "Tap the \"+\" button at the top right of this page.\nPaste the copied URL and tap \"Add\" to register the video.";
+"mv_howto_step3_title" = "Register subtitles (script)";
+"mv_howto_step3_body" = "Tap the added video and a sheet will appear.\nTap \"Dictation Practice\" and enter the script in the subtitle screen.\n\n💡 Copying the script from YouTube subtitles or the video description is recommended.";
+"mv_howto_step4_title" = "Start dictation practice";
+"mv_howto_step4_body" = "Tap a video with subtitles to play it.\nSlow down the speed, listen, and write what you hear.\nCheck your answers against the subtitles when done!";
+"mv_howto_tip" = "💡  Start with 0.75x or 0.5x speed. Gradually increase as you get used to it!";
+
+"player_shuffle_label" = "Shuffle";
+"player_repeat_label" = "Repeat";
+"player_region_label" = "Loop";
+"player_dictation_label" = "Practice";
+"player_region_on" = "ON";
+
+"speed_sheet_title" = "Playback Speed";
+"region_sheet_title" = "Loop Section";
+"section_repeat_range" = "Loop Range";
+"section_repeat_loop" = "Section Loop";
+
+/* ── Premium Plan screen ─────────────────── */
+"premium_title" = "Premium Plan";
+"premium_hero_title" = "No ads. Stay focused on practice.";
+"premium_hero_sub" = "Hide all ads with musica Premium.\nStay in the zone while you dictate.";
+"premium_benefits_header" = "What you get with Premium";
+"premium_benefit1_label" = "Remove all ads";
+"premium_benefit1_sub" = "Banners, interstitials & MV ads fully removed";
+"premium_benefit2_label" = "Stay focused";
+"premium_benefit2_sub" = "No interruptions to break your rhythm";
+"premium_benefit3_label" = "Smooth music playback";
+"premium_benefit3_sub" = "Browse playlists without interruption";
+"premium_benefit4_label" = "Cancel anytime";
+"premium_benefit4_sub" = "Recurring billing. Cancel from Settings at any time";
+"premium_price_fallback" = "Monthly Plan";
+"premium_price_fmt" = "%@ / month";
+"premium_price_sub" = "No ads · Cancel anytime";
+"premium_cta" = "Start Premium";
+"premium_restore" = "Restore previous purchases";
+"premium_terms" = "Terms of Use / Privacy Policy";
+"premium_legal" = "· You will be charged after confirming your purchase.\n· If you do not cancel within 24 hours before the end of the period, your subscription will auto-renew.\n· To cancel: Settings → Apple ID → Subscriptions → musica\n· Ads within YouTube videos are not covered.";
+"premium_alert_title" = "Start Premium Plan?";
+"premium_alert_price_fmt" = "%@ / month (auto-renewing)";
+
+/* ── Text tab (scanViewController) ─── */
+"scan_status_title" = "Text Recognition & Translation";
+"scan_status_sub" = "Read text from camera or images";
+"scan_edit_mode" = "Lyrics Edit Mode";
+"scan_unknown_title" = "Unknown Title";
+"scan_copy_empty" = "No text to copy";
+"scan_copy_done" = "Text copied";
+"scan_btn_clear" = "Clear";
+"scan_btn_undo" = "Undo";
+"scan_btn_register" = "Save";
+"scan_analyzing" = "Analyzing audio...";
+
+/* ── Text tab mic button ─────────────── */
+"scan_no_music_title" = "No Music Selected";
+"scan_no_music_body" = "A playing or selected track is required.\nYou can also use live input with the green mic button.";
+"scan_unsupported_title" = "Not Supported";
+"scan_unsupported_body" = "Speech recognition requires iOS 16 or later.";
+"scan_no_result_title" = "No Results";
+"scan_no_result_body" = "Could not extract text from audio.";
+"scan_error_title" = "Error";
+"scan_transcribe_fail_title" = "Transcription Failed";
+"scan_lang_sf_title" = "🎙 Select SFSpeech Language";
+"scan_lang_live_title" = "🎙 Select Recognition Language";
+"scan_lang_live_msg" = "Multi-language mode recognizes in parallel and picks the longest result";
+"scan_lang_device_default_fmt" = "✓ %@ (Device Default)";
+"scan_perm_error_title" = "Permission Error";
+"scan_perm_speech_body" = "Go to Settings → Privacy & Security → Speech Recognition to allow this app.";
+"scan_perm_mic_body" = "Go to Settings → Privacy & Security → Microphone to allow this app.";
+"scan_no_engine_body" = "No speech recognition engine is available.";
+"scan_recording_label" = "🎙 Recording... Tap to stop";
+"scan_transcribing" = "Transcribing...";
+"scan_transcribe_complete_title" = "Transcription complete";
+"scan_transcribe_apply_body" = "Apply to text area?\n\n%@";
+"scan_transcribe_apply_btn" = "Apply";
+
+/* ── Weak Words ──────────────────────────────── */
+"weak_word_title" = "Weak Words";
+"weak_word_clear_all_title" = "Clear All";
+"weak_word_clear_all_msg" = "Delete all weak words from the list?";
+"weak_word_delete" = "Delete";
+"weak_word_empty_title" = "No Weak Words";
+"weak_word_empty_sub" = "Words you mark \"Review\" in Flashcards\nwill appear here";
+"weak_word_practice_btn_fmt" = "Practice Weak Words (%d)";
+"practice_weak_words_title" = "Weak Words";
+"practice_weak_words_sub" = "Review missed words";
+"flash_weak_mode_title" = "Weak Word Practice";
+
+/* ── Practice History ────────────────────────── */
+"history_title" = "Practice History";
+"history_tab_track" = "By Song";
+"history_tab_period" = "By Period";
+"history_empty_start" = "No practice records yet\nStart today!";
+"history_empty" = "No practice records yet";
+"history_unknown_track" = "Unknown Track";
+"history_no_score" = "No score";
+"history_best_badge" = "Best 🏆";
+"history_year_comparison" = "Year Comparison";

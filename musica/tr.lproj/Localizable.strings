@@ -1,0 +1,743 @@
+/* 
+  Localizable.strings
+  musica
+
+  Created by 栗林貴大 on 2019/09/02.
+  Copyright © 2019 K.T. All rights reserved.
+*/
+/*******************************************************************
+ 共通
+ *******************************************************************/
+// アラート
+"btn_yes" = "Evet";
+"btn_no" = "Hayır";
+"btn_ok" = "OK";
+"btn_cancel" = "İptal etmek";
+"btn_success" = "Başarı!";
+"btn_failure" = "Başarısızlık...";
+"btn_delete" = "silmek için";
+"btn_msg" = "İleti";
+"btn_edit" = "Düzenle";
+"btn_close" = "Kapat";
+
+// お気に入り
+"okiniiri_longtap" = "Favori olarak kaydetmek için uzun basın";
+
+// エラー
+"err" = "Hata";
+"err_nocontents" = "Web'de henüz video içeriği yok gibi görünüyor.";
+"network_err_msg" = "Ağ bozuk veya sunucu bakımda gibi görünüyor. Lütfen bir süre sonra erişmeyi deneyin.";
+
+//　PUSHタイトル
+"push_title" = "Farkına varmak";
+
+// アプリ誘導
+"app_intro_title" = "Bu işlevi daha rahat kullanmanıza izin veren uygulamalar var.";
+"app_intro_body_scancamera" = "\"Translation Scan Camera App\" uygulamasını kurmak istiyor musunuz?\nTarama sonuç geçmişi yönetimi kullanılabilir.\n";
+
+// レビュー誘導
+"review_app_title" = "Her zaman kullandığınız için teşekkürler.";
+"review_app_body" = "Gelecekte daha iyi hizmet için Appstore üzerinde inceleyebilirsiniz eğer takdir ediyorum.";
+"review_app_yes" = "İncelemek için";
+"review_app_no" = "İnceleme";
+"review_app_layter" = "Daha sonra yapmak";
+
+// 課金誘導
+"kakin_app_title" = "Uygulamayı reklam göstermeden kullanmak ister misiniz?";
+"kakin_app_body" = "Her ay sadece iki meyve suyu ile, uygulamayı rahatça kullanabilirsiniz! (Tarama/çeviri işlevi dışındaki tüm reklamlar silinecek!)";
+"kakin_app_yes" = "detayları gör!";
+"kakin_app_stay" = "Daha sonra bakın";
+"kakin_app_no" = "aldırmamak";
+
+//　アップデート関連
+"update_newver_force_title" = "Yeni sürüm yayınlandı.";
+"update_newver_force_body" = "Lütfen uygulamayı güncelleyin.";
+"update_newver_title" = "Yeni sürüm yayınlandı.";
+"update_newver_body" = "Uygulamayı güncellemek istiyor musunuz?";
+
+// 許諾
+"plist_camera_title" = "Kameraya erişim izni";
+"plist_camera_body" = "Bu uygulamanın kameraya erişim izni yok. Ayarlardan erişime izin ver.";
+
+// 紹介
+"intro_message" = "music Application \nitunes.apple.com/jp/app/apple-store/id1288959420";
+
+// Push
+"local_push_ranking_title" = "Bu haftanın sıralaması güncellendi!";
+"local_push_ranking_body" = "Yaşasın!";
+
+// Firebase向け
+"firebase_local_country" = "tr";
+"youtube_local_country" = "tr";
+/*******************************************************************
+ 設定画面Tab
+ *******************************************************************/
+"setting" = "Ayarlar";
+"setting_recommend_app" = "Önerilen uygulamalar";
+"setting_help" = "Yardım";
+"setting_about_ad" = "Reklam hakkında";
+"setting_about_app" = "Uygulama hakkında";
+"setting_ad" = "Sponsorlu reklamlar";
+"debug_log" = "Günlük çıktısı";
+
+// デザインテーマ名
+"design_theme_setting_title" = "Tasarım teması";
+"design_theme_setting_body" = "Uygulamanız için bir renk teması ayarlama";
+"design_theme_old" = "Eski tasarım";
+"design_theme_pop" = "Pop";
+"design_theme_popred" = "Beyaz (açık mavi)";
+"design_theme_sharpblue" = "Beyaz (Siyah)";
+"design_theme_sharpred" = "Beyaz (koyu mavi)";
+"design_theme_sharpnomal" = "Beyaz (koyu kırmızı)";
+"design_theme_sharpdark" = "Koyu mavi";
+"design_theme_sharpblack" = "Siyah";
+"design_theme_now" = "Koyu kırmızı";
+"design_theme_setting_comp" = "Tasarım değişti";
+
+// アプリについて
+"app_info" = "Uygulama bilgileri";
+"app_management" = "App management";
+"app_oss" = "Açık kaynak lisansı";
+"app_review" = "Uygulamayı inceleyin";
+"app_introduction" = "Uygulamayı arkadaşlarınıza tanıtın";
+
+// おすすめアプリ
+"recommended_app_todolist" = "todolist";
+"recommended_app_todolist_title" = "ToDo List";
+"recommended_app_todolist_des" = "Görev yönetiminde son nokta! Bu basit ve güçlü bir Yapılacaklar listesi uygulamasıdır.";
+"recommended_app_scancamera" = "scancamera";
+"recommended_app_scancamera_title" = "Translation scan camera";
+"recommended_app_scancamera_des" = "Bu, karakterleri bir kamerayla tarayabilen ve oldukları gibi çevirebilen kullanışlı bir araçtır.";
+"recommended_app_mr_stick" = "mr_stick";
+"recommended_app_mr_stick_title" = "Mr STICK";
+"recommended_app_mr_stick_des" = "Bir öldürme aksiyon oyunu. Derinlerde.";
+"recommended_app_nanopita" = "nanopita";
+"recommended_app_nanopita_title" = "ナノピタッ";
+"recommended_app_nanopita_des" = "Sadece 0 saniyede duran, genellikle bir kronometre ile yapılan bir oyundur. Nanosaniye olarak gel.";
+
+// 関連サイト
+"homepage_musicahoutouse" = "Nasıl kullanılır";
+"homepage_musica" = "musicA resmi";
+"homepage_pp" = "Servis Gizlilik Politikası";
+"to_homepage_musica" = "Resmi bir site";
+
+// 問い合わせ
+"qa" = "SSS";
+"qa_request" = "Bir iyileştirme isteği gönderin";
+"qa_report" = "Soruşturma, ihlal raporu";
+
+// 設定項目
+"setting_item_resultnum" = "Arama sonucu sayısı/sıralama ekranı.";
+"setting_item_resultnum_des" = "Arama sonucu sayısını belirleme/sıralama ekranı.";
+"setting_item_help_des" = "Yardım ekranı.";
+"setting_item_cashclear" = "Önbelleği temizle";
+"setting_item_cashclear_des" = "Bazı youtube hatalarını çözün.";
+"setting_item_adclear" = "Reklamları kaldırmak";
+"setting_item_adclear_des" = "Aylık ödeme (13,99 TL her ay) otomatik olarak yenilenir. Reklamı silmek istiyor musunuz?";
+"setting_item_cashclear_alert" = "Önbelleği temizle";
+"setting_item_cashclear_alert_des" = "Destek videoları oynatılırken, önbellekleme nedeniyle bir hata oluşabilir. Önbelleği silerek oynayabilirsiniz.";
+"setting_item_helpappear" = "[?] Düğmesinin görüntülenip görüntülenmeyeceğini ayarlayın.";
+"setting_item_push" = "Bildirim ayarları";
+"setting_item_kakinkaijo" = "Faturalandırmayı iptal et";
+"setting_item_design" = "tasarlamak";
+
+// 問い合わせメール
+"mail_title_req" = "Geliştirme talebi, istek";
+"mail_title_faq" = "Soruşturma, ihlal raporu";
+
+// 秘密の項目
+"setting_secret_item_title" = "Bu öğe nadiren görünür. Bu bir böcek";
+"setting_secret_item_body" = "Uygulamayı kullandığınız için teşekkür ederiz!";
+
+/*******************************************************************
+ 検索Tab
+ *******************************************************************/
+"search" = "Arama";
+"search_janre_setting_title" = "Video türünü ara";
+"search_janre_setting_body" = "Arama video türünü ayarlayın.";
+
+// 検索ジャンル
+"search_janre_sougou" = "Genel";
+"search_janre_eigaanime" = "Filmler ve anime";
+"search_janre_norimono" = "Araba ve araç";
+"search_janre_music" = "Müzikler";
+"search_janre_animal" = "Evcil hayvanlar ve hayvanlar";
+"search_janre_sports" = "Spor Dalları";
+"search_janre_tripevent" = "Seyahat/Etkinlik";
+"search_janre_game" = "Oyun";
+"search_janre_blog" = "Bloglar";
+"search_janre_comedy" = "Komedi";
+"search_janre_entertainment" = "Eğlence";
+"search_janre_news" = "Haberler";
+"search_janre_howto" = "Nasıl";
+"search_janre_education" = "Eğitim";
+"search_janre_technology" = "Bilim ve Teknoloji";
+"search_janre_society" = "Toplum";
+"search_janre_anime" = "Anime";
+"search_janre_movietrailer" = "Film fragmanı";
+
+// 検索文言
+"search_word_blank" = "";
+
+"search_recommend_mv_message" = "Kullanıcılar arasında popüler!";
+"search_recommend_mv_tapped_message" = "Kullanıcıların sık oynattığı videoların listesi";
+"search_recommend_wards" = "Sık aranan kelimeler";
+"youtube_server_quota_err" = "Sunucu şu anda erişim yükü nedeniyle bağlanamıyor. Lütfen daha sonra tekrar deneyiniz.";
+/*******************************************************************
+ Home Tab
+ *******************************************************************/
+"home_tutorial_label" = "Müzik Kütüphanesi ekleyelim!!";
+"home_tutorial_label_tapped" = "Müzik kitaplığı oluşturmak için dokunun!";
+"home_rename_btn" = "Adını değiştirmek";
+"home_addtrack_btn" = "Parça ekle";
+"home_deletetrack_btn" = "Sil";
+// 歌詞の文字サイズ
+"moji_size_0" = "En az";
+"moji_size_1" = "Küçük";
+"moji_size_2" = "Sırasında";
+"moji_size_3" = "Büyük";
+"moji_size_4" = "büyük boy";
+"moji_size_5" = "Kocaman";
+"moji_size_setting_title" = "Şarkı sözü ekran boyutu ayarı";
+"moji_size_setting_body" = "Şarkı sözlerinin metin boyutunu ayarlama";
+
+// 歌詞登録
+"lyric_regist_msg_library" = "Kütüphane:";
+"lyric_regist_msg_track" = "\nŞarkı adı:";
+"lyric" = "Şarkı sözleri";
+
+// 音楽ライブラリ作成、編集、削除
+"musiclibrary_selected_track_num" = "seçilen şarkılar";
+"musiclibrary_edit" = "Kütüphane adını düzenle";
+"musiclibrary_editname" = "Müzik Kütüphanesi adının düzenlenmesi tamamlandı.";
+"musiclibrary_err_nomusic" = "Müzik yok";
+"musiclibrary_err_album_nomusic" = "Bu albümde kaydedilebilecek müzik yok";
+"musiclibrary_err_playlist_nomusic" = "Bu oynatma listesine kaydedilebilecek müzik yok";
+"musiclibrary_delete_conform_title" = "Silmek istediğinizden emin misiniz?";
+"musiclibrary_delete_conform_body" = "Bir kitaplığı silerseniz, kurtarılamaz. Ayrıca, her şarkı için kaydedilen şarkı sözleri silinecek.";
+"musiclibrary_delete_msg" = "Müzik kitaplığı silindi";
+"musiclibrary_delete_track_msg" = "Müzik kütüphaneden kaldırıldı";
+"musictrack_delete_conform_title" = "Şarkıya kayıtlı sözler de silinecek.";
+"musictrack_howto_download" = "Nasıl indirilir";
+"musictrack_howto_drm" = "DRM içeriği ve nasıl kaldırılacağı hakkında";
+
+// お気に入り動画
+"okiniiri_failure_playmv" = "Video oynatılamadı.";
+"okiniiri_cantplaymv" = "Oynatma listesi Oynatmanın yasak olduğu bir oynatma listesi.\nVideo sitede ayrı ayrı oynatılacaktır.";
+"okiniiri_redo" = "Tekrar deneyin";
+"okiniiri_failure_setspeed" = "Oynatma hızı ayarlanamadı";
+"okiniiri_incompatible_speed1" = "Bu videonun oynatma hızı [×";
+"okiniiri_incompatible_speed2" = "] Desteklenmeyebilir ...";
+"okiniiri_incompatible_speed2_setneer" = "] Desteklenmeyebilir ...\n※En yakın[×";
+"okiniiri_setspeed" = "] Ayarlandı.";
+"okiniiri_err_incompatible_spped" = "Bu bir hatadır. Video hız değişikliklerini desteklemeyebilir.";
+"okiniiri_err_network" = "Ağ bağlantısı dengesiz görünüyor.";
+
+//　音楽ライブラリ登録
+"musiclibrary_select_fromalbum" = "Her albüm için bir şarkı seçin!";
+"musiclibrary_select_library" = "Her kütüphane için bir şarkı seçin!";
+
+// 音楽再生
+"musiclibrary_not_play" = "Not playing";
+"musiclibrary_err_cantplay_title" = "Bu oynanabilir değil ...";
+"musiclibrary_err_cantplay_nodownload" = "Şarkı verileri cihazınıza indirilmediğinden bu şarkı bu uygulamayla çalınamıyor.\nStandart müzik uygulamasından veya iTunes Store'dan şarkı indirerek müzik çalabilirsiniz!";
+"musiclibrary_err_cantplay" = "Müzik çalamıyorum";
+"musiclibrary_err_cantplay_nowedit" = "Müzikçalar düzenlenirken müzik çalınamaz. Düzenleme modunu tamamlamak için \"Düzenle Tamamlandı\" ya dokunun.";
+"musiclibrary_err_cantregister_title" = "Bu müzik kaydedilemiyor ...";
+"musiclibrary_err_cantregister_body" = "Cihazda bu müzik için veri yok.\nStandart müzik uygulamasından veya iTunes Store'dan şarkı indirerek müzik çalabilirsiniz!";
+"musiclibrary_err_cantregister_title_drm" = "Bu müzik kaydedilemiyor ...";
+"musiclibrary_err_cantregister_body_drm" = "Bu şarkı DRM içeriği olduğu için çalınamıyor veya kaydedilemiyor. Oynamak için DRM'yi kaldırmanız gerekir. (İptal işleminden sonra kayıt mümkündür!)";
+
+// 音楽プレイヤー
+"musiclibrary_play_section_label" = "Bölüm Oynatma";
+"musiclibrary_play_section_repeat_setting" = "Bölüm ayarı";
+"musiclibrary_play_section_repeat_setting_comp" = "Tamamlayınız";
+"musiclibrary_fast_display_tuto" = "Şarkıları uzun basarak sıralayabilirsiniz.";
+
+// 歌詞編集
+"musiclibrary_lylic_regist_title" = "Are you sure you want to update the lyrics with this content?";
+"musiclibrary_lylic_regist_success" = "The lyrics have been updated.";
+"musiclibrary_lylic_regist_failure" = "The lyrics update failed.";
+"musiclibrary_lylic_copy" = "Copy and close.";
+"musiclibrary_scan_text" = "This is a confirmed string.";
+
+// TOP画面
+"musiclibrary_regist_comp_toast" = "Müzik kitaplığı kaydı tamamlandı!";
+"musiclibrary_err_cant_delete" = "Silinemiyor";
+"musiclibrary_err_cant_delete_okiniiri" = "\"Favori video\" silinemez";
+
+// MusicLibraly登録画面
+"musiclibrary_regist_comp_title" = "Müzik Kütüphanesi kaydı tamamlandı";
+"musiclibrary_regist_comp_body" = "Sıkı çalışman için teşekkür ederim!";
+"musiclibrary_regist_err" = "Müzik Kütüphanesi kaydı başarısız oldu.";
+"musiclibrary_regist_err_humei" = "Bilinmeyen hata. Lütfen daha sonra tekrar deneyiniz.";
+"musiclibrary_regist_err_noname_title" = "İsim boş ...";
+"musiclibrary_regist_err_noname_body" = "Müzik Kütüphanesi için bir ad verin.";
+"musiclibrary_regist_err_noselect_title" = "Hiçbir şey seçilmedi";
+"musiclibrary_regist_err_noselect_body" = "Lütfen bir veya daha fazla müzik seçin.";
+"musiclibrary_regist_err_samename_title" = "Aynı ada sahip bir Müzik Kütüphanesi zaten var";
+"musiclibrary_regist_err_samename_body" = "Kayıtlı Müzik Kütüphanesinin adını değiştirin.";
+"library_resist_name_placeholder" = "Lütfen kütüphane adını girin";
+
+// Youtube再生画面
+"okiniiri_regist" = "\"Favori Video\" ya ekle";
+"okiniiri_delete" = "\"Favori Video\" dan kaldır";
+"okiniiri_regist_title" = "Favorilere ekle";
+"okiniiri_regist_body" = "Bu videoyu Favori videolarınıza eklemek ister misiniz?";
+"okiniiri_delete_title" = "Favori videolardan kaldır";
+"okiniiri_delete_body" = "Bu videoyu Favori videolarınızdan kaldırmak istediğinizden emin misiniz?";
+"okiniiri_regist_comp_title" = "Kayıt işleminin tamamlanması";
+"okiniiri_regist_comp_body" = "\"Favori videolar\" a eklendi";
+"okiniiri_delete_comp_title" = "Silme işlemi tamamlandı";
+"okiniiri_delete_comp_body" = "\"Favori videolar\" dan kaldır";
+
+// テキスト画面
+"musiclibrary_err_network_title" = "Ağ hatası";
+"musiclibrary_err_network_body" = "Ağın bağlı olduğundan emin olun.";
+
+// 画面内文言
+"home_okiniiri_title" = "Favori videolar";
+"home_okiniiri" = "お気に入り動画"; // DB登録のため、変えられない
+"home_track_num" = "Şarkı sayısı:";
+"home_mv_num" = "Video sayısı:";
+"home_edit_comp" = "Tamamlayınız";
+
+// HELP
+"home_help_title" = "musica Nasıl Kullanılır";
+"home_help_body" = "musica'nın nasıl kullanılacağına dair kısa bir genel bakış.";
+"home_help_nolook" = "Atla";
+"home_help_look" = "Göster";
+"home_help_1" = "Müzik videoları burada oynar.";
+"home_help_2" = "Kaydedilmiş Favori Videolarınızı izlemek için buraya dokunun.";
+"home_help_3" = "Keşfet sekmesinde YouTube'da arama yapabilir ve dünya sıralamasına göz atabilirsiniz. Videoları Favorilere de kaydedebilirsiniz!";
+"home_help_4" = "Pratik sekmesinde dikte alıştırmaları ve bölüm döngüsü pratiği yapabilirsiniz — dil öğrenimi için mükemmel!";
+"home_help_5" = "Müzik kütüphaneleriniz Favori Videolarınızın yanında burada görünür.";
+"home_help_6" = "Bir müzik kütüphanesi oluşturmak için bu \"+\" düğmesine dokunun.";
+"home_help_7" = "Bu kılavuzu tekrar görmek için istediğiniz zaman \"?\" düğmesine dokunun.";
+"home_help_8" = "Daha fazla yardım için Seçenekler sekmesindeki \"Nasıl Kullanılır\" kısmına bakın. Görüşürüz!";
+"home_help_9" = "Burada bir müzik kütüphanesi oluşturabilirsiniz!";
+
+"home_tutorial_mv_message" = "En sevdiğiniz videoları bulun!!";
+"home_tutorial_tapped_message" = "Sıralama/Arama sekmesinden video arayın!";
+
+// How To Download
+"how_to_download_page1" = "İndirme işlemi \"Music\" iPhone / iPad ile veya iTunes Store uygulamasından gelir.";
+"how_to_download_page2" = "\"Müzik\" uygulamasında, kütüphaneden indirmek istediğiniz şarkıyı bulun ve indirmek için buluta dokunun.\n※Aindirdikten sonra, lütfen bu uygulamayı öldürün ve yeniden başlatın";
+"how_to_download_page3" = "From the \"iTunes Store\" app, you can download from [Others] tab, [Download] or \"Purchased\" ⇨ \"Music\" ⇨ \"Items not on this iPhone\".\n※Aindirdikten sonra, lütfen bu uygulamayı öldürün ve yeniden başlatın";
+/*******************************************************************
+ ランキング Tab
+ *******************************************************************/
+// 国の設定
+"ranking_default_settings" = "tr";
+"ranking_default_settings_" = "tr";
+"ranking_change_country_title" = "Sıralama ülkesini değiştir";
+"ranking_change_country_body" = "Grafik ülkesini değiştirin.";
+
+// 国
+"ranking_country_jp" = "Japonya";
+"ranking_country_ame" = "Amerika";
+"ranking_country_trk" = "Türkiye";
+"ranking_country_egi" = "İngiltere";
+"ranking_country_kan" = "Kore";
+"ranking_country_tyu" = "Çin";
+"ranking_country_tai" = "Tayland";
+"ranking_country_spe" = "ispanya";
+
+// 動画について
+"ranking_neer_mv" = "İlgili videolar";
+"ranking_more_look" = "Daha fazla gör";
+
+/*******************************************************************
+ Text Tab
+ *******************************************************************/
+"trans_tutorial" = "textTabTutorial_en";
+// 画面内文言
+"trans_title" = "Metin tarama ve çeviri";
+"trans_btn_clear" = "Açık";
+"trans_btn_lyric_regist" = "Tescil";
+
+// 翻訳言語
+"trans_lang_jp" = "Japonca";
+"trans_lang_en" = "ingilizce";
+"trans_lang_ch" = "Çince";
+"text_share" = "Paylaş";
+
+// 翻訳機能
+"text_moreuse" = "Daha uygun";
+"text_selectlang_title" = "Çevrilecek dil";
+"text_selectlang_body" = "Çevrilecek dili ayarlayın.";
+
+// HELP
+"text_help_title" = "Tarama ve Çeviriyi Kullanma";
+"text_help_body" = "Tarama ve çeviri özelliklerini nasıl kullanacağınız aşağıda açıklanmaktadır.";
+"text_help_nolook" = "Atla";
+"text_help_look" = "Her ikisini göster";
+"text_help_look_scan" = "Yalnızca tarama";
+"text_help_look_trans" = "Yalnızca çeviri";
+"text_help_1" = "Tarama özelliğini kullanarak görüntülerden metin okuyun.";
+"text_help_2" = "Cihazınızda kayıtlı görüntülerden taramak için buraya dokunun!";
+"text_help_3" = "Taramak için yeni bir fotoğraf çekmek için buraya dokunun!";
+"text_help_4" = "Taranan görüntü burada gösterilir.";
+"text_help_5" = "Tarama sonuçları metin alanında görünür.\nNot: Tarama sırasında reklamlar gösterilebilir.";
+"text_help_6" = "Tarama sonuçları metin alanında görünür.\nNot: Tarama sırasında reklamlar gösterilebilir. Hepsi bu!";
+"text_help_7" = "Metni birçok dile çevirin. (Kullanım sınırı uygulanır.)\n※Reklam izleyerek veya reklama dokunarak sınırı sıfırlayın.";
+"text_help_8" = "Tarama sonuçları metin alanında görünür.\nNot: Tarama sırasında reklamlar gösterilebilir.";
+"text_help_9" = "Çeviri Sonucuna geçerek metni çevirin. (Kullanım sınırı uygulanır.)\nOrijinale dönmek için Orijinal'e geçin. ※Reklam izleyin veya dokunun.";
+"text_help_10" = "Çevirmek için Çeviri Sonucuna geçin.\nOrijinal metni geri yüklemek için Orijinal'e dönün.";
+"text_help_11" = "Çevirmek için Çeviri Sonucuna geçin.\nOrijinal metni geri yüklemek için Orijinal'e dönün.";
+"text_help_12" = "Tarama sonuçları metin alanında görünür.\nNot: Tarama sırasında reklamlar gösterilebilir.";
+"text_help_13" = "Çeviri dilinizi buradan seçin.\nBirçok seçenek var — hepsi bu!";
+"text_help_14" = "Hazırsınız!";
+
+// エラー
+"text_err_network" = "Bu özellik çevrimdışıyken kullanılamaz.";
+"text_err_notextorigin" = "Orijinal metin yok.";
+"text_err_unsupported_title" = "Bu özellik cihazınızda mevcut değil";
+"text_err_unsupported_body" = "Bu işlev iOS10 veya üstü olmadığı sürece kullanılamaz. Lütfen cihazınızı güncelleyin.";
+"text_err_textnum_title" = "Karakter sınırı hatası";
+"text_err_textnum_body1" = "Çevrilebilecek karakter sayısı şu anda";
+"text_err_textnum_body2" = "karakter. Lütfen biraz daha kısaltın.\n ※Şu anda karakter sayısı";
+"text_err_textnum_body3" = "karakterler.";
+"text_err_usecount_title" = "Maksimum çeviri sayısına ulaştınız";
+"text_err_usecount_body" = "Şu andan sonuna kadar görüntülenen reklamları izleyerek çeviri işlevini ücretsiz kullanmaya devam edebilirsiniz!";
+"text_err_usecount_body_tap" = "Şimdi görüntülenen reklama dokunarak çeviri işlevini ücretsiz olarak kullanmaya devam edebilirsiniz!";
+"text_err_nolookad" = "Şimdi dur";
+"text_err_trans_failure" = "HATA: Çeviri başarısız oldu.";
+"text_err_failure" = "Başarısız oldum.";
+"text_err_scan_failure_title" = "Tarama başarısız oldu ...";
+"text_err_scan_failure_body" = "Tarama başarısız oldu ... Terminalin sinyal durumunu kontrol edin.";
+"text_err_scan_nochara" = "Görüntüden metin algılanamadı ...";
+"text_err_scan_retry" = "Bir kez daha zaman ayır";
+
+/*******************************************************************
+ 広告
+ *******************************************************************/
+"rewordad_title" = "Reklamları belirli bir süre için gizleyebilirsiniz.";
+"rewordad_body_Or" = " veya ";
+"rewordad_body_AD" = "\"Reklamı sonuna kadar izle\"";
+"rewordad_body_Twitter" = "\"Bu uygulamayı tanıtın\"";
+"rewordad_body_Review" = "\"Gözden geçirin\"";
+"rewordad_base" = "Ardından, önümüzdeki üç saat için Metin sekmesi dışındaki tüm reklamları gizleyebilirsiniz.";
+"rewordad_body_Review_End" = "\n※Uygulamayı ücretsiz olarak sunmaya devam edebilmemiz için inceleyerek bize 5 yıldız verebilirseniz seviniriz.";
+"rewordad_look_AD" = "Reklamları sonuna kadar görün";
+"rewordad_look_Twitter" = "Twitter'da tanışın";
+"rewordad_look_Review" = "İncelemek için";
+"rewordad_nolook" = "Profesyonel sürüm";
+/*******************************************************************
+ 課金
+ *******************************************************************/
+"kakin_restore" = "Başarıyla geri yüklendi";
+"kakin_restore_fail_title" = "Geri yükleme başarısız";
+"kakin_restore_fail_body" = "Satın alma geçmişi, şu anda mağazada oturum açmış olan Apple Kimliğinden bulunamadı." ;
+"kakin_rule" = "☆ \"Ev\" çıkıntı\n・ Ekranın üstünde görüntülenen MV reklamı\n・ Her ekranda müzik çalma listesi gibi şerit reklam\n・ En sevdiğiniz videoları oynatırken bazen görünen tam ekran reklamlar\n☆ \"Sıralama\" çıkıntı\n・ Ekranın üstünde görüntülenen MV reklamı\n・ MV reklamı ilgili video listesinde görüntüleniyor\n☆ \"Arama\" çıkıntı\n・ Ekranın üstünde görüntülenen MV reklamı\n・ MV reklamı ilgili video listesinde görüntüleniyor\n・ Bazen arama sırasında görünen tam ekran reklamlar\n☆ \"Seçenekler\" çıkıntı\n・ MV reklamı\n* \"Metin\" sekmesi dışındaki tüm reklamlar silinmeye tabidir.\n--Lütfen aşağıyı okuyun--\n!!Not!!\n・ Youtube videosuna reklam eklenmiş videoları silemezsiniz.\n・ \"Metin\" sekmesinin taranması sırasında reklam ve çeviri işlevinin yürütülmesi sunucu yükünü azaltmak için bir yük olacaktır.\nLütfen aklınızda bulundurun.\n\n◇ \"Otomatik sürekli faturalandırma\" hakkında\nOtomatik yenileme 24 saat içinde iptal edilmezse, sözleşme süresi otomatik olarak yenilenir.\nSon kullanma tarihinden itibaren 24 saat içinde otomatik yenileme için ücretlendirilirsiniz.\n\n◇ Sözleşme süresinin teyidi ve iptali\nSözleşme süresini Cihaz Ayarları-> iTunes Store ve App Store-> Apple Kimliği-> Apple Kimliği Göster-> Kayıt Ol-> musicA öğelerinden kontrol edebilir ve iptal edebilirsiniz.\n* Yoksa \"Kayıt ol\",otomatik güncelleme kayıtlı değil.\n\n◇ Satın alma bilgilerini geri yükleme\nModelleri değiştirirken, satın alma durumu ücretsiz olarak geri yüklenebilir.\nSatın aldığınız zamanki Apple ID ile aynı cihaza giriş yapın ve \"Önceki satın alımlardan geri yükle\" düğmesine basın.\n\n◇ notlar\n・ Suçlananlar için iptal başka bir yolla yapılamaz.\n・ Geçerli ay için iptalleri kabul etmiyoruz.\n・İTunes hesabınız üzerinden ödeme alınacaktır.\n\n◇ Kullanım Koşulları/Gizlilik Politikası\n(bağlantı: https://www.ios-app-develop.com/blank-8)\nÜçüncü taraflara kişisel olarak tanımlanabilir bilgi vermiyoruz.\nKişisel bilgilerin yönetimine çok dikkat edin ve aşağıda listelenen şekilde ele alın.\n\n・ Desteklerken\nKişisel olarak tanımlanabilir hiçbir bilgi gönderilmez.\nDestek e-postasında yalnızca analiz için cihaz türü/işletim sistemi sürümü bulunur.\n\n・ Veri analizi\nUygulamanın rahatlığını artırmak için, bir sorun oluştuğunda veri analizi yapılır.\nBuradaki geliştiriciler tarafından işlenen veriler kişisel olarak tanımlanabilir verileri içermez.\n\n◇ feragat\nSorunlara ve rahatsızlıklara olabildiğince destek vermemize rağmen, geliştirici bu uygulamayı kullanan kullanıcıların neden olduğu zararlardan sorumlu olmayacaktır.";
+
+/*******************************************************************
+ Sekmeler
+ *******************************************************************/
+"tab_home" = "Ana Sayfa";
+"tab_practice" = "Pratik";
+"tab_discovery" = "Keşfet";
+"tab_text" = "Metin";
+"tab_options" = "Seçenekler";
+
+/*******************************************************************
+ Oynatıcı Durum Etiketleri
+ *******************************************************************/
+"player_state_on" = "Açık";
+"player_state_off" = "Kapalı";
+"player_repeat_all" = "Tümü";
+"player_repeat_one" = "1 Şarkı";
+
+/*******************************************************************
+ Oynatma Hızı
+ *******************************************************************/
+"speed_very_slow" = "Çok Yavaş";
+"speed_slow" = "Yavaş";
+"speed_somewhat_slow" = "Biraz Yavaş";
+"speed_slightly_slow" = "Hafifçe Yavaş";
+"speed_normal" = "Normal";
+"speed_slightly_fast" = "Hafifçe Hızlı";
+"speed_fast" = "Hızlı";
+"speed_fairly_fast" = "Oldukça Hızlı";
+"speed_double" = "2x Hız";
+
+/*******************************************************************
+ Pratik Ekranı
+ *******************************************************************/
+"practice_title" = "Pratik";
+"practice_mode_header" = "Pratik Modu";
+"practice_speed_header" = "Oynatma Hızı";
+"practice_mode_loop" = "Bölüm Döngüsü";
+"practice_mode_loop_sub" = "Sadece nakarat döngüsü";
+"practice_coming_soon" = "Yakında";
+"practice_no_track_hint" = "Başlamak için Ana Sayfa sekmesinden şarkı seçin";
+"practice_go_home_btn" = "Ana Sayfaya Git →";
+"practice_go_home_short" = "Ana Sayfa";
+"practice_unknown" = "Bilinmeyen";
+"practice_library" = "Kütüphane";
+"practice_dictation_title" = "Dikte";
+"practice_dictation_desc" = "Dinle → Boşlukları doldur";
+"practice_change_settings" = "Metin / dili değiştir";
+"practice_no_track_state" = "Şarkı seçilmedi";
+"practice_no_track_state_sub" = "Başlamak için Ana Sayfa sekmesinden şarkı çalın";
+"practice_lyrics_ready" = "Sözler kayıtlı";
+"practice_start_btn" = "Pratiği Başlat";
+"practice_no_lyrics_hint" = "Söz yok — AI veya fotoğraf ile otomatik alın";
+"practice_prepare_text_btn" = "Metin Hazırla";
+"practice_no_track_alert_title" = "Şarkı seçilmedi";
+"practice_no_track_alert_msg" = "Lütfen Ana Sayfa sekmesinden şarkı seçin.";
+"practice_coming_soon_ok" = "Sabırsızlıkla bekliyorum!";
+
+/*******************************************************************
+ Dikte Ekranı
+ *******************************************************************/
+"dictation_title" = "Dikte";
+"dictation_input_placeholder" = "Cevabınızı buraya yazın";
+"dictation_speak_hint" = "Sadece bu satırı çal";
+"dictation_check_btn" = "Cevabı Kontrol Et";
+"dictation_skip_btn" = "Geç";
+"dictation_track_changed_title" = "Parça Değişti";
+"dictation_track_changed_msg" = "%@ için söz var. Dikteyi bu parçaya geçirmek ister misiniz?";
+"dictation_switch_practice" = "Geç ve Pratik Yap";
+"dictation_keep_current" = "Devam et";
+"dictation_no_lyrics_title" = "Söz Yok";
+"dictation_no_lyrics_msg" = "%@ için kayıtlı söz yok.\nMevcut pratikle devam edebilirsiniz.";
+"dictation_this_song" = "bu parça";
+"dictation_result_title" = "Sonuçlar";
+"dictation_review_header" = "İnceleme";
+"dictation_retry_btn" = "Tekrar Pratik Yap";
+"dictation_done_btn" = "Pratiği Bitir";
+"dictation_accuracy_fmt" = "Doğruluk %.0f%%";
+"dictation_skipped" = "(Geçildi)";
+
+/*******************************************************************
+ Dikte Kurulum Ekranı
+ *******************************************************************/
+"dictsetup_fetch_btn" = "Reklam izleyerek söz ara";
+"dictsetup_transcribe_btn" = "Sesten yazıya çevir (AI)";
+"dictsetup_whisper_btn" = "🎵  Sesten otomatik yazıya çevir";
+"dictsetup_recommended_badge" = "Önerilen";
+"dictsetup_image_ocr_btn" = "📷  Fotoğraf / görselden metin oku";
+"dictsetup_camera_ocr_btn" = "📸  Kamerayla metin oku";
+"dictsetup_manual_btn" = "✏️  Metni manuel girin";
+"dictsetup_analyzing" = "Ses analiz ediliyor...";
+"dictsetup_loading_model" = "Model yükleniyor...";
+"dictsetup_overlay_title" = "Sesden Sözler\nTranskribe Ediliyor";
+"dictsetup_other_methods_close" = "Diğer yöntemleri kapat";
+"dictsetup_other_methods_open" = "Diğer yöntemler";
+"dictsetup_caption_input_btn" = "Altyazı gir";
+"dictsetup_caption_edit_btn" = "Altyazıyı düzenle";
+"dictsetup_youtube_open_btn" = "YouTube'da transkripti aç";
+"dictsetup_caption_hint" = "Altyazı girin";
+"dictsetup_caption_instruction" = "YouTube'daki \"…\" → \"Transkripti aç\" menüsünden metni kopyalayıp yapıştırarak dikte pratiği yapabilirsiniz.";
+"dictsetup_lang_header" = "Soru dili";
+"dictsetup_lang_all" = "Tümü";
+"dictsetup_text_registered" = "Metin kayıtlı";
+"dictsetup_text_registered_sub" = "Bu ses için metin kayıtlı. Pratiğe başlayabilirsiniz.";
+"dictsetup_text_empty" = "Metin hazırlayın";
+"dictsetup_text_empty_sub" = "Sesten otomatik al (önerilen) veya fotoğraftan metin oku.";
+"dictsetup_transcribing_fmt" = "Yazıya çevriliyor... (toplam %d parça)";
+"dictsetup_transcribing" = "Yazıya çevriliyor...";
+"dictsetup_reading_image" = "Görsel okunuyor...";
+"dictsetup_lyrics_saved" = "Sözler kaydedildi";
+"dictsetup_alert_ad_loading" = "Reklam yükleniyor";
+"dictsetup_alert_ad_wait" = "Lütfen biraz bekleyin.";
+"dictsetup_alert_no_url_msg" = "Ses dosyası URL'si alınamadı.";
+"dictsetup_alert_no_result" = "Transkripsiyon sonucu yok";
+"dictsetup_alert_no_result_msg" = "Sesten metin çıkarılamadı.";
+"dictsetup_alert_whisper_error" = "WhisperKit Hatası";
+"dictsetup_alert_incompatible" = "Bu model cihazınızla uyumlu değil. Daha küçük bir model deneyin (Small veya altı).";
+"dictsetup_alert_image_load_error_msg" = "Görsel yüklenemedi.";
+"dictsetup_alert_no_text_title" = "Metin bulunamadı";
+"dictsetup_alert_no_text_msg" = "Lütfen metin içeren net bir fotoğraf seçin.";
+"dictsetup_alert_lyrics_not_found_title" = "Söz bulunamadı";
+"dictsetup_alert_lyrics_not_found_msg" = "\"%@\" sözleri veritabanında yok.\nLütfen manuel girin.";
+"dictsetup_alert_ad_failed" = "Reklam gösterilemedi";
+"dictsetup_alert_ad_failed_msg" = "Lütfen daha sonra tekrar deneyin.";
+"dictsetup_lang_select_title" = "① Dil Seçin";
+"dictsetup_lang_select_msg" = "Karışıksa \"Otomatik\" seçin";
+"dictsetup_chunk_select_title" = "② Parça süresini seçin";
+"dictsetup_chunk_select_msg" = "Kısa = daha yüksek doğruluk, ancak daha fazla işlem süresi";
+"dictsetup_chunk_10s" = "10sn (kısa, yüksek doğruluk)";
+"dictsetup_chunk_20s" = "20sn (dengeli)";
+"dictsetup_chunk_30s" = "30sn (önerilen)";
+"dictsetup_chunk_45s" = "45sn";
+"dictsetup_chunk_55s" = "55sn (maksimum, hızlı)";
+"dictsetup_transcribe_confirm_title" = "Transkripsiyon Başlıyor";
+"dictsetup_transcribe_confirm_msg" = "Ses: ~%ddak %dsn\nParçalar: %dsn × %d bölüm%@\n\nBu biraz zaman alabilir.";
+"dictsetup_auto_detect_note" = " (%d dil otomatik tespit)";
+"dictsetup_start_btn" = "Başlat";
+"dictsetup_no_result_alt_msg" = "Metin çıkarılamadı. Farklı bir dil deneyin.";
+"dictsetup_transcribe_fail_title" = "Transkripsiyon başarısız";
+"dictsetup_ocr_copy_btn" = "Kopyala";
+
+/*******************************************************************
+ Dil Adları
+ *******************************************************************/
+"lang_japanese" = "Japonca";
+"lang_english" = "İngilizce";
+"lang_chinese_simplified" = "Çince (Basitleştirilmiş)";
+"lang_chinese_traditional" = "Çince (Geleneksel)";
+"lang_korean" = "Korece";
+"lang_spanish" = "İspanyolca";
+"lang_french" = "Fransızca";
+"lang_german" = "Almanca";
+
+/*******************************************************************
+ Başlangıç Rehberi
+ *******************************************************************/
+"onboarding_next" = "Sonraki";
+"onboarding_skip" = "Geç";
+"onboarding_start" = "Başla 🎵";
+"onboarding_welcome_title" = "musica'ya Hoşgeldiniz";
+"onboarding_welcome_body" = "Müzik ve YouTube videolarıyla\ndil öğrenin, kulaktan çevirin\nveya enstrüman pratik yapın.\n\nSonraki sayfada nasıl kullanacağınızı bize söyleyin!";
+"onboarding_goal_title" = "musica'yı nasıl kullanacaksınız?";
+"onboarding_goal_sub" = "Bunu daha sonra değiştirebilirsiniz";
+"onboarding_goal_music_title" = "Favori şarkılarla pratik yap";
+"onboarding_goal_music_sub" = "Boşluk doldurmalı sözler ve döngü";
+"onboarding_goal_youtube_title" = "YouTube ile dil öğrenme";
+"onboarding_goal_youtube_sub" = "Altyazı alarak dikte çalışması yapın";
+"onboarding_goal_earcopy_title" = "Kulaktan çeviri / enstrüman pratiği";
+"onboarding_goal_earcopy_sub" = "Yavaş oynatma ve döngü ile hakimiyet kurun";
+"onboarding_ready_title" = "Hazırsınız 🎉";
+"onboarding_howto_music_title" = "Şarkılarınızla dikte";
+"onboarding_howto_music_step1" = "Ana Sayfadan şarkı seçip çalın";
+"onboarding_howto_music_step2" = "AI sözleri otomatik alır veya sesi çevirir";
+"onboarding_howto_music_step3" = "Boşluk doldurma ile pratiğe başlayın!";
+"onboarding_howto_youtube_title" = "YouTube altyazılarıyla dikte";
+"onboarding_howto_youtube_step1" = "Favori videoları kaydedin";
+"onboarding_howto_youtube_step2" = "YouTube uygulamasından altyazı alın";
+"onboarding_howto_youtube_step3" = "Boşluk doldurma ile pratiğe başlayın!";
+"onboarding_howto_earcopy_title" = "Kulaktan Çeviri / Enstrüman Pratiği";
+"onboarding_howto_earcopy_step1" = "Ana Sayfadan kütüphane şarkısı seçin";
+"onboarding_howto_earcopy_step2" = "Dikkatlice dinlemek için hızı düşürün";
+"onboarding_howto_earcopy_step3" = "Döngü bölümüyle zor cümleleri öğrenin";
+
+"btn_done" = "Tamam";
+
+"discover_search_title" = "YouTube Arama";
+"discover_back_ranking" = "Sıralama";
+"discover_search_placeholder" = "Şarkı ve sanatçı ara (YouTube)";
+"discover_segment_songs" = "Şarkılar";
+"discover_segment_mv" = "Müzik Videoları";
+"discover_load_error" = "Yüklenemedi";
+
+"home_hide_ads" = "Reklamları Gizle";
+"ad_reward_title" = "3 Saat Reklamsız";
+"ad_reward_body" = "Video reklamı sonuna kadar izleyin ve 3 saat reklamsız kullanın.";
+"ad_reward_watch" = "Reklam İzle";
+"ad_reward_premium" = "Premium'a Geç";
+
+"mv_add_title" = "YouTube Videosu Ekle";
+"mv_add_message" = "YouTube URL'sini yapıştırın";
+"mv_add_btn" = "Ekle";
+"mv_invalid_url" = "Geçersiz URL";
+"mv_already_added" = "Zaten eklenmiş";
+"mv_added_fmt" = "\"%@\" eklendi";
+"mv_play" = "▶︎ Oynat";
+"mv_dictation" = "Dikte Pratiği";
+"mv_caption_badge" = "Alt";
+
+"mv_howto_title" = "Favori Videoları Nasıl Kullanılır";
+"mv_howto_subtitle" = "YouTube videolarıyla dikte pratiği yapabilirsiniz.\nBaşlamak için aşağıdaki adımları izleyin!";
+"mv_howto_step1_title" = "YouTube'dan video URL'sini kopyalayın";
+"mv_howto_step1_body" = "YouTube'da pratik yapmak istediğiniz videoyu açın.\n\"Paylaş\" → \"Bağlantıyı Kopyala\" ile URL'yi kopyalayın.\n\n💡 Videoları \"Keşfet\" sekmesinden bulup doğrudan da ekleyebilirsiniz.";
+"mv_howto_step2_title" = "Videoyu musica'ya ekleyin";
+"mv_howto_step2_body" = "Bu sayfanın sağ üstündeki \"+\" düğmesine dokunun.\nKopyalanan URL'yi yapıştırın ve \"Ekle\"ye basın.";
+"mv_howto_step3_title" = "Altyazı (komut dosyası) kaydedin";
+"mv_howto_step3_body" = "Eklediğiniz videoya dokunun, aşağıdan panel açılır.\n\"Dikte Pratiği\"ne dokunun ve altyazı ekranına metni girin.\n\n💡 Metni YouTube altyazılarından veya video açıklamasından kopyalamanız önerilir.";
+"mv_howto_step4_title" = "Dikte pratiğine başlayın";
+"mv_howto_step4_body" = "Altyazısı olan bir videoya dokunarak oynatın.\nHızı düşürün, dinleyin ve duyduklarınızı yazın.\nBitince altyazıyla cevaplarınızı karşılaştırın!";
+"mv_howto_tip" = "💡  Başlangıçta 0.75x veya 0.5x hız önerilir. Alıştıkça yavaş yavaş artırın!";
+
+"player_shuffle_label" = "Karıştır";
+"player_repeat_label" = "Tekrar";
+"player_region_label" = "Bölüm";
+"player_dictation_label" = "Pratik";
+"player_region_on" = "AÇIK";
+
+"speed_sheet_title" = "Oynatma Hızı";
+"region_sheet_title" = "Bölüm Tekrar";
+"section_repeat_range" = "Döngü Aralığı";
+"section_repeat_loop" = "Bölüm Döngüsü";
+
+/* ── Premium Plan ekranı ─────────────────── */
+"premium_title" = "Premium Plan";
+"premium_hero_title" = "Reklamsız, odaklanılmış pratik ortamı";
+"premium_hero_sub" = "musica Premium ile tüm reklamları gizle.\nDikteleme pratiğine odaklan.";
+"premium_benefits_header" = "Premium ile neler yapabilirsiniz";
+"premium_benefit1_label" = "Tüm reklamları kaldır";
+"premium_benefit1_sub" = "Banner, tam ekran ve MV reklamlarını tamamen kaldır";
+"premium_benefit2_label" = "Pratiğe odaklan";
+"premium_benefit2_sub" = "Reklamlar ritmini bozmaz";
+"premium_benefit3_label" = "Müzik sorunsuz çalışır";
+"premium_benefit3_sub" = "Çalma listelerinde rahatça gezin";
+"premium_benefit4_label" = "İstediğinde iptal et";
+"premium_benefit4_sub" = "Sürekli fatura. İstediğin zaman Ayarlar'dan iptal et";
+"premium_price_fallback" = "Aylık Plan";
+"premium_price_fmt" = "Aylık %@";
+"premium_price_sub" = "Reklam yok · İstediğinde iptal et";
+"premium_cta" = "Premium'u Başlat";
+"premium_restore" = "Önceki satın alımları geri yükle";
+"premium_terms" = "Kullanım Koşulları / Gizlilik Politikası";
+"premium_legal" = "· Satın alma onaylandıktan sonra ücretlendirilirsiniz.\n· Sürenin 24 saat öncesine kadar iptal etmezseniz abonelik otomatik yenilenir.\n· İptal için: Ayarlar → Apple ID → Abonelikler → musica\n· YouTube videoları içindeki reklamlar kapsam dışındadır.";
+"premium_alert_title" = "Premium Planı Başlat?";
+"premium_alert_price_fmt" = "Aylık %@ (otomatik yenileme)";
+
+/* ── Metin sekmesi (scanViewController) ─── */
+"scan_status_title" = "Metin Tanıma ve Çeviri";
+"scan_status_sub" = "Kamera veya görüntüden metin okuyun";
+"scan_edit_mode" = "Şarkı Sözü Düzenleme Modu";
+"scan_unknown_title" = "Bilinmeyen Başlık";
+"scan_copy_empty" = "Kopyalanacak metin yok";
+"scan_copy_done" = "Metin kopyalandı";
+"scan_btn_clear" = "Temizle";
+"scan_btn_undo" = "Geri Al";
+"scan_btn_register" = "Kaydet";
+"scan_analyzing" = "Ses analiz ediliyor...";
+
+/* ── Metin sekmesi mikrofon düğmesi ─── */
+"scan_no_music_title" = "Müzik Seçilmedi";
+"scan_no_music_body" = "Oynatılan veya seçili bir parça gereklidir.\nYeşil mikrofon düğmesiyle canlı giriş de yapabilirsiniz.";
+"scan_unsupported_title" = "Desteklenmiyor";
+"scan_unsupported_body" = "Konuşma tanıma için iOS 16 veya üzeri gereklidir.";
+"scan_no_result_title" = "Sonuç Yok";
+"scan_no_result_body" = "Sesten metin çıkarılamadı.";
+"scan_error_title" = "Hata";
+"scan_transcribe_fail_title" = "Transkripsiyon Başarısız";
+"scan_lang_sf_title" = "🎙 SFSpeech Dili Seç";
+"scan_lang_live_title" = "🎙 Tanıma Dili Seç";
+"scan_lang_live_msg" = "Çok dilli mod paralel tanıma yapar ve en uzun sonucu alır";
+"scan_lang_device_default_fmt" = "✓ %@ (Cihaz Varsayılanı)";
+"scan_perm_error_title" = "İzin Hatası";
+"scan_perm_speech_body" = "Uygulamaya izin vermek için Ayarlar → Gizlilik ve Güvenlik → Konuşma Tanıma'ya gidin.";
+"scan_perm_mic_body" = "Uygulamaya izin vermek için Ayarlar → Gizlilik ve Güvenlik → Mikrofon'a gidin.";
+"scan_no_engine_body" = "Kullanılabilir konuşma tanıma motoru yok.";
+"scan_recording_label" = "🎙 Kaydediliyor... Durdurmak için dokun";
+"scan_transcribing" = "Transkripsiyon yapılıyor...";
+"scan_transcribe_complete_title" = "Transkripsiyon tamamlandı";
+"scan_transcribe_apply_body" = "Metin alanına uygulansın mı?\n\n%@";
+"scan_transcribe_apply_btn" = "Uygula";
+
+/* ── Zayıf Kelimeler ─────────────────────────── */
+"weak_word_title" = "Zayıf Kelimeler";
+"weak_word_clear_all_title" = "Tümünü Sil";
+"weak_word_clear_all_msg" = "Tüm zayıf kelimeleri listeden sil?";
+"weak_word_delete" = "Sil";
+"weak_word_empty_title" = "Zayıf Kelime Yok";
+"weak_word_empty_sub" = "Flash Kartlarda \"Tekrar\" seçtiğiniz\nkelimeler burada görünür";
+"weak_word_practice_btn_fmt" = "Zayıf Kelimeleri Çalış (%d)";
+"practice_weak_words_title" = "Zayıf Kelimeler";
+"practice_weak_words_sub" = "Kaçırılan kelimeleri gözden geçir";
+"flash_weak_mode_title" = "Zayıf Kelime Çalışması";
+
+/* ── Pratik Geçmişi ──────────────────────────── */
+"history_title" = "Pratik Geçmişi";
+"history_tab_track" = "Şarkıya Göre";
+"history_tab_period" = "Döneme Göre";
+"history_empty_start" = "Henüz pratik kaydı yok\nBugün başlayın!";
+"history_empty" = "Henüz pratik kaydı yok";
+"history_unknown_track" = "Bilinmeyen Parça";
+"history_no_score" = "Puan yok";
+"history_best_badge" = "En İyi 🏆";
+"history_year_comparison" = "Yıl Karşılaştırması";
