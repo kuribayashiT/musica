@@ -1112,12 +1112,20 @@ final class DictationSetupViewController: UIViewController {
 
 private final class WaveformBarsView: UIView {
     private var bars: [UIView] = []
+    private var isCurrentlyAnimating = false
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupBars()
     }
     required init?(coder: NSCoder) { fatalError() }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window != nil && isCurrentlyAnimating {
+            addAnimations()
+        }
+    }
 
     private func setupBars() {
         let barHeights: [CGFloat] = [18, 32, 24, 36, 20]
@@ -1142,25 +1150,33 @@ private final class WaveformBarsView: UIView {
     }
 
     func startAnimating() {
-        let durations: [Double] = [0.55, 0.38, 0.48, 0.33, 0.52]
-        let delays:    [Double] = [0.00, 0.12, 0.06, 0.22, 0.09]
+        isCurrentlyAnimating = true
+        addAnimations()
+    }
+
+    func stopAnimating() {
+        isCurrentlyAnimating = false
+        bars.forEach { $0.layer.removeAllAnimations() }
+    }
+
+    private func addAnimations() {
+        let durations: [Double]  = [0.55, 0.38, 0.48, 0.33, 0.52]
+        let offsets:   [Double]  = [0.00, 0.20, 0.10, 0.35, 0.15]
         let minScales: [CGFloat] = [0.22, 0.18, 0.28, 0.14, 0.30]
 
         for (i, bar) in bars.enumerated() {
+            bar.layer.removeAnimation(forKey: "wave")
             let anim            = CABasicAnimation(keyPath: "transform.scale.y")
             anim.fromValue      = 1.0
             anim.toValue        = minScales[i]
             anim.duration       = durations[i]
-            anim.beginTime      = CACurrentMediaTime() + delays[i]
+            // timeOffset でずらすことで beginTime を現在時刻に依存させない
+            anim.timeOffset     = offsets[i]
             anim.repeatCount    = .infinity
             anim.autoreverses   = true
             anim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             bar.layer.add(anim, forKey: "wave")
         }
-    }
-
-    func stopAnimating() {
-        bars.forEach { $0.layer.removeAllAnimations() }
     }
 }
 
