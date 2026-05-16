@@ -236,6 +236,8 @@
 //　音楽ライブラリ登録
 "musiclibrary_select_fromalbum" = "アルバムごとに曲を選択して下さい！";
 "musiclibrary_select_library" = "ライブラリごとに曲を選択して下さい！";
+"library_select_album_title" = "アルバムを選択";
+"library_select_playlist_title" = "プレイリストを選択";
 
 // 音楽再生
 "musiclibrary_not_play" = "Not playing";

@@ -236,6 +236,8 @@
 //　音楽ライブラリ登録
 "musiclibrary_select_fromalbum" = "Her albüm için bir şarkı seçin!";
 "musiclibrary_select_library" = "Her kütüphane için bir şarkı seçin!";
+"library_select_album_title" = "Albüm Seç";
+"library_select_playlist_title" = "Çalma Listesi Seç";
 
 // 音楽再生
 "musiclibrary_not_play" = "Not playing";
