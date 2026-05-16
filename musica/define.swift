@@ -561,18 +561,10 @@ let settingSectionApp = [
         localText(key:"recommended_app_todolist"),
         localText(key:"recommended_app_todolist_title"),
         localText(key:"recommended_app_todolist_des")
-    ],[
-        localText(key:"recommended_app_nanopita"),
-        localText(key:"recommended_app_nanopita_title"),
-        localText(key:"recommended_app_nanopita_des")
-    ],[
-        localText(key:"recommended_app_mr_stick"),
-        localText(key:"recommended_app_mr_stick_title"),
-        localText(key:"recommended_app_mr_stick_des")
     ]
 ]
 
-let settingSectionAppIntro = [("scancamera",""),("todolist",""),("nanopita",""),("mr_stick","")]
+let settingSectionAppIntro = [("scancamera",""),("todolist","")]
 var settingSectionAD = [("","")]
 let settingSection4 = [("",""),("","")]
 var settingSectionData = [settingSectionSetting, settingSectionAppIntro, settingSectionAppInfo, settingSectionAD, settingSection4]

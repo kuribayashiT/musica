@@ -44,6 +44,8 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     // MARK: - 音声文字起こしボタン
     private let micBtn  = UIButton(type: .system)   // WhisperKit（waveform / xmark.circle.fill）
     private let sfBtn   = UIButton(type: .system)   // SFSpeech / ライブマイク（mic.fill）
+    private var micBarBtn: UIBarButtonItem?
+    private var sfBarBtn:  UIBarButtonItem?
     private let transcribeProgressLabel = UILabel() // SFSpeech ライブ録音用
     private var whisperTask: Task<Void, Never>?
     private var whisperIsRunning = false
@@ -94,6 +96,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     let ALL_HELP = 0
     let SCAN_HELP = 1
     let TRANS_HELP = 2
+    let VOICE_HELP = 3
     var HELPMODE = 0
     
     // 歌詞の登録
@@ -336,6 +339,9 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             self.HELPMODE = self.ALL_HELP
             self.coachMarksController.start(in: .newWindow(over: self, at: nil))
         }))
+        alert.addAction(UIAlertAction(title: localText(key: "text_help_voice_btn"), style: .default) { [weak self] _ in
+            self?.showVoiceButtonsHelp()
+        })
         alert.addAction(UIAlertAction(title: localText(key:"text_help_look_scan"), style: .default, handler: { action in
             self.previewImageView.isHidden = true
             self.resultTextView.endEditing(true)
@@ -348,9 +354,6 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             self.HELPMODE = self.TRANS_HELP
             self.coachMarksController.start(in: .newWindow(over: self, at: nil))
         }))
-        alert.addAction(UIAlertAction(title: localText(key: "text_help_voice_btn"), style: .default) { [weak self] _ in
-            self?.showVoiceButtonsHelp()
-        })
 
         self.present(alert, animated: true, completion: nil)
     }
@@ -1171,119 +1174,113 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     func numberOfCoachMarks(for coachMarksController: CoachMarksController) -> Int {
         switch HELPMODE {
         case ALL_HELP:
-            return 7
+            return 9
         case SCAN_HELP:
             return 5
         case TRANS_HELP:
             return 3
+        case VOICE_HELP:
+            return 2
         default:
-            return 7
+            return 9
         }
     }
     func coachMarksController(_ coachMarksController: CoachMarksController,
                               coachMarkAt index: Int) -> CoachMark {
-        var help_index = index
-        switch HELPMODE {
-        case ALL_HELP:
-            help_index = index
-        case SCAN_HELP:
-            help_index = index
-        case TRANS_HELP:
-            help_index = index + 4
-        default:
-            help_index = index
+        // 完全な円形カットアウト（フレームの長辺を直径にする）
+        func circleCutout(frame: CGRect) -> UIBezierPath {
+            let r = max(frame.width, frame.height) / 2 + 8
+            return UIBezierPath(ovalIn: CGRect(x: frame.midX - r, y: frame.midY - r, width: r * 2, height: r * 2))
         }
+        func makeVoiceMark(_ barBtn: UIBarButtonItem?, fallback: UIButton) -> CoachMark {
+            let v = (barBtn?.value(forKey: "view") as? UIView) ?? fallback
+            return coachMarksController.helper.makeCoachMark(for: v) { frame in circleCutout(frame: frame) }
+        }
+
+        // VOICE_HELP: micBtn → sfBtn
+        if HELPMODE == VOICE_HELP {
+            return index == 0 ? makeVoiceMark(micBarBtn, fallback: micBtn)
+                              : makeVoiceMark(sfBarBtn,  fallback: sfBtn)
+        }
+
+        // ALL_HELP: 先頭2ステップを音声ボタンに充てる
+        if HELPMODE == ALL_HELP {
+            if index == 0 { return makeVoiceMark(micBarBtn, fallback: micBtn) }
+            if index == 1 { return makeVoiceMark(sfBarBtn,  fallback: sfBtn) }
+        }
+
+        // help_index: ALL_HELP は index-2、TRANS_HELP は index+4、SCAN_HELP はそのまま
+        var help_index = index
+        if      HELPMODE == ALL_HELP   { help_index = index - 2 }
+        else if HELPMODE == TRANS_HELP { help_index = index + 4 }
+
         switch help_index {
         case 0:
-            return coachMarksController.helper.makeCoachMark(for: coachMarkScanView)
+            return coachMarksController.helper.makeCoachMark(for: controlView)
         case 1:
-            let coachMark = coachMarksController.helper.makeCoachMark(for: imageListBtn) {
-                (frame: CGRect) -> UIBezierPath in
-                return UIBezierPath(ovalIn: frame.insetBy(dx: -5,dy: -5))
+            return coachMarksController.helper.makeCoachMark(for: imageListBtn) { frame in
+                UIBezierPath(ovalIn: frame.insetBy(dx: -5, dy: -5))
             }
-            return coachMark
         case 2:
-            let coachMark = coachMarksController.helper.makeCoachMark(for: cameraBtn) {
-                (frame: CGRect) -> UIBezierPath in
-                return UIBezierPath(ovalIn: frame.insetBy(dx: -5,dy: -5))
+            return coachMarksController.helper.makeCoachMark(for: cameraBtn) { frame in
+                UIBezierPath(ovalIn: frame.insetBy(dx: -5, dy: -5))
             }
-            return coachMark
         case 3:
             return coachMarksController.helper.makeCoachMark(for: nowimageBtn)
         case 4:
             return coachMarksController.helper.makeCoachMark(for: resultTextView)
         case 5:
-            return coachMarksController.helper.makeCoachMark(for: coachMarkTransView)
+            return coachMarksController.helper.makeCoachMark(for: transSegment)
         case 6:
-            return coachMarksController.helper.makeCoachMark(for: coachMarkLangView)
-
+            return coachMarksController.helper.makeCoachMark(for: langSelectBtn)
         default:
             return coachMarksController.helper.makeCoachMark(for: langSelectBtn)
         }
     }
         
     func coachMarksController(_ coachMarksController: CoachMarksController, coachMarkViewsAt index: Int, madeFrom coachMark: CoachMark) -> (bodyView: (UIView & CoachMarkBodyView), arrowView: (UIView & CoachMarkArrowView)?) {
-        
+
         let coachViews = coachMarksController.helper.makeDefaultCoachViews(withArrow: true, arrowOrientation: coachMark.arrowOrientation)
 
-        var help_index = index
-        switch HELPMODE {
-        case ALL_HELP:
-            help_index = index
-        case SCAN_HELP:
-            help_index = index
-        case TRANS_HELP:
-            help_index = index + 4
-        default:
-            help_index = index
+        func finish(_ key: String) {
+            coachViews.bodyView.hintLabel.text = localText(key: key)
+            coachViews.bodyView.nextLabel.text  = localText(key: "btn_ok")
         }
+
+        // VOICE_HELP / ALL_HELP 先頭2ステップ: 音声ボタンの説明
+        if HELPMODE == VOICE_HELP || (HELPMODE == ALL_HELP && index < 2) {
+            finish(index == 0 ? "text_help_voice_1" : "text_help_voice_2")
+            coachViews.bodyView.nextLabel.textColor = AppColor.accent
+            return (bodyView: coachViews.bodyView, arrowView: coachViews.arrowView)
+        }
+
+        // help_index: ALL_HELP は先頭2を音声に使ったので -2、TRANS_HELP は +4
+        var help_index = index
+        if      HELPMODE == ALL_HELP   { help_index = index - 2 }
+        else if HELPMODE == TRANS_HELP { help_index = index + 4 }
+
         switch help_index {
-        case 0:
-            coachViews.bodyView.hintLabel.text = localText(key:"text_help_1")
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
-        case 1:
-            coachViews.bodyView.hintLabel.text = localText(key:"text_help_2")
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
-        case 2:
-            coachViews.bodyView.hintLabel.text = localText(key:"text_help_3")
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
-        case 3:
-            coachViews.bodyView.hintLabel.text = localText(key:"text_help_4")
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
+        case 0: finish("text_help_1")
+        case 1: finish("text_help_2")
+        case 2: finish("text_help_3")
+        case 3: finish("text_help_4")
         case 4:
             switch HELPMODE {
-            case ALL_HELP:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_5")
-            case SCAN_HELP:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_6")
-            case TRANS_HELP:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_7")
-            default:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_8")
+            case SCAN_HELP:  finish("text_help_6")
+            case TRANS_HELP: finish("text_help_7")
+            default:         finish("text_help_5")  // ALL_HELP
             }
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
         case 5:
             switch HELPMODE {
-            case ALL_HELP:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_9")
-            case SCAN_HELP:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_10")
-            case TRANS_HELP:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_11")
-            default:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_12")
+            case SCAN_HELP:  finish("text_help_10")
+            case TRANS_HELP: finish("text_help_11")
+            default:         finish("text_help_9")  // ALL_HELP
             }
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
-        case 6:
-            coachViews.bodyView.hintLabel.text = localText(key:"text_help_13")
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
-        default:
-            coachViews.bodyView.hintLabel.text = localText(key:"text_help_14")
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
+        case 6: finish("text_help_13")
+        default: finish("text_help_14")
         }
-        
+
         coachViews.bodyView.nextLabel.textColor = AppColor.accent
-        
         return (bodyView: coachViews.bodyView, arrowView: coachViews.arrowView)
     }
     
@@ -1726,10 +1723,10 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         micBtn.addTarget(self, action: #selector(micBtnTapped), for: .touchUpInside)
         sfBtn.addTarget(self, action: #selector(sfBtnTapped), for: .touchUpInside)
 
-        let micBarBtn = UIBarButtonItem(customView: micBtn)
-        let sfBarBtn  = UIBarButtonItem(customView: sfBtn)
+        micBarBtn = UIBarButtonItem(customView: micBtn)
+        sfBarBtn  = UIBarButtonItem(customView: sfBtn)
         // rightBarButtonItems: index 0 = 右端 → helpBtn を右端に保持
-        navigationItem.rightBarButtonItems = [helpBtn, sfBarBtn, micBarBtn]
+        navigationItem.rightBarButtonItems = [helpBtn, sfBarBtn!, micBarBtn!]
 
         updateTranscribeBtnState()
 
@@ -2177,12 +2174,8 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     }
 
     private func showVoiceButtonsHelp() {
-        let alert = UIAlertController(
-            title: localText(key: "scan_voice_help_title"),
-            message: localText(key: "scan_voice_help_body"),
-            preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: localText(key: "btn_ok"), style: .default))
-        present(alert, animated: true)
+        HELPMODE = VOICE_HELP
+        coachMarksController.start(in: .newWindow(over: self, at: nil))
     }
 
     /// アイコン上 ＋ ラベル下 の縦積みボタン（クリア・戻す・登録など用）

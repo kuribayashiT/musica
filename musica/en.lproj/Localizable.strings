@@ -370,9 +370,9 @@
 "text_help_title" = "How to use Scan & Translate";
 "text_help_body" = "Here's how to use the scan and translation features.";
 "text_help_nolook" = "Skip";
-"text_help_look" = "Show both";
-"text_help_look_scan" = "Scan only";
-"text_help_look_trans" = "Translation only";
+"text_help_look" = "📖 How to use all features";
+"text_help_look_scan" = "📷 How to use scan";
+"text_help_look_trans" = "🌐 How to use translation";
 "text_help_1" = "Use the scan feature to read text from images.";
 "text_help_2" = "Tap here to scan from images saved on your device!";
 "text_help_3" = "Tap here to take a new photo for scanning!";
@@ -729,6 +729,8 @@
 "text_help_voice_btn" = "🎤 How to use voice buttons";
 "scan_voice_help_title" = "About Voice Buttons";
 "scan_voice_help_body" = "【🎵 Transcribe from audio (waveform button)】\nAvailable only when a track is selected from a library in the Home tab.\nAI (WhisperKit) automatically transcribes the selected track and fills the text area.\n\n【🎤 Mic input (green mic button)】\nRecognizes microphone audio in real time and converts it to text.\nWorks with lyrics you read aloud or audio played nearby.";
+"text_help_voice_1" = "🎵 Waveform button: Available only when a track is selected in the Home tab. AI automatically transcribes the audio and fills the text area.";
+"text_help_voice_2" = "🎤 Mic button: Recognizes microphone audio in real time. Works with lyrics you read aloud or audio played nearby.";
 
 /* ── Weak Words ──────────────────────────────── */
 "weak_word_title" = "Weak Words";

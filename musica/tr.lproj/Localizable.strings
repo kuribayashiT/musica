@@ -371,9 +371,9 @@
 "text_help_title" = "Tarama ve Çeviriyi Kullanma";
 "text_help_body" = "Tarama ve çeviri özelliklerini nasıl kullanacağınız aşağıda açıklanmaktadır.";
 "text_help_nolook" = "Atla";
-"text_help_look" = "Her ikisini göster";
-"text_help_look_scan" = "Yalnızca tarama";
-"text_help_look_trans" = "Yalnızca çeviri";
+"text_help_look" = "📖 Tüm özelliklerin kullanımı";
+"text_help_look_scan" = "📷 Tarama özelliğinin kullanımı";
+"text_help_look_trans" = "🌐 Çeviri özelliğinin kullanımı";
 "text_help_1" = "Tarama özelliğini kullanarak görüntülerden metin okuyun.";
 "text_help_2" = "Cihazınızda kayıtlı görüntülerden taramak için buraya dokunun!";
 "text_help_3" = "Taramak için yeni bir fotoğraf çekmek için buraya dokunun!";
@@ -725,6 +725,8 @@
 "text_help_voice_btn" = "🎤 Ses düğmelerinin kullanımı";
 "scan_voice_help_title" = "Ses Düğmeleri Hakkında";
 "scan_voice_help_body" = "【🎵 Sesten transkribe (dalga formu düğmesi)】\nYalnızca Ana sekmedeki kütüphaneden bir parça seçildiğinde kullanılabilir.\nYapay zeka (WhisperKit) seçili parçayı otomatik transkribe eder.\n\n【🎤 Mikrofon girişi (yeşil mikrofon düğmesi)】\nMikrofon sesini gerçek zamanlı olarak tanır ve metne dönüştürür.";
+"text_help_voice_1" = "🎵 Dalga formu düğmesi: Yalnızca Ana sekmede parça seçildiğinde kullanılabilir. Yapay zeka sesi otomatik transkribe eder ve metin alanını doldurur.";
+"text_help_voice_2" = "🎤 Mikrofon düğmesi: Mikrofon sesini gerçek zamanlı olarak tanır. Okunan sözleri veya yakında çalınan sesi tanıyabilir.";
 
 /* ── Zayıf Kelimeler ─────────────────────────── */
 "weak_word_title" = "Zayıf Kelimeler";
