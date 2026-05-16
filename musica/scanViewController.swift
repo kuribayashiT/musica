@@ -348,7 +348,10 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             self.HELPMODE = self.TRANS_HELP
             self.coachMarksController.start(in: .newWindow(over: self, at: nil))
         }))
-        
+        alert.addAction(UIAlertAction(title: localText(key: "text_help_voice_btn"), style: .default) { [weak self] _ in
+            self?.showVoiceButtonsHelp()
+        })
+
         self.present(alert, animated: true, completion: nil)
     }
     // クリア/シェアボタンタップ時
@@ -2156,22 +2159,28 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     }
 
     private func applyTranscribeResult(_ text: String) {
-        let preview = String(text.prefix(200)) + (text.count > 200 ? "…" : "")
+        resultTextView.text  = text
+        LATEST_RESULT_TEXT   = text
+        LYRIC_RESULT_TEXT    = text
         let alert = UIAlertController(
             title: localText(key: "scan_transcribe_complete_title"),
-            message: String(format: localText(key: "scan_transcribe_apply_body"), preview),
+            message: localText(key: "scan_transcribe_complete_body"),
             preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: localText(key: "scan_transcribe_apply_btn"), style: .default) { [weak self] _ in
-            self?.resultTextView.text = text
-            self?.LATEST_RESULT_TEXT = text
-            LYRIC_RESULT_TEXT = text
-        })
-        alert.addAction(UIAlertAction(title: localText(key: "btn_cancel"), style: .cancel))
+        alert.addAction(UIAlertAction(title: localText(key: "btn_ok"), style: .default))
         present(alert, animated: true)
     }
 
     private func showTranscribeAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: localText(key: "btn_ok"), style: .default))
+        present(alert, animated: true)
+    }
+
+    private func showVoiceButtonsHelp() {
+        let alert = UIAlertController(
+            title: localText(key: "scan_voice_help_title"),
+            message: localText(key: "scan_voice_help_body"),
+            preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: localText(key: "btn_ok"), style: .default))
         present(alert, animated: true)
     }

@@ -446,6 +446,9 @@
 "player_state_off" = "Off";
 "player_repeat_all" = "All";
 "player_repeat_one" = "1 Song";
+"player_no_lyrics_title" = "No Lyrics Registered";
+"player_no_lyrics_sub" = "Add lyrics from the Text tab\nto start dictation practice";
+"player_no_lyrics_btn" = "Add Lyrics";
 
 /*******************************************************************
  Playback Speed
@@ -719,9 +722,13 @@
 "scan_no_engine_body" = "No speech recognition engine is available.";
 "scan_recording_label" = "🎙 Recording... Tap to stop";
 "scan_transcribing" = "Transcribing...";
-"scan_transcribe_complete_title" = "Transcription complete";
+"scan_transcribe_complete_title" = "Transcription Complete";
+"scan_transcribe_complete_body" = "Text has been extracted from the audio.\nYou can review and edit it in the text area.";
 "scan_transcribe_apply_body" = "Apply to text area?\n\n%@";
 "scan_transcribe_apply_btn" = "Apply";
+"text_help_voice_btn" = "🎤 How to use voice buttons";
+"scan_voice_help_title" = "About Voice Buttons";
+"scan_voice_help_body" = "【🎵 Transcribe from audio (waveform button)】\nAvailable only when a track is selected from a library in the Home tab.\nAI (WhisperKit) automatically transcribes the selected track and fills the text area.\n\n【🎤 Mic input (green mic button)】\nRecognizes microphone audio in real time and converts it to text.\nWorks with lyrics you read aloud or audio played nearby.";
 
 /* ── Weak Words ──────────────────────────────── */
 "weak_word_title" = "Weak Words";

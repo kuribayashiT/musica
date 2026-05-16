@@ -447,6 +447,9 @@
 "player_state_off" = "オフ";
 "player_repeat_all" = "全曲";
 "player_repeat_one" = "1曲";
+"player_no_lyrics_title" = "歌詞が登録されていません";
+"player_no_lyrics_sub" = "「テキスト」タブから歌詞を登録すると\nディクテーション練習ができます";
+"player_no_lyrics_btn" = "歌詞を登録する";
 
 /*******************************************************************
  再生スピード
@@ -742,8 +745,12 @@
 "scan_recording_label" = "🎙 録音中... タップで停止";
 "scan_transcribing" = "文字起こし中...";
 "scan_transcribe_complete_title" = "文字起こし完了";
+"scan_transcribe_complete_body" = "音声からテキストを抽出しました。\nテキストエリアで確認・編集できます。";
 "scan_transcribe_apply_body" = "テキストエリアに反映しますか？\n\n%@";
 "scan_transcribe_apply_btn" = "反映する";
+"text_help_voice_btn" = "🎤 音声認識ボタンの使い方";
+"scan_voice_help_title" = "音声認識ボタンについて";
+"scan_voice_help_body" = "【🎵 音源から文字起こし（波形ボタン）】\nホームタブのライブラリから音楽を選択した状態でのみ利用できます。\n選択した曲の音声をAI（WhisperKit）が自動で書き起こし、テキストエリアに反映します。\n\n【🎤 マイク入力（緑のマイクボタン）】\nリアルタイムでマイクの音声を認識してテキスト化します。\n声で読み上げた歌詞や手元で再生した音声も認識できます。";
 
 /* ── 苦手単語 ─────────────────────────────────── */
 "weak_word_title" = "苦手単語";

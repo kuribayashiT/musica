@@ -447,6 +447,9 @@
 "player_state_off" = "Kapalı";
 "player_repeat_all" = "Tümü";
 "player_repeat_one" = "1 Şarkı";
+"player_no_lyrics_title" = "Sözler Kayıtlı Değil";
+"player_no_lyrics_sub" = "Dikte pratiği için Metin\nsekmesinden sözleri ekleyin";
+"player_no_lyrics_btn" = "Sözleri Ekle";
 
 /*******************************************************************
  Oynatma Hızı
@@ -715,9 +718,13 @@
 "scan_no_engine_body" = "Kullanılabilir konuşma tanıma motoru yok.";
 "scan_recording_label" = "🎙 Kaydediliyor... Durdurmak için dokun";
 "scan_transcribing" = "Transkripsiyon yapılıyor...";
-"scan_transcribe_complete_title" = "Transkripsiyon tamamlandı";
+"scan_transcribe_complete_title" = "Transkripsiyon Tamamlandı";
+"scan_transcribe_complete_body" = "Metni sesten çıkardık.\nMetin alanında inceleyip düzenleyebilirsiniz.";
 "scan_transcribe_apply_body" = "Metin alanına uygulansın mı?\n\n%@";
 "scan_transcribe_apply_btn" = "Uygula";
+"text_help_voice_btn" = "🎤 Ses düğmelerinin kullanımı";
+"scan_voice_help_title" = "Ses Düğmeleri Hakkında";
+"scan_voice_help_body" = "【🎵 Sesten transkribe (dalga formu düğmesi)】\nYalnızca Ana sekmedeki kütüphaneden bir parça seçildiğinde kullanılabilir.\nYapay zeka (WhisperKit) seçili parçayı otomatik transkribe eder.\n\n【🎤 Mikrofon girişi (yeşil mikrofon düğmesi)】\nMikrofon sesini gerçek zamanlı olarak tanır ve metne dönüştürür.";
 
 /* ── Zayıf Kelimeler ─────────────────────────── */
 "weak_word_title" = "Zayıf Kelimeler";

@@ -66,6 +66,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
     var newContentContainer: UIView?
     var newArtworkView: UIImageView?
     var newLyricsView: UITextView?
+    var noLyricsEmptyView: UIView?
     var newTitleLabel: UILabel?
     var newArtistLabel: UILabel?
     var newProgressSlider: UISlider?
