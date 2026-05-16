@@ -26,10 +26,37 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
     var osAlbumDataList : [AlbumData] = []
     var osLibraryDataList : [AlbumData] = []
 
+    // セグメントを section header として保持（removeFromSuperview 後に再利用）
+    private var segmentHeaderView: UIView?
+
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = localText(key: "library_select_album_title")
         navigationItem.largeTitleDisplayMode = .always
+
+        // セグメントをストーリーボード位置から外し、section header として使う
+        // → tableView が画面上端まで届き、ラージタイトルのスクロール折りたたみが機能する
+        listModeSegment.removeFromSuperview()
+        listModeSegment.translatesAutoresizingMaskIntoConstraints = false
+        let segWrapper = UIView()
+        segWrapper.backgroundColor = AppColor.surface
+        segWrapper.addSubview(listModeSegment)
+        NSLayoutConstraint.activate([
+            listModeSegment.topAnchor.constraint(equalTo: segWrapper.topAnchor, constant: 8),
+            listModeSegment.bottomAnchor.constraint(equalTo: segWrapper.bottomAnchor, constant: -8),
+            listModeSegment.leadingAnchor.constraint(equalTo: segWrapper.leadingAnchor, constant: 16),
+            listModeSegment.trailingAnchor.constraint(equalTo: segWrapper.trailingAnchor, constant: -16),
+        ])
+        segmentHeaderView = segWrapper
+
+        // tableView の top を safeArea 上端に拡張（ラージタイトル連動に必要）
+        OSAlbumtableview.translatesAutoresizingMaskIntoConstraints = false
+        view.constraints.first(where: {
+            ($0.firstItem as? UIView == OSAlbumtableview && $0.firstAttribute == .top) ||
+            ($0.secondItem as? UIView == OSAlbumtableview && $0.secondAttribute == .top)
+        })?.isActive = false
+        OSAlbumtableview.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
+
         OSAlbumtableview.tableHeaderView = makeLibraryGuideCard(
             step: 1, total: 3,
             icon: "music.note.list",
@@ -250,7 +277,7 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
             appearance.configureWithOpaqueBackground()
             appearance.backgroundColor = navColor
             appearance.titleTextAttributes      = [.foregroundColor: textColor]
-            appearance.largeTitleTextAttributes = [.foregroundColor: textColor]
+            appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
             self.navigationController!.navigationBar.standardAppearance   = appearance
             self.navigationController!.navigationBar.scrollEdgeAppearance = appearance
             self.navigationController!.navigationBar.tintColor = AppColor.accent
@@ -261,10 +288,12 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
         }
 
         selectBannerView.isHidden = true
-        selectMusicView.frame = CGRect(x: 0, y: Int(myAppFrameSize.height - footerDammyView.frame.size.height - getTabHeghtPlusSafeArea()), width: Int(myAppFrameSize.width), height: Int(footerDammyView.frame.size.height))
+        let tabH = tabBarController?.tabBar.frame.height ?? getTabHeghtPlusSafeArea()
+        let footerH: CGFloat = 76
+        selectMusicView.frame = CGRect(x: 0, y: Int(myAppFrameSize.height - footerH - tabH), width: Int(myAppFrameSize.width), height: Int(footerH))
         updateFooterAppearance()
         OSAlbumtableview.translatesAutoresizingMaskIntoConstraints = false
-        footerHeight.constant = -92
+        footerHeight.constant = -footerH
         OSAlbumtableview.reloadData()
     }
     override func viewDidAppear(_ animated: Bool) {
@@ -286,24 +315,34 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
         return 1
     }
 
+    // セグメントコントロールを sticky な section header として表示
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        return segmentHeaderView
+    }
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 52
+    }
+
     // tableフッダーの高さをかえします。
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
         return 0
     }
     func createFooterView() -> UIView {
-        selectMusicView.frame = CGRect(x: 0, y: Int(myAppFrameSize.height - footerDammyView.frame.size.height - getTabHeghtPlusSafeArea()), width: Int(myAppFrameSize.width), height: Int(footerDammyView.frame.size.height))
+        let tabH = tabBarController?.tabBar.frame.height ?? getTabHeghtPlusSafeArea()
+        let footerH: CGFloat = 76
+        selectMusicView.frame = CGRect(x: 0, y: Int(myAppFrameSize.height - footerH - tabH), width: Int(myAppFrameSize.width), height: Int(footerH))
         selectMusicView.isUserInteractionEnabled = true
 
         selectMusicLabel.font = AppFont.subheadline
         selectMusicLabel.sizeToFit()
-        selectMusicLabel.layer.position = CGPoint(x: Int(myAppFrameSize.width) / 2, y: 22)
+        selectMusicLabel.layer.position = CGPoint(x: Int(myAppFrameSize.width) / 2, y: 16)
 
         selectMusicButton.setTitle("次へ →", for: .normal)
         selectMusicButton.frame = CGRect(x: 0, y: 0, width: 200, height: 44)
         selectMusicButton.setTitleColor(.white, for: .normal)
         selectMusicButton.titleLabel?.font = AppFont.button
         selectMusicButton.layer.cornerRadius = 14
-        selectMusicButton.layer.position = CGPoint(x: Int(myAppFrameSize.width) / 2, y: 62)
+        selectMusicButton.layer.position = CGPoint(x: Int(myAppFrameSize.width) / 2, y: 52)
 
         if !selectMusicViewMakeFlg {
             selectMusicView.contentView.addSubview(selectMusicLabel)
