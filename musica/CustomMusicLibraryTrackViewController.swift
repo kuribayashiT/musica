@@ -110,28 +110,25 @@ class CustomMusicLibraryTrackViewController: UIViewController , UITableViewDataS
         }else{
             cell.playBtn.setImage(playBtnImage.withRenderingMode(.alwaysTemplate), for: .normal)
         }
-        if trackData.url == nil {
+        let canPlay = trackData.url != nil || trackData.hasProtectedAsset
+        if canPlay {
+            cell.playBtn.tintColor = trackData.hasProtectedAsset ? UIColor.systemPink : AppColor.accent
+            cell.hideView.isHidden = true
+            cell.TrackTitleLabel.textColor = darkModeLabelColor()
+            cell.TrackSubtitleLabel.textColor = AppColor.textSecondary
+        } else {
             cell.playBtn.tintColor = UIColor.gray
             cell.hideView.isHidden = false
             cell.TrackTitleLabel.textColor = UIColor.darkGray
             cell.TrackSubtitleLabel.textColor = AppColor.textSecondary
-        }else{
-            cell.playBtn.tintColor = AppColor.accent
-            cell.hideView.isHidden = true
-            cell.TrackTitleLabel.textColor = darkModeLabelColor()
-            cell.TrackSubtitleLabel.textColor = AppColor.textSecondary
         }
         cell.playBtn.tag = indexPath.row
-        // selectedCells[key] からチェック状態を取得
-        let key = "\(String(describing: osTrackDataList[albumSelectIndex].trackData[indexPath.row].url))"
-
-        // チェックマークを切り替える
-        if let selected = selectedTracks[key]{
-            cell.accessoryType=UITableViewCell.AccessoryType.checkmark
-            selectedTracks[key]=selected
-        }else{
-            cell.accessoryType=UITableViewCell.AccessoryType.none
-            selectedTracks.removeValue(forKey: key)
+        // selectionKey でチェック状態を取得
+        let key = trackData.selectionKey
+        if let selected = selectedTracks[key] {
+            cell.accessoryType = selected ? .checkmark : .none
+        } else {
+            cell.accessoryType = .none
         }
         // TODO 超絶行けてない
         cell.Album = osTrackDataList[albumSelectIndex]
@@ -145,49 +142,41 @@ class CustomMusicLibraryTrackViewController: UIViewController , UITableViewDataS
         // 現在の状態を確認してから、チェックマークの有無を確認
         let cell=tableView.cellForRow(at: indexPath) as! CustomTrackListTableViewCell
 
-        if osTrackDataList[albumSelectIndex].trackData[indexPath.row].isCloudItem {
-            // アラートを作成
-            let alert = UIAlertController(
-                title: DIALOGUE_TITLE_MUSIC_DATA_IN_CLOUD,
-                message: DIALOGUE_MESSAGE_MUSIC_IN_CLOUD,
-                preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: localText(key:"musictrack_howto_download"), style: .default, handler: { action in
-                let nextView = self.storyboard?.instantiateViewController(withIdentifier: "howToDownloadView")
-                self.present(nextView!, animated: true, completion: nil)
-            }))
-            // アラートにボタンをつける
-            alert.addAction(UIAlertAction(title: MESSAGE_OK, style: .default))
-            // アラート表示
-            getForegroundViewController().present(alert, animated: true, completion: nil)
-            return
+        let track = osTrackDataList[albumSelectIndex].trackData[indexPath.row]
+
+        // Apple Music DRM トラックは選択可能
+        if !track.hasProtectedAsset {
+            if track.isCloudItem {
+                let alert = UIAlertController(title: DIALOGUE_TITLE_MUSIC_DATA_IN_CLOUD, message: DIALOGUE_MESSAGE_MUSIC_IN_CLOUD, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: localText(key:"musictrack_howto_download"), style: .default) { _ in
+                    let nextView = self.storyboard?.instantiateViewController(withIdentifier: "howToDownloadView")
+                    self.present(nextView!, animated: true, completion: nil)
+                })
+                alert.addAction(UIAlertAction(title: MESSAGE_OK, style: .default))
+                getForegroundViewController().present(alert, animated: true, completion: nil)
+                return
+            }
+            if track.url == nil {
+                let alert = UIAlertController(title: DIALOGUE_TITLE_MUSIC_DATA_DRM, message: DIALOGUE_MESSAGE_MUSIC_DRM, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: MESSAGE_OK, style: .default))
+                alert.addAction(UIAlertAction(title: localText(key:"musictrack_howto_drm"), style: .default) { _ in
+                    site = DRM
+                    self.performSegue(withIdentifier: "DRM", sender: "")
+                })
+                getForegroundViewController().present(alert, animated: true, completion: nil)
+                return
+            }
         }
-        if osTrackDataList[albumSelectIndex].trackData[indexPath.row].url == nil {
-            // アラートを作成
-            let alert = UIAlertController(
-                title: DIALOGUE_TITLE_MUSIC_DATA_DRM,
-                message: DIALOGUE_MESSAGE_MUSIC_DRM,
-                preferredStyle: .alert)
-            // アラートにボタンをつける
-            alert.addAction(UIAlertAction(title: MESSAGE_OK, style: .default))
-            alert.addAction(UIAlertAction(title: localText(key:"musictrack_howto_drm"), style: .default, handler: { action in
-                site = DRM
-                self.performSegue(withIdentifier: "DRM",sender: "")
-            }))
-            // アラート表示
-            getForegroundViewController().present(alert, animated: true, completion: nil)
-            return
-        }
-        let key = "\(String(describing: osTrackDataList[albumSelectIndex].trackData[indexPath.row].url))"
-        
-        // チェックマークを切り替える
+
+        let key = track.selectionKey
         if selectedTracks[key] == true {
-            cell.accessoryType=UITableViewCell.AccessoryType.none
-            osTrackDataList[albumSelectIndex].trackData[indexPath.row].checkedFlg=false
+            cell.accessoryType = .none
+            osTrackDataList[albumSelectIndex].trackData[indexPath.row].checkedFlg = false
             selectedTracks.removeValue(forKey: key)
-        }else{
-            cell.accessoryType=UITableViewCell.AccessoryType.checkmark
-            osTrackDataList[albumSelectIndex].trackData[indexPath.row].checkedFlg=true
-            selectedTracks[key]=true;
+        } else {
+            cell.accessoryType = .checkmark
+            osTrackDataList[albumSelectIndex].trackData[indexPath.row].checkedFlg = true
+            selectedTracks[key] = true
         }
         
         updateFooterAppearance()
@@ -201,14 +190,9 @@ class CustomMusicLibraryTrackViewController: UIViewController , UITableViewDataS
      *******************************************************************/
     @IBAction func allCheckReleaseBtnTapped(_ sender: Any) {
         for var track in osTrackDataList[albumSelectIndex].trackData {
-            if track.url == nil {
-                continue
-            }
-            let key = "\(String(describing: track.url))"
-            
-            // selectedTracks を全て false へ
-            selectedTracks.removeValue(forKey: key)
-            track.checkedFlg=false
+            guard track.url != nil || track.hasProtectedAsset else { continue }
+            selectedTracks.removeValue(forKey: track.selectionKey)
+            track.checkedFlg = false
         }
         // Cellの 更新処理
         updateFooterAppearance()
@@ -218,14 +202,9 @@ class CustomMusicLibraryTrackViewController: UIViewController , UITableViewDataS
     /* 「全て選択する」ボタンを押された際の挙動　*/
     @IBAction func allCheckBtn(_ sender: Any) {
         for var track in osTrackDataList[albumSelectIndex].trackData {
-            if track.url == nil {
-                continue
-            }
-            let key = "\(String(describing: track.url))"
-
-            // selectedTracks を全て true へ
-            selectedTracks[key]=true
-            track.checkedFlg=true
+            guard track.url != nil || track.hasProtectedAsset else { continue }
+            selectedTracks[track.selectionKey] = true
+            track.checkedFlg = true
         }
         updateFooterAppearance()
         selectMusicLabel.sizeToFit()
@@ -240,50 +219,53 @@ class CustomMusicLibraryTrackViewController: UIViewController , UITableViewDataS
     }
 
     @IBAction func playBtnTapped(_ sender: Any) {
-        // ステータスバーの高さ
-        // 端末内に、再生データがあるかチェック。
-        if osTrackDataList[albumSelectIndex].trackData[(sender as AnyObject).tag].existFlg == false{
+        let tag = (sender as AnyObject).tag
+        let trackData = osTrackDataList[albumSelectIndex].trackData[tag]
+
+        guard trackData.existFlg else {
             showAlertMsgOneOkBtn(title: ERR_DIALOGUE_TITLE_MUSIC_DATA_NONE,
-                                 messege:ERR_DIALOGUE_MESSAGE_MUSIC_DATA_NONE)
-        }else{
-            // 押されたボタンが再生中の曲のボタンだったら、曲を止める
-            if playingTestTracks[(sender as AnyObject).tag] != nil{
+                                 messege: ERR_DIALOGUE_MESSAGE_MUSIC_DATA_NONE)
+            return
+        }
+
+        if trackData.hasProtectedAsset {
+            // Apple Music: MPMusicPlayerController で再生
+            let player = MPMusicPlayerController.applicationQueuePlayer
+            if playingTestTracks[tag] != nil {
+                player.stop()
+                playingTestTracks = [:]
+            } else {
+                playingTestTracks = [:]
+                if audioTestPlayer != nil && audioTestPlayer.isPlaying { audioTestPlayer.stop() }
+                player.stop()
+                let query = MPMediaQuery()
+                query.addFilterPredicate(MPMediaPropertyPredicate(
+                    value: trackData.persistentID,
+                    forProperty: MPMediaItemPropertyPersistentID))
+                player.setQueue(with: query)
+                player.play()
+                playingTestTracks[tag] = true
+            }
+        } else {
+            // 端末内ローカル曲: AVAudioPlayer で再生
+            guard let audioUrl = trackData.url else { return }
+            if playingTestTracks[tag] != nil {
                 audioTestPlayer.stop()
                 playingTestTracks = [:]
-            }else{
+            } else {
                 playingTestTracks = [:]
-                
-                if (audioTestPlayer != nil && audioTestPlayer.isPlaying){
-                    // auido が再生中であれば曲を止める。
-                    audioTestPlayer.stop()
-                }
-                // auido が再生中でなければ、再生するプレイヤーを作成する
-                let audioUrl = osTrackDataList[albumSelectIndex].trackData[(sender as AnyObject).tag].url
-                if audioUrl == nil {
-                    return
-                }
-                var audioError:NSError?
+                if audioTestPlayer != nil && audioTestPlayer.isPlaying { audioTestPlayer.stop() }
+                MPMusicPlayerController.applicationQueuePlayer.stop()
                 do {
-                    audioTestPlayer = try AVAudioPlayer(contentsOf: audioUrl!)
+                    audioTestPlayer = try AVAudioPlayer(contentsOf: audioUrl)
                     audioTestPlayer.delegate = self as? AVAudioPlayerDelegate
                     audioTestPlayer.prepareToPlay()
-                    playingTestTracks[(sender as AnyObject).tag]=true
-                    
-                } catch let error as NSError {
-                    playingTestTracks = [:]
-                    audioError = error
-                    audioTestPlayer = nil
-                }
-                // エラーチェック
-                if let error = audioError {
-                    dlog("Error \(error.localizedDescription)")
-                }else{
                     audioTestPlayer.play()
-                    playingTestTracks[(sender as AnyObject).tag]=false
+                    playingTestTracks[tag] = false
+                } catch {
+                    dlog("Error \(error.localizedDescription)")
                 }
-                
             }
-            
         }
         OSTracktableview.reloadData()
     }

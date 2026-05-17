@@ -4,6 +4,52 @@
 
 ---
 
+## AdMob メディエーション導入
+
+### 背景・課題
+
+現在のマッチ率が約 57% と低く、AdMob 単独では在庫不足。メディエーションを追加して 80〜90% 台を目指す。
+
+### Podfile に追加するアダプター
+
+```ruby
+pod 'GoogleMobileAdsMediationFacebook'   # Meta Audience Network（効果最大）
+pod 'GoogleMobileAdsMediationAppLovin'   # AppLovin（審査なし・即日）
+pod 'GoogleMobileAdsMediationPangle'     # Pangle/TikTok（日本市場強い）
+pod 'GoogleMobileAdsMediationUnityAds'   # Unity Ads
+```
+
+### 各ネットワーク登録先
+
+| ネットワーク | 登録先 | 審査期間 |
+|---|---|---|
+| Meta Audience Network | business.facebook.com | 1〜3日 |
+| AppLovin | applovin.com | 即日 |
+| Pangle | pangleglobal.com | 1日程度 |
+| Unity Ads | dashboard.unity3d.com | 即日 |
+
+### Info.plist 追記項目
+
+```xml
+<key>FacebookAppID</key><string>YOUR_APP_ID</string>
+<key>FacebookClientToken</key><string>YOUR_CLIENT_TOKEN</string>
+<key>AppLovinSdkKey</key><string>YOUR_SDK_KEY</string>
+```
+
+### AdMob コンソール作業
+
+1. メディエーション → メディエーショングループを作成
+2. 広告フォーマット・プラットフォームを選択
+3. 各ネットワークの App ID / SDK Key を入力（自動入札推奨）
+
+### 優先度・依存関係
+
+- CocoaPods 導入済みのためコード追加は容易
+- Meta の Facebook ビジネスアカウント審査が律速になる
+- AppLovin から先に試すと最短当日稼働可能
+
+---
+
 ## Apple Music 楽曲の再生対応
 
 ### 背景・課題

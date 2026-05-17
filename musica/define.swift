@@ -405,6 +405,13 @@ struct TrackData {
     var checkedFlg : Bool = false
     var artworkImg : UIImage? = nil
     var isCloudItem : Bool = true
+    var hasProtectedAsset : Bool = false       // Apple Music DRM トラック判定
+    var persistentID : MPMediaEntityPersistentID = 0  // Apple Music 再生キー
+
+    // Apple Music は URL が nil のため persistentID をキーとして使う
+    var selectionKey: String {
+        hasProtectedAsset ? "am_\(persistentID)" : "\(String(describing: url))"
+    }
 }
 
 //albumデータの構造体を定義する。

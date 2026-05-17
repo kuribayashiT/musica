@@ -114,64 +114,26 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
                 OSAlbumList[_albumIndex].artist = album.representativeItem?.albumArtist ?? "NO ARTIST DATA"
                 
                 for song in album.items {
-                    OSAlbumList[_albumIndex].trackData.append(TrackData())
-                    OSAlbumList[_albumIndex].trackData[trackIndex].artist = ""
-                    OSAlbumList[_albumIndex].trackData[trackIndex].albumName = OSAlbumList[_albumIndex].title!
-                    OSAlbumList[_albumIndex].trackData[trackIndex].albumArtistName = OSAlbumList[_albumIndex].artist!
-                    OSAlbumList[_albumIndex].trackData[trackIndex].artworkImg = OSAlbumList[_albumIndex].artwork?.image(at: (OSAlbumList[_albumIndex].artwork?.bounds.size)!)
-                    
-                    // アーティスト名
-                    guard let artist = song.value(forProperty: MPMediaItemPropertyArtist) else {
-                        
-                        dlog("artist:NILL")
-                        break
+                    guard let title = song.value(forProperty: MPMediaItemPropertyTitle) as? String,
+                          !title.isEmpty else { continue }
+                    var track = TrackData()
+                    track.albumName       = OSAlbumList[_albumIndex].title!
+                    track.albumArtistName = OSAlbumList[_albumIndex].artist!
+                    if let aw = OSAlbumList[_albumIndex].artwork {
+                        track.artworkImg = aw.image(at: aw.bounds.size)
                     }
-                    OSAlbumList[_albumIndex].trackData[trackIndex].artist = artist as! String
-                    dlog("artist: \(OSAlbumList[_albumIndex].trackData[trackIndex].artist)")
-                    
-                    // 楽曲のタイトル
-                    guard let title = song.value(forProperty: MPMediaItemPropertyTitle) else {
-                        
-                        dlog("title:NILL")
-                        break
-                    }
-                    OSAlbumList[_albumIndex].trackData[trackIndex].title = title as! String
-                    dlog("title: \(OSAlbumList[_albumIndex].trackData[trackIndex].title)")
-                    
-                    // 楽曲の歌詞
-                    guard let lyric = song.value(forProperty: MPMediaItemPropertyLyrics) else {
-                        
-                        dlog("lyric:NILL")
-                        break
-                    }
-                    OSAlbumList[_albumIndex].trackData[trackIndex].lyric = lyric as! String
-                    //曲のパス
-                    let path = song.assetURL ?? nil
-                    
-                    OSAlbumList[_albumIndex].trackData[trackIndex].url = path
-                    OSAlbumList[_albumIndex].trackData[trackIndex].existFlg = true
+                    track.title             = title
+                    track.artist            = song.value(forProperty: MPMediaItemPropertyArtist) as? String ?? ""
+                    track.lyric             = song.value(forProperty: MPMediaItemPropertyLyrics) as? String ?? ""
+                    track.genre             = song.value(forProperty: MPMediaItemPropertyGenre) as? String ?? ""
+                    track.url               = song.assetURL
+                    track.hasProtectedAsset = song.hasProtectedAsset
+                    track.persistentID      = song.persistentID
+                    track.isCloudItem       = song.value(forProperty: MPMediaItemPropertyIsCloudItem) as? Bool ?? false
+                    track.existFlg          = true
+                    track.checkedFlg        = selectedTracks[track.selectionKey] ?? false
+                    OSAlbumList[_albumIndex].trackData.append(track)
                     OSAlbumList[_albumIndex].existFlg = true
-                    //ジャンル
-                    guard let genre = song.value(forProperty: MPMediaItemPropertyGenre) else {
-                        break
-                    }
-                    OSAlbumList[_albumIndex].trackData[trackIndex].genre = genre as! String
-                    // チェック状態の取得
-                    let key = "\(String(describing: OSAlbumList[_albumIndex].trackData[trackIndex].url))"
-                    
-                    
-                    if let selected = selectedTracks[key]{
-                        OSAlbumList[_albumIndex].trackData[trackIndex].checkedFlg = selected
-                    }else{
-                        OSAlbumList[_albumIndex].trackData[trackIndex].checkedFlg = false
-                    }
-                    // iCloud上のものか確認
-                    guard let isCloudItem = song.value(forProperty: MPMediaItemPropertyIsCloudItem) else {
-                        break
-                    }
-                    OSAlbumList[_albumIndex].trackData[trackIndex].isCloudItem = isCloudItem as! Bool
-                    // track のインクリメント
-                    trackIndex = trackIndex + 1
                 }
             }
         }
@@ -186,75 +148,24 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
                 OSLibraryList[albumIndex].artist = "DEVICE Play List"//library.representativeItem?.albumArtist ?? "NO ARTIST DATA"
                 
                 for song in library.items {
-                    OSLibraryList[albumIndex].trackData.append(TrackData())
-                    OSLibraryList[albumIndex].trackData[trackIndex].artist = ""
-                    OSLibraryList[albumIndex].trackData[trackIndex].albumName = OSLibraryList[albumIndex].title!
-                    OSLibraryList[albumIndex].trackData[trackIndex].albumArtistName = OSLibraryList[albumIndex].artist!
-
-                    let artworkImg = song.artwork?.image(at: (song.artwork?.bounds.size)!)
-                    if artworkImg != nil {
-                        OSLibraryList[albumIndex].trackData[trackIndex].artworkImg = artworkImg
-                    }
-                    
-                    // アーティスト名　album.representativeItem?.artwork
-                    guard let artist = song.value(forProperty: MPMediaItemPropertyArtist) else {
-                        dlog("artist:NILL")
-                        break
-                    }
-                    OSLibraryList[albumIndex].trackData[trackIndex].artist = artist as! String
-                    dlog("artist: \(OSLibraryList[albumIndex].trackData[trackIndex].artist)")
-                    
-                    // 楽曲のタイトル
-                    guard let title = song.value(forProperty: MPMediaItemPropertyTitle) else {
-                        dlog("title:NILL")
-                        break
-                    }
-                    OSLibraryList[albumIndex].trackData[trackIndex].title = title as! String
-                    dlog("title: \(OSLibraryList[albumIndex].trackData[trackIndex].title)")
-                    
-                    // 楽曲の歌詞
-                    guard let lyric = song.value(forProperty: MPMediaItemPropertyLyrics) else {
-                        dlog("lyric:NILL")
-                        break
-                    }
-                    OSLibraryList[albumIndex].trackData[trackIndex].lyric = lyric as! String
-                    dlog("lyric: \(OSLibraryList[albumIndex].trackData[trackIndex].lyric)")
-                    
-                    //曲のパス
-                    let path = song.assetURL ?? nil
-                    
-                    OSLibraryList[albumIndex].trackData[trackIndex].url = path
-                    
-                    // path が存在するトラックは、フラグを立てる
-                    OSLibraryList[albumIndex].trackData[trackIndex].existFlg = true
+                    guard let title = song.value(forProperty: MPMediaItemPropertyTitle) as? String,
+                          !title.isEmpty else { continue }
+                    var track = TrackData()
+                    track.albumName       = OSLibraryList[albumIndex].title!
+                    track.albumArtistName = OSLibraryList[albumIndex].artist!
+                    if let aw = song.artwork { track.artworkImg = aw.image(at: aw.bounds.size) }
+                    track.title             = title
+                    track.artist            = song.value(forProperty: MPMediaItemPropertyArtist) as? String ?? ""
+                    track.lyric             = song.value(forProperty: MPMediaItemPropertyLyrics) as? String ?? ""
+                    track.genre             = song.value(forProperty: MPMediaItemPropertyGenre) as? String ?? ""
+                    track.url               = song.assetURL
+                    track.hasProtectedAsset = song.hasProtectedAsset
+                    track.persistentID      = song.persistentID
+                    track.isCloudItem       = song.value(forProperty: MPMediaItemPropertyIsCloudItem) as? Bool ?? false
+                    track.existFlg          = true
+                    track.checkedFlg        = selectedTracks[track.selectionKey] ?? false
+                    OSLibraryList[albumIndex].trackData.append(track)
                     OSLibraryList[albumIndex].existFlg = true
-                    
-                    dlog("path: \(String(describing: OSLibraryList[albumIndex].trackData[trackIndex].url))")
-                    
-                    //ジャンル
-                    guard let genre = song.value(forProperty: MPMediaItemPropertyGenre) else {
-                        dlog("genre:NILL")
-                        break
-                    }
-                    OSLibraryList[albumIndex].trackData[trackIndex].genre = genre as! String
-                    dlog("genre: \(OSLibraryList[albumIndex].trackData[trackIndex].genre)")
-
-                    // チェック状態の取得
-                    let key = "\(String(describing: OSLibraryList[albumIndex].trackData[trackIndex].url))"
-                    
-                    if let selected = selectedTracks[key]{
-                        OSLibraryList[albumIndex].trackData[trackIndex].checkedFlg = selected
-                    }else{
-                        OSLibraryList[albumIndex].trackData[trackIndex].checkedFlg = false
-                    }
-                    
-                    // iCloud上のものか確認
-                    guard let isCloudItem = song.value(forProperty: MPMediaItemPropertyIsCloudItem) else {
-                        break
-                    }
-                    OSLibraryList[albumIndex].trackData[trackIndex].isCloudItem = isCloudItem as! Bool
-                    // track のインクリメント
-                    trackIndex = trackIndex + 1
                 }
             }
         }
