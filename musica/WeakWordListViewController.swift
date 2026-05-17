@@ -9,6 +9,8 @@
 //
 
 import UIKit
+import AVFoundation
+import NaturalLanguage
 
 final class WeakWordListViewController: UIViewController {
 
@@ -19,6 +21,10 @@ final class WeakWordListViewController: UIViewController {
 
     // MARK: State
     private var words: [WeakWord] = []
+
+    // MARK: TTS
+    private let synthesizer = AVSpeechSynthesizer()
+    private weak var activeSpeakBtn: UIButton?
 
     // MARK: Lifecycle
 
@@ -172,6 +178,51 @@ final class WeakWordListViewController: UIViewController {
         present(nav, animated: true)
     }
 
+    // MARK: TTS
+
+    private func speakWord(_ text: String, from btn: UIButton) {
+        // 同じボタンを再タップ → 停止
+        if btn === activeSpeakBtn && synthesizer.isSpeaking {
+            synthesizer.stopSpeaking(at: .immediate)
+            setSpeakBtn(activeSpeakBtn, speaking: false)
+            activeSpeakBtn = nil
+            return
+        }
+        // 前のボタンをリセット
+        setSpeakBtn(activeSpeakBtn, speaking: false)
+
+        let langMap: [NLLanguage: String] = [
+            .japanese: "ja-JP", .english: "en-US",
+            .simplifiedChinese: "zh-CN", .traditionalChinese: "zh-TW",
+            .korean: "ko-KR", .spanish: "es-ES", .french: "fr-FR",
+            .german: "de-DE", .italian: "it-IT", .portuguese: "pt-BR",
+            .russian: "ru-RU", .arabic: "ar-SA", .hindi: "hi-IN",
+            .thai: "th-TH", .turkish: "tr-TR",
+        ]
+        let rec = NLLanguageRecognizer()
+        rec.processString(text)
+        let langCode = langMap[rec.dominantLanguage ?? .undetermined] ?? "en-US"
+        guard let voice = AVSpeechSynthesisVoice(language: langCode) else { return }
+
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.voice = voice
+        utterance.rate  = AVSpeechUtteranceDefaultSpeechRate * 0.85
+        synthesizer.stopSpeaking(at: .immediate)
+        synthesizer.delegate = self
+        synthesizer.speak(utterance)
+
+        activeSpeakBtn = btn
+        setSpeakBtn(btn, speaking: true)
+    }
+
+    private func setSpeakBtn(_ btn: UIButton?, speaking: Bool) {
+        guard let btn else { return }
+        let cfg  = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+        let icon = speaking ? "speaker.wave.3.fill" : "speaker.wave.2"
+        btn.setImage(UIImage(systemName: icon, withConfiguration: cfg), for: .normal)
+        btn.tintColor = speaking ? AppColor.accent : AppColor.textSecondary
+    }
+
     @objc private func clearAllTapped() {
         let alert = UIAlertController(
             title: localText(key: "weak_word_clear_all_title"),
@@ -198,6 +249,9 @@ extension WeakWordListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: WeakWordCell.reuseID, for: indexPath) as! WeakWordCell
         cell.configure(word: words[indexPath.row])
+        cell.onSpeak = { [weak self] btn in
+            self?.speakWord(self?.words[indexPath.row].displayWord ?? "", from: btn)
+        }
         return cell
     }
 
@@ -225,15 +279,31 @@ extension WeakWordListViewController: UITableViewDelegate {
     }
 }
 
+// MARK: - AVSpeechSynthesizerDelegate
+
+extension WeakWordListViewController: AVSpeechSynthesizerDelegate {
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        setSpeakBtn(activeSpeakBtn, speaking: false)
+        activeSpeakBtn = nil
+    }
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        setSpeakBtn(activeSpeakBtn, speaking: false)
+        activeSpeakBtn = nil
+    }
+}
+
 // MARK: - WeakWordCell
 
 private final class WeakWordCell: UITableViewCell {
     static let reuseID = "WeakWordCell"
 
-    private let wordLabel       = UILabel()
-    private let translLabel     = UILabel()
-    private let sourceLabel     = UILabel()
-    private let bookmarkIcon    = UIImageView()
+    var onSpeak: ((UIButton) -> Void)?
+
+    private let wordLabel    = UILabel()
+    private let translLabel  = UILabel()
+    private let sourceLabel  = UILabel()
+    private let bookmarkIcon = UIImageView()
+    let speakBtn             = UIButton(type: .system)
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -268,9 +338,15 @@ private final class WeakWordCell: UITableViewCell {
         let textStack = UIStackView(arrangedSubviews: [wordLabel, translLabel, sourceLabel])
         textStack.axis    = .vertical
         textStack.spacing = 2
-        textStack.translatesAutoresizingMaskIntoConstraints = false
 
-        let row = UIStackView(arrangedSubviews: [bookmarkIcon, textStack])
+        let speakCfg = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+        speakBtn.setImage(UIImage(systemName: "speaker.wave.2", withConfiguration: speakCfg), for: .normal)
+        speakBtn.tintColor = AppColor.textSecondary
+        speakBtn.addTarget(self, action: #selector(speakTapped), for: .touchUpInside)
+        speakBtn.translatesAutoresizingMaskIntoConstraints = false
+        speakBtn.widthAnchor.constraint(equalToConstant: 36).isActive = true
+
+        let row = UIStackView(arrangedSubviews: [bookmarkIcon, textStack, speakBtn])
         row.axis      = .horizontal
         row.spacing   = 10
         row.alignment = .center
@@ -285,13 +361,22 @@ private final class WeakWordCell: UITableViewCell {
         ])
     }
 
+    @objc private func speakTapped() {
+        onSpeak?(speakBtn)
+    }
+
     func configure(word: WeakWord) {
         wordLabel.text   = word.displayWord
         translLabel.text = word.translation ?? word.contextLine
         translLabel.textColor = word.translation != nil ? AppColor.accent : AppColor.textSecondary
 
         let source = [word.trackTitle, word.trackArtist].filter { !$0.isEmpty }.joined(separator: " · ")
-        sourceLabel.text    = source.isEmpty ? nil : source
+        sourceLabel.text     = source.isEmpty ? nil : source
         sourceLabel.isHidden = source.isEmpty
+
+        // セル再利用時にボタンアイコンをリセット
+        let cfg = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+        speakBtn.setImage(UIImage(systemName: "speaker.wave.2", withConfiguration: cfg), for: .normal)
+        speakBtn.tintColor = AppColor.textSecondary
     }
 }

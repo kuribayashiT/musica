@@ -33,6 +33,7 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
         super.viewDidLoad()
         self.title = localText(key: "library_select_album_title")
         navigationItem.largeTitleDisplayMode = .always
+        extendedLayoutIncludesOpaqueBars = true
 
         // セグメントをストーリーボード位置から外し、section header として使う
         // → tableView が画面上端まで届き、ラージタイトルのスクロール折りたたみが機能する
@@ -49,13 +50,18 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
         ])
         segmentHeaderView = segWrapper
 
-        // tableView の top を safeArea 上端に拡張（ラージタイトル連動に必要）
+        // tableView を画面上端まで伸ばす（ラージタイトルのスクロール折りたたみに必要）
         OSAlbumtableview.translatesAutoresizingMaskIntoConstraints = false
         view.constraints.first(where: {
             ($0.firstItem as? UIView == OSAlbumtableview && $0.firstAttribute == .top) ||
             ($0.secondItem as? UIView == OSAlbumtableview && $0.secondAttribute == .top)
         })?.isActive = false
-        OSAlbumtableview.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
+        OSAlbumtableview.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+
+        // iOS 15+ のセクションヘッダー上部パディングを除去
+        if #available(iOS 15.0, *) {
+            OSAlbumtableview.sectionHeaderTopPadding = 0
+        }
 
         OSAlbumtableview.tableHeaderView = makeLibraryGuideCard(
             step: 1, total: 3,
@@ -268,7 +274,8 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
         selectMusicView.isHidden = false
         // navigationbarの色設定
         selectMusicButton.addTarget(self, action: #selector(self.toRegistMusicLibrary), for: UIControl.Event.touchUpInside)
-        self.navigationController?.navigationBar.isTranslucent = false
+        // ラージタイトルのスクロール折りたたみに必要（translucent にすることでスクロールビューが nav bar の下まで延びる）
+        self.navigationController?.navigationBar.isTranslucent = true
         self.navigationController?.navigationBar.prefersLargeTitles = true
         if #available(iOS 15.0, *) {
             let navColor  = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
@@ -292,7 +299,6 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
         let footerH: CGFloat = 76
         selectMusicView.frame = CGRect(x: 0, y: Int(myAppFrameSize.height - footerH - tabH), width: Int(myAppFrameSize.width), height: Int(footerH))
         updateFooterAppearance()
-        OSAlbumtableview.translatesAutoresizingMaskIntoConstraints = false
         footerHeight.constant = -footerH
         OSAlbumtableview.reloadData()
     }
@@ -304,6 +310,10 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
             let window = UIApplication.shared.keyWindow!
             window.addSubview(createFooterView())
         }
+    }
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        selectMusicView.isHidden = true
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -424,10 +434,12 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
                 cell.AlbumImage.layer.borderWidth = ICON_BORDERWIDTH
                 cell.AlbumImage.image = image
             } else {
-                // アートワークがないとき (灰色表示)
-                cell.AlbumImage.image = nil
-                cell.AlbumImage.backgroundColor = UIColor.gray
-                cell.AlbumImage.layer.borderColor = UIColor.gray.cgColor
+                let s = cell.AlbumImage.bounds.size.width > 0 ? cell.AlbumImage.bounds.size : CGSize(width: 60, height: 60)
+                cell.AlbumImage.image = playlistThumbnail(name: LibraryData.title ?? "", size: s)
+                cell.AlbumImage.contentMode = .scaleAspectFill
+                cell.AlbumImage.backgroundColor = .clear
+                cell.AlbumImage.layer.cornerRadius = ICON_CORNER_RADIUS_SETTINMGS
+                cell.AlbumImage.layer.borderWidth = ICON_BORDERWIDTH
             }
         }
         fadeInRanDomAnimesion(view : cell.AlbumImage)
@@ -515,6 +527,57 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
     
     @IBAction func forSettingAPPBtnTapped(_ sender: Any) {
         UIApplication.shared.open(NSURL(string: UIApplication.openSettingsURLString)! as URL)
+    }
+
+    // プレイリスト名からテーマカラー＋アイコンでサムネイルを生成する
+    private func playlistThumbnail(name: String, size: CGSize) -> UIImage {
+        struct Theme { let top: UIColor; let bottom: UIColor; let symbol: String }
+        func hsl(_ h: CGFloat, _ s: CGFloat, _ b: CGFloat) -> UIColor {
+            UIColor(hue: h / 360, saturation: s, brightness: b, alpha: 1)
+        }
+        let n = name.lowercased()
+        let theme: Theme
+        if n.contains("クラシック") || n.contains("classic") {
+            theme = Theme(top: hsl(36, 0.70, 0.52), bottom: hsl(48, 0.60, 0.78), symbol: "music.note")
+        } else if n.contains("最近再生") || n.contains("recently played") {
+            theme = Theme(top: hsl(210, 0.75, 0.45), bottom: hsl(220, 0.55, 0.72), symbol: "clock.fill")
+        } else if n.contains("最近追加") || n.contains("recently added") {
+            theme = Theme(top: hsl(148, 0.70, 0.38), bottom: hsl(160, 0.55, 0.65), symbol: "plus.circle.fill")
+        } else if n.contains("トップレート") || n.contains("top rated") {
+            theme = Theme(top: hsl(350, 0.75, 0.48), bottom: hsl(10, 0.60, 0.72), symbol: "star.fill")
+        } else if n.contains("トップ") || n.contains("top") {
+            theme = Theme(top: hsl(22, 0.80, 0.48), bottom: hsl(38, 0.65, 0.74), symbol: "flame.fill")
+        } else if n.contains("90年代") || n.contains("90s") || n.contains("'90") {
+            theme = Theme(top: hsl(270, 0.65, 0.42), bottom: hsl(290, 0.50, 0.68), symbol: "waveform")
+        } else if n.contains("80年代") || n.contains("80s") || n.contains("'80") {
+            theme = Theme(top: hsl(195, 0.70, 0.40), bottom: hsl(215, 0.55, 0.68), symbol: "headphones")
+        } else if n.contains("70年代") || n.contains("70s") || n.contains("'70") {
+            theme = Theme(top: hsl(30, 0.75, 0.42), bottom: hsl(45, 0.60, 0.68), symbol: "music.note.list")
+        } else if n.contains("お気に入り") || n.contains("favorite") || n.contains("liked") {
+            theme = Theme(top: hsl(340, 0.72, 0.45), bottom: hsl(355, 0.60, 0.72), symbol: "heart.fill")
+        } else if n.contains("ダウンロード") || n.contains("download") {
+            theme = Theme(top: hsl(148, 0.68, 0.38), bottom: hsl(162, 0.52, 0.62), symbol: "arrow.down.circle.fill")
+        } else {
+            // 名前のハッシュ値から一意の色を決定
+            let h = CGFloat(abs(name.hashValue) % 360)
+            theme = Theme(top: hsl(h, 0.65, 0.42), bottom: hsl(fmod(h + 40, 360), 0.50, 0.68), symbol: "music.note.list")
+        }
+
+        return UIGraphicsImageRenderer(size: size).image { ctx in
+            let cg = ctx.cgContext
+            let colors = [theme.top.cgColor, theme.bottom.cgColor] as CFArray
+            guard let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 1]) else { return }
+            cg.drawLinearGradient(gradient, start: .zero, end: CGPoint(x: size.width, y: size.height), options: [])
+
+            let ptSize = size.width * 0.40
+            let symConf = UIImage.SymbolConfiguration(pointSize: ptSize, weight: .medium)
+            if let icon = UIImage(systemName: theme.symbol, withConfiguration: symConf)?
+                .withTintColor(UIColor.white.withAlphaComponent(0.88), renderingMode: .alwaysOriginal) {
+                let ix = (size.width - icon.size.width) / 2
+                let iy = (size.height - icon.size.height) / 2
+                icon.draw(at: CGPoint(x: ix, y: iy))
+            }
+        }
     }
 
 }

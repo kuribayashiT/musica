@@ -500,7 +500,7 @@ final class DictationViewController: UIViewController {
 
         let bgImg = UIImageView()
         bgImg.contentMode = .scaleAspectFill
-        bgImg.image = track.artworkImg ?? UIImage(named: "onpu_BL")
+        bgImg.image = track.artworkImg ?? makeDefaultArtwork()
         bgImg.translatesAutoresizingMaskIntoConstraints = false
         card.addSubview(bgImg)
 
@@ -523,8 +523,8 @@ final class DictationViewController: UIViewController {
             artView.image = img
             artView.contentMode = .scaleAspectFill
         } else {
-            artView.image = UIImage(named: "onpu_BL")
-            artView.contentMode = .center
+            artView.image = makeDefaultArtwork()
+            artView.contentMode = .scaleAspectFill
         }
         card.addSubview(artView)
         miniPlayerArtView = artView
@@ -795,8 +795,8 @@ final class DictationViewController: UIViewController {
             miniPlayerArtView?.image = img
             miniPlayerArtView?.contentMode = .scaleAspectFill
         } else {
-            miniPlayerArtView?.image = UIImage(named: "onpu_BL")
-            miniPlayerArtView?.contentMode = .center
+            miniPlayerArtView?.image = makeDefaultArtwork()
+            miniPlayerArtView?.contentMode = .scaleAspectFill
         }
         miniPlayerTitleLabel?.text = track.title.isEmpty ? localText(key: "practice_unknown") : track.title
     }
