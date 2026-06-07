@@ -123,6 +123,8 @@
 		AA0000001ED00000000000A4 /* PracticeHistoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED00000000000A5 /* PracticeHistoryViewController.swift */; };
 		AA0000001ED00000000000A6 /* WeakWordService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED00000000000A7 /* WeakWordService.swift */; };
 		AA0000001ED00000000000A8 /* WeakWordListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000001ED00000000000A9 /* WeakWordListViewController.swift */; };
+		BB0000001ED00000000000B0 /* SubscriptionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000001ED00000000000B1 /* SubscriptionGate.swift */; };
+		BB0000001ED00000000000B2 /* UpgradePromptViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000001ED00000000000B3 /* UpgradePromptViewController.swift */; };
 		AAAAAA0000000002AAAAAA01 /* AppColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAA0000000001AAAAAA01 /* AppColor.swift */; };
 		AAAAAA0000000002AAAAAA02 /* AppFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAA0000000001AAAAAA02 /* AppFont.swift */; };
 		AAAAAA0000000002AAAAAA03 /* DiscoverViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAA0000000001AAAAAA03 /* DiscoverViewController.swift */; };
@@ -314,6 +316,8 @@
 		AA0000001ED00000000000A5 /* PracticeHistoryViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PracticeHistoryViewController.swift; sourceTree = "<group>"; };
 		AA0000001ED00000000000A7 /* WeakWordService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WeakWordService.swift; sourceTree = "<group>"; };
 		AA0000001ED00000000000A9 /* WeakWordListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WeakWordListViewController.swift; sourceTree = "<group>"; };
+		BB0000001ED00000000000B1 /* SubscriptionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionGate.swift; sourceTree = "<group>"; };
+		BB0000001ED00000000000B3 /* UpgradePromptViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpgradePromptViewController.swift; sourceTree = "<group>"; };
 		AAAAAA0000000001AAAAAA01 /* AppColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColor.swift; sourceTree = "<group>"; };
 		AAAAAA0000000001AAAAAA02 /* AppFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFont.swift; sourceTree = "<group>"; };
 		AAAAAA0000000001AAAAAA03 /* DiscoverViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverViewController.swift; sourceTree = "<group>"; };
@@ -652,6 +656,8 @@
 				AA0000001ED00000000000A5 /* PracticeHistoryViewController.swift */,
 				AA0000001ED00000000000A7 /* WeakWordService.swift */,
 				AA0000001ED00000000000A9 /* WeakWordListViewController.swift */,
+				BB0000001ED00000000000B1 /* SubscriptionGate.swift */,
+				BB0000001ED00000000000B3 /* UpgradePromptViewController.swift */,
 				AA0000001ED0000000000010 /* Notification+musica.swift */,
 				AA0000001ED0000000000012 /* YouTubeCaptionService.swift */,
 				AA0000001ED0000000000022 /* YoutubeCaptionStore.swift */,
@@ -1131,6 +1137,8 @@
 				AA0000001ED00000000000A4 /* PracticeHistoryViewController.swift in Sources */,
 				AA0000001ED00000000000A6 /* WeakWordService.swift in Sources */,
 				AA0000001ED00000000000A8 /* WeakWordListViewController.swift in Sources */,
+				BB0000001ED00000000000B0 /* SubscriptionGate.swift in Sources */,
+				BB0000001ED00000000000B2 /* UpgradePromptViewController.swift in Sources */,
 				AA0000001ED000000000000F /* Notification+musica.swift in Sources */,
 				AA0000001ED0000000000011 /* YouTubeCaptionService.swift in Sources */,
 				AA0000001ED0000000000021 /* YoutubeCaptionStore.swift in Sources */,

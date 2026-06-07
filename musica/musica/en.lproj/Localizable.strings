@@ -815,3 +815,26 @@
 "whisper_preparing_audio" = "Preparing audio file...";
 "whisper_export_session_error" = "Could not create export session";
 "whisper_export_fail_fmt" = "Audio export failed (status: %d)";
+
+/* ── Upgrade Prompt ─────────────────────────────── */
+"upgrade_later" = "Not Now";
+
+"upgrade_dict_limit_title" = "Daily Limit Reached";
+"upgrade_dict_limit_sub" = "Upgrade to practice without limits.\nYou'll get 3 more free sessions tomorrow.";
+"upgrade_dict_cta" = "Unlock Unlimited Practice";
+
+"upgrade_dict_done_title" = "Great Work!";
+"upgrade_dict_done_sub" = "Keep practicing to improve your listening skills.\nGo unlimited with Premium.";
+"upgrade_dict_done_cta" = "Try Premium";
+"upgrade_remaining_fmt" = "%d sessions left today (Pro = unlimited)";
+
+"upgrade_flash_limit_title" = "Daily Card Limit Reached";
+"upgrade_flash_limit_sub" = "Upgrade to review unlimited flashcards every day.";
+
+"upgrade_flash_done_title" = "Session Complete!";
+"upgrade_flash_done_sub" = "Daily practice builds vocabulary fast.\nGo unlimited with Premium.";
+
+"upgrade_benefit_dict_unlimited" = "Unlimited Dictation Practice";
+"upgrade_benefit_flash_unlimited" = "Unlimited Flashcards";
+"upgrade_benefit_no_ads" = "Remove All Ads";
+"upgrade_benefit_history" = "Full Practice History & Progress Charts";

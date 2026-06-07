@@ -632,6 +632,17 @@ final class FlashCardViewController: UIViewController {
             totalCount: words.count
         ))
 
+        SubscriptionGate.shared.recordSessionCompleted()
+
+        // 非課金ユーザーへのアップグレード促進（初回完了時）
+        let isFirstFlash = !SubscriptionGate.shared.hasCompletedFirstFlash
+        if isFirstFlash { SubscriptionGate.shared.hasCompletedFirstFlash = true }
+        if !KAKIN_FLG && isFirstFlash {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+                self?.showUpgradePrompt(context: .flashCardCompleted)
+            }
+        }
+
         cardContainer.isHidden = true
         setButtonsEnabled(false)
         progressBar.setProgress(1.0, animated: true)

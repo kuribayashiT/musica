@@ -92,6 +92,17 @@ final class DictationViewController: UIViewController {
         title = localText(key: "dictation_title")
         navigationItem.largeTitleDisplayMode = .never
 
+        // 無料ユーザーの1日制限チェック
+        if !SubscriptionGate.shared.canStartDictation {
+            DispatchQueue.main.async { [weak self] in
+                self?.showUpgradePrompt(context: .dictationLimitReached) {
+                    self?.navigationController?.popViewController(animated: true)
+                }
+            }
+            return
+        }
+        SubscriptionGate.shared.recordDictationStarted()
+
         parseLyrics()
         detectLanguage()
         setupLayout()
@@ -729,11 +740,19 @@ final class DictationViewController: UIViewController {
             totalCount: blanks.count
         ))
 
+        SubscriptionGate.shared.recordSessionCompleted()
+
         let resultVC = DictationResultViewController()
         resultVC.totalCount   = blanks.count
         resultVC.correctCount = correctCount
         resultVC.blanks       = blanks.map { ($0.answer, $0.lineWithBlank) }
         resultVC.userAnswers  = userAnswers
+
+        // 初回完了かつ非課金ユーザーにアップグレード促進を表示
+        let isFirstTime = !SubscriptionGate.shared.hasCompletedFirstDictation
+        if isFirstTime { SubscriptionGate.shared.hasCompletedFirstDictation = true }
+        resultVC.showUpgradePromptOnAppear = !KAKIN_FLG && isFirstTime
+
         navigationController?.pushViewController(resultVC, animated: true)
     }
 
@@ -1002,6 +1021,8 @@ final class DictationResultViewController: UIViewController {
     var correctCount = 0
     var blanks:      [(answer: String, lineWithBlank: String)] = []
     var userAnswers: [String] = []
+    /// true のとき viewDidAppear でアップグレードプロンプトを表示する
+    var showUpgradePromptOnAppear = false
 
     private let scrollView = UIScrollView()
     private let stack      = UIStackView()
@@ -1014,6 +1035,16 @@ final class DictationResultViewController: UIViewController {
         navigationItem.hidesBackButton = true
 
         setupLayout()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if showUpgradePromptOnAppear {
+            showUpgradePromptOnAppear = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+                self?.showUpgradePrompt(context: .dictationCompleted)
+            }
+        }
     }
 
     private func setupLayout() {

@@ -85,10 +85,10 @@ class RemoveADViewController: UIViewController {
 
         // ── 特典カード ──────────────────────────────────────────
         let benefitsCard = makeSectionCard(title: localText(key: "premium_benefits_header"), items: [
-            ("nosign",         localText(key: "premium_benefit1_label"), localText(key: "premium_benefit1_sub")),
-            ("waveform",       localText(key: "premium_benefit2_label"), localText(key: "premium_benefit2_sub")),
-            ("music.note",     localText(key: "premium_benefit3_label"), localText(key: "premium_benefit3_sub")),
-            ("arrow.clockwise",localText(key: "premium_benefit4_label"), localText(key: "premium_benefit4_sub")),
+            ("waveform.and.mic", localText(key: "premium_benefit1_label"), localText(key: "premium_benefit1_sub")),
+            ("rectangle.stack",  localText(key: "premium_benefit2_label"), localText(key: "premium_benefit2_sub")),
+            ("nosign",           localText(key: "premium_benefit3_label"), localText(key: "premium_benefit3_sub")),
+            ("arrow.clockwise",  localText(key: "premium_benefit4_label"), localText(key: "premium_benefit4_sub")),
         ])
 
         // ── 料金カード ─────────────────────────────────────────

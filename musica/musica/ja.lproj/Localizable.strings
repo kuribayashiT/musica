@@ -702,20 +702,20 @@
 
 /* ── プレミアムプラン画面 ─────────────────── */
 "premium_title" = "プレミアムプラン";
-"premium_hero_title" = "広告なし、集中できる練習環境へ";
-"premium_hero_sub" = "musicaプレミアムで広告をすべて非表示に。\nディクテーション練習に集中できます。";
+"premium_hero_title" = "好きな曲で、もっと学べる";
+"premium_hero_sub" = "ディクテーション・フラッシュカードが無制限に。\n広告なしで練習に集中できます。";
 "premium_benefits_header" = "プレミアムで できること";
-"premium_benefit1_label" = "すべての広告を非表示";
-"premium_benefit1_sub" = "バナー・全画面・MV広告を完全カット";
-"premium_benefit2_label" = "練習に集中";
-"premium_benefit2_sub" = "途中で広告が入らないのでリズムが途切れない";
-"premium_benefit3_label" = "音楽再生もスムーズ";
-"premium_benefit3_sub" = "再生リストを快適にブラウズできる";
+"premium_benefit1_label" = "ディクテーション 無制限";
+"premium_benefit1_sub" = "1日3回の制限を解除。好きな曲で毎日練習";
+"premium_benefit2_label" = "フラッシュカード 無制限";
+"premium_benefit2_sub" = "歌詞から自動生成した単語カードが無制限に";
+"premium_benefit3_label" = "広告をすべて非表示";
+"premium_benefit3_sub" = "バナー・全画面・MV広告を完全カット";
 "premium_benefit4_label" = "いつでも解約 OK";
 "premium_benefit4_sub" = "継続課金。解約はいつでも設定から可能";
 "premium_price_fallback" = "月額プラン";
 "premium_price_fmt" = "月額 %@";
-"premium_price_sub" = "広告をすべて非表示 · いつでも解約 OK";
+"premium_price_sub" = "ディクテーション無制限 · 広告なし · いつでも解約 OK";
 "premium_cta" = "プレミアムを始める";
 "premium_restore" = "過去の購入を復元する";
 "premium_terms" = "利用規約 / プライバシーポリシー";
@@ -839,3 +839,31 @@
 "whisper_preparing_audio" = "音声ファイルを準備中...";
 "whisper_export_session_error" = "エクスポートセッションを作成できませんでした";
 "whisper_export_fail_fmt" = "音声ファイルのエクスポートに失敗しました (status: %d)";
+
+/* ── アップグレード促進プロンプト ─────────────────── */
+"upgrade_later" = "あとで";
+
+// ディクテーション制限
+"upgrade_dict_limit_title" = "本日の練習回数の上限です";
+"upgrade_dict_limit_sub" = "プレミアムで制限なく練習できます。\n明日また3回無料で練習できます。";
+"upgrade_dict_cta" = "プレミアムで無制限に練習する";
+
+// ディクテーション完了後
+"upgrade_dict_done_title" = "よくできました！";
+"upgrade_dict_done_sub" = "練習を続けてリスニング力を伸ばしましょう。\nプレミアムで制限なく学習できます。";
+"upgrade_dict_done_cta" = "プレミアムを試してみる";
+"upgrade_remaining_fmt" = "本日あと %d 回練習できます（プロは無制限）";
+
+// フラッシュカード制限
+"upgrade_flash_limit_title" = "本日のカード上限です";
+"upgrade_flash_limit_sub" = "プレミアムでフラッシュカードを無制限に使えます。";
+
+// フラッシュカード完了後
+"upgrade_flash_done_title" = "セッション完了！";
+"upgrade_flash_done_sub" = "毎日続けることで語彙力が格段にアップします。\nプレミアムで制限なく練習できます。";
+
+// 特典テキスト
+"upgrade_benefit_dict_unlimited" = "ディクテーション 無制限";
+"upgrade_benefit_flash_unlimited" = "フラッシュカード 無制限";
+"upgrade_benefit_no_ads" = "すべての広告を非表示";
+"upgrade_benefit_history" = "練習履歴・進捗グラフをフル表示";
