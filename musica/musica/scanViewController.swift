@@ -1444,20 +1444,17 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         resultTextView.backgroundColor     = AppColor.surface
         resultTextView.textColor           = AppColor.textPrimary
         resultTextView.font                = UIFont.systemFont(ofSize: 16, weight: .regular)
-        resultTextView.layer.cornerRadius  = 0   // scrollView 側でクリップ
-        resultTextView.layer.masksToBounds = false
+        resultTextView.layer.cornerRadius  = 0
+        resultTextView.layer.masksToBounds = true
         resultTextView.layer.borderWidth   = 0
         resultTextView.textContainerInset  = UIEdgeInsets(top: 16, left: 14, bottom: 16, right: 14)
         resultTextView.keyboardDismissMode = .interactive
+        resultTextView.isScrollEnabled     = true  // textView 自身でスクロール・クリップを管理
 
-        scrollResultView.backgroundColor   = AppColor.surface
+        scrollResultView.backgroundColor    = AppColor.surface
         scrollResultView.layer.cornerRadius = 16
-        scrollResultView.layer.masksToBounds = true
-        scrollResultView.layer.shadowColor  = AppColor.shadow.cgColor
-        scrollResultView.layer.shadowOpacity = 1.0
-        scrollResultView.layer.shadowRadius  = 8
-        scrollResultView.layer.shadowOffset  = CGSize(width: 0, height: 2)
-        scrollResultView.layer.masksToBounds = false
+        scrollResultView.layer.masksToBounds = true  // コンテンツを境界でクリップ（はみ出し防止）
+        scrollResultView.isScrollEnabled    = false  // textView がスクロールを担うため無効化
 
         // ── コントロールパネル ────────────────────────────────────────
         controlView.backgroundColor    = AppColor.surface
