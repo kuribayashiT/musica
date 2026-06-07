@@ -1616,6 +1616,9 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         let textH = max(cvY - adH - gap - textY, 60)
         scrollResultView.frame = CGRect(x: pad, y: textY,
                                         width: W - pad * 2, height: textH)
+        // scrollResultView は shadow のため masksToBounds=false なので、resultTextView の
+        // frame を明示的に bounds に合わせてはみ出しを防ぐ（内部スクロールで対応）
+        resultTextView.frame = scrollResultView.bounds
 
         // 4. コントロールパネル内部レイアウト
         layoutControlSubviews()

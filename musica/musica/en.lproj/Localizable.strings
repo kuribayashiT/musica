@@ -632,11 +632,11 @@
 "discover_segment_mv" = "Music Videos";
 "discover_load_error" = "Failed to load";
 
-"home_hide_ads" = "+1 Dictation";
-"ad_reward_title" = "Get +1 Dictation Session";
-"ad_reward_body" = "Watch a short video ad to add one more dictation session today (once per day).";
+"home_hide_ads" = "No Ads & +1 Dictation";
+"ad_reward_title" = "No Ads & +1 Dictation";
+"ad_reward_body" = "Watch a short video ad to add one more dictation session today (once per day).\nWant to remove all ads permanently? Go Premium.";
 "ad_reward_watch" = "Watch Ad & Get +1";
-"ad_reward_premium" = "Go Premium for Unlimited Practice";
+"ad_reward_premium" = "Premium: No Ads + Unlimited Practice";
 "ad_reward_granted" = "+1 dictation session added!\nHead to the Practice tab to start now.";
 "ad_reward_already_used" = "You've already used today's bonus.\nGo Premium to practice without limits every day.";
 
