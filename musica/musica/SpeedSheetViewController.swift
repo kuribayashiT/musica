@@ -22,14 +22,14 @@ final class SpeedSheetViewController: UIViewController {
 
     weak var delegate: SpeedSheetDelegate?
     var currentSpeed: Double = 1.0
+    var isAppleMusic: Bool = false
 
     // ── スナップポイント（対数スケールで均等感を出す刻み）─────────────
     private let snapPoints: [Double] = [
         0.5, 0.6, 0.7, 0.75, 0.8, 0.9,
         1.0, 1.1, 1.2, 1.25, 1.3, 1.4, 1.5, 1.6, 1.7, 1.75, 1.8, 1.9,
         2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
-        6.0, 7.0, 8.0, 9.0, 10.0,
-        12.0, 15.0, 17.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0
+        6.0, 7.0, 8.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0
     ]
 
     // ── UI ────────────────────────────────────────────────────────
@@ -40,13 +40,14 @@ final class SpeedSheetViewController: UIViewController {
     private let slider          = UISlider()
     private let lowPresetStack  = UIStackView()   // 0.5×〜2.0×
     private let highPresetStack = UIStackView()   // 3×〜50×
+    private let amNoticeView    = UIView()
     private let doneButton      = UIButton(type: .system)
 
     private let lowPresets: [(label: String, value: Double)] = [
         ("0.5×", 0.5), ("0.75×", 0.75), ("1.0×", 1.0), ("1.5×", 1.5), ("2.0×", 2.0)
     ]
     private let highPresets: [(label: String, value: Double)] = [
-        ("3×", 3.0), ("5×", 5.0), ("10×", 10.0), ("20×", 20.0), ("50×", 50.0)
+        ("8×", 8.0), ("10×", 10.0), ("20×", 20.0), ("30×", 30.0), ("50×", 50.0)
     ]
 
     // ── スケール定数 ──────────────────────────────────────────────
@@ -55,8 +56,9 @@ final class SpeedSheetViewController: UIViewController {
     private let maxSpeed = 50.0
 
     // ── Init ──────────────────────────────────────────────────────
-    init(currentSpeed: Double) {
-        self.currentSpeed = currentSpeed
+    init(currentSpeed: Double, isAppleMusic: Bool = false) {
+        self.currentSpeed = min(currentSpeed, isAppleMusic ? 2.0 : currentSpeed)
+        self.isAppleMusic = isAppleMusic
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .overFullScreen
         modalTransitionStyle   = .crossDissolve
@@ -74,6 +76,7 @@ final class SpeedSheetViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        FA.logScreen(FA.Screen.speedSheet, vc: "SpeedSheetViewController")
         animateIn()
     }
 
@@ -96,7 +99,7 @@ final class SpeedSheetViewController: UIViewController {
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             containerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            containerView.heightAnchor.constraint(equalToConstant: 330),
+            containerView.heightAnchor.constraint(equalToConstant: isAppleMusic ? 400 : 330),
         ])
 
         let pan = UIPanGestureRecognizer(target: self, action: #selector(panGesture(_:)))
@@ -136,7 +139,7 @@ final class SpeedSheetViewController: UIViewController {
 
         // ── スライダー端ラベル ─────────────────────────────────────
         let minLabel = makeScaleLabel("0.5×")
-        let maxLabel = makeScaleLabel("50×")
+        let maxLabel = makeScaleLabel(isAppleMusic ? "2×" : "50×")
 
         // ── 低速プリセット行 ──────────────────────────────────────
         setupPresetStack(lowPresetStack)
@@ -148,6 +151,16 @@ final class SpeedSheetViewController: UIViewController {
         setupPresetStack(highPresetStack)
         for preset in highPresets {
             highPresetStack.addArrangedSubview(makePresetButton(title: preset.label, value: preset.value))
+        }
+
+        // ── Apple Music モード: 高速プリセット無効化 ─────────────
+        if isAppleMusic {
+            for view in highPresetStack.arrangedSubviews {
+                view.isUserInteractionEnabled = false
+                view.alpha = 0.35
+            }
+            slider.maximumValue = speedToSlider(2.0)
+            setupAmNoticeView()
         }
 
         // ── 完了ボタン ────────────────────────────────────────────
@@ -194,10 +207,22 @@ final class SpeedSheetViewController: UIViewController {
             highPresetStack.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
             highPresetStack.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
             highPresetStack.heightAnchor.constraint(equalToConstant: 36),
-
-            doneButton.topAnchor.constraint(equalTo: highPresetStack.bottomAnchor, constant: 14),
-            doneButton.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
         ])
+
+        if isAppleMusic {
+            NSLayoutConstraint.activate([
+                amNoticeView.topAnchor.constraint(equalTo: highPresetStack.bottomAnchor, constant: 10),
+                amNoticeView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
+                amNoticeView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
+                doneButton.topAnchor.constraint(equalTo: amNoticeView.bottomAnchor, constant: 10),
+                doneButton.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            ])
+        } else {
+            NSLayoutConstraint.activate([
+                doneButton.topAnchor.constraint(equalTo: highPresetStack.bottomAnchor, constant: 14),
+                doneButton.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            ])
+        }
     }
 
     // ── ヘルパー ──────────────────────────────────────────────────
@@ -229,6 +254,41 @@ final class SpeedSheetViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(label)
         return label
+    }
+
+    private func setupAmNoticeView() {
+        amNoticeView.backgroundColor    = UIColor.systemOrange.withAlphaComponent(0.12)
+        amNoticeView.layer.cornerRadius = 8
+        amNoticeView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(amNoticeView)
+
+        let icon = UIImageView(image: UIImage(systemName: "exclamationmark.triangle"))
+        icon.tintColor = UIColor.systemOrange
+        icon.contentMode = .scaleAspectFit
+        icon.translatesAutoresizingMaskIntoConstraints = false
+        icon.setContentHuggingPriority(.required, for: .horizontal)
+
+        let label = UILabel()
+        label.text          = localText(key: "practice_speed_am_notice")
+        label.font          = AppFont.caption
+        label.textColor     = AppColor.textPrimary
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+
+        amNoticeView.addSubview(icon)
+        amNoticeView.addSubview(label)
+
+        NSLayoutConstraint.activate([
+            icon.leadingAnchor.constraint(equalTo: amNoticeView.leadingAnchor, constant: 10),
+            icon.topAnchor.constraint(equalTo: amNoticeView.topAnchor, constant: 10),
+            icon.widthAnchor.constraint(equalToConstant: 16),
+            icon.heightAnchor.constraint(equalToConstant: 16),
+
+            label.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 8),
+            label.trailingAnchor.constraint(equalTo: amNoticeView.trailingAnchor, constant: -10),
+            label.topAnchor.constraint(equalTo: amNoticeView.topAnchor, constant: 8),
+            label.bottomAnchor.constraint(equalTo: amNoticeView.bottomAnchor, constant: -8),
+        ])
     }
 
     // ── 対数スケール変換 ──────────────────────────────────────────
@@ -298,17 +358,19 @@ final class SpeedSheetViewController: UIViewController {
     }
 
     @objc private func sliderChanged() {
-        let raw     = sliderToSpeed(slider.value)
+        var raw = sliderToSpeed(slider.value)
+        if isAppleMusic { raw = min(raw, 2.0) }
         let snapped = snap(raw)
         syncUI(speed: snapped, animated: false)
-        // ドラッグ中にリアルタイムで速度を反映
+        FA.log(FA.speedChange, params: ["speed": snapped, "source": "speed_sheet_slider"])
         delegate?.speedSheet(self, didSelectSpeed: snapped)
     }
 
     @objc private func presetTapped(_ sender: UIButton) {
         let speed = Double(sender.tag) / 1000.0
+        guard !isAppleMusic || speed <= 2.0 else { return }
         syncUI(speed: speed)
-        // タップ直後に速度を反映
+        FA.log(FA.speedChange, params: ["speed": speed, "source": "speed_sheet_preset"])
         delegate?.speedSheet(self, didSelectSpeed: speed)
     }
 

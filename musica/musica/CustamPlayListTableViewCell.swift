@@ -16,12 +16,47 @@ class CustamPlayListTableViewCell: SWTableViewCell {
     @IBOutlet weak var trackTitleLabel: UILabel!
     @IBOutlet weak var albumTitleLabel: UILabel!
     @IBOutlet var animationGifWebView: WKWebView!
+
+    private lazy var waveformView: WaveformBarsView = {
+        let v = WaveformBarsView(compact: true)
+        v.translatesAutoresizingMaskIntoConstraints = false
+        v.isHidden = true
+        contentView.addSubview(v)
+        // compact: 4棒×3pt + 3gap×3pt = 21pt wide, max height 20pt
+        NSLayoutConstraint.activate([
+            v.centerXAnchor.constraint(equalTo: trackNumLabel.centerXAnchor),
+            v.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            v.widthAnchor.constraint(equalToConstant: 21),
+            v.heightAnchor.constraint(equalToConstant: 20),
+        ])
+        return v
+    }()
+
     override func awakeFromNib() {
         super.awakeFromNib()
         backgroundColor = AppColor.surface
         trackTitleLabel.textColor = AppColor.textPrimary
         albumTitleLabel.textColor = AppColor.textSecondary
         trackNumLabel.textColor = AppColor.textSecondary
+        animationGifWebView.isHidden = true
+    }
+
+    func setWaveformAnimating(_ animating: Bool) {
+        animationGifWebView.isHidden = true
+        if animating {
+            trackNumLabel.isHidden = true
+            waveformView.isHidden = false
+            waveformView.startAnimating()
+        } else {
+            waveformView.stopAnimating()
+            waveformView.isHidden = true
+            trackNumLabel.isHidden = false
+        }
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        setWaveformAnimating(false)
     }
 
     override func layoutSubviews() {
@@ -36,8 +71,5 @@ class CustamPlayListTableViewCell: SWTableViewCell {
 
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
     }
-
 }

@@ -59,6 +59,9 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     var miniPlayerTitleLabel: UILabel?
     var miniPlayerArtistLabel: UILabel?
     var miniPlayerPlayPauseBtn: UIButton?
+    // Apple Music の play()/pause() は非同期のため playbackState が即時反映されない。
+    // ユーザー操作の意図 (再生中かどうか) をここで保持して stale 読み取りを回避する。
+    private var amPlaybackActive: Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -66,6 +69,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         //端末によるサイズの計算とviewの設定
         self.title = musicLibraryName
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: " ", style: .plain, target: nil, action: nil)
+        navigationItem.largeTitleDisplayMode = .always
         
         size = CGSize(width: myAppFrameSize.width, height: myAppFrameSize.height)
         if AD_DISPLAY_MUSICLIBRARYLIST_BANNER {
@@ -146,11 +150,16 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        // タブ切り替えアニメーション完了後にシャドウを復元（遷移中の縦線チラつき防止）
         guard let shadow = miniPlayerCardShadow else { return }
         shadow.layer.shadowOpacity = 0
-        UIView.animate(withDuration: 0.2) {
+        if isMovingToParent {
+            // プッシュ遷移: 即座に設定。フェードインするとカードが下にズレたように見える誤認を防ぐ。
             shadow.layer.shadowOpacity = 0.22
+        } else {
+            // タブ切り替え: フェードインで縦線チラつきを防ぐ
+            UIView.animate(withDuration: 0.2) {
+                shadow.layer.shadowOpacity = 0.22
+            }
         }
     }
 
@@ -172,7 +181,17 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         self.navigationController?.navigationBar.scrollEdgeAppearance = navAppearance
         self.navigationController?.navigationBar.compactAppearance = navAppearance
         self.navigationController?.navigationBar.tintColor = AppColor.accent
-        
+        // viewWillDisappear でプッシュ時に .never を設定するため、戻った際に .always を復元する
+        // ※ ラージ→ラージ遷移時は既に .always のため条件ガードで不要な layoutIfNeeded を抑制
+        if navigationItem.largeTitleDisplayMode != .always {
+            navigationItem.largeTitleDisplayMode = .always
+        }
+        // NavBar の appearance 変更後にレイアウトを即時確定させる。
+        // これにより safeAreaInsets / ビューフレームの遅延更新を吸収し、
+        // 遷移完了後にミニプレイヤーカードや TableView が下方にシフトするのを防ぐ。
+        navigationController?.navigationBar.layoutIfNeeded()
+        view.layoutIfNeeded()
+
         navigationItem.rightBarButtonItems = [makeAddTrackBtn()]
         
         if isDarkMode(vc: self){
@@ -189,15 +208,6 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         
         musicLabraryTableview.tableFooterView = UIView(frame: .zero)
         //RemoteController準備
-        let session = AVAudioSession.sharedInstance()
-        do {
-            // バックグラウンドでも再生できるカテゴリに設定する
-            try session.setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [])
-            // sessionのアクティブ化
-            try session.setActive(true)
-        } catch  {
-            // エラー処理
-        }
         mMusicController.commandAllEnabled()
         commandCenter.nextTrackCommand.addTarget { (commandEvent) -> MPRemoteCommandHandlerStatus in
             self.nextMusicPlay()
@@ -215,13 +225,28 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
             self.stop()
             return MPRemoteCommandHandlerStatus.success
         }
-        
+
         let center = NotificationCenter.default
+        center.removeObserver(self, name: AVAudioSession.interruptionNotification, object: nil)
+        center.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
+        center.removeObserver(self, name: .musicaRemotePlayPause, object: nil)
+        center.removeObserver(self, name: .musicaRemotePrev, object: nil)
+        center.removeObserver(self, name: .musicaRemoteNext, object: nil)
+        center.removeObserver(self, name: .MPMusicPlayerControllerPlaybackStateDidChange, object: nil)
+        center.removeObserver(self, name: .MPMusicPlayerControllerNowPlayingItemDidChange, object: nil)
+        center.removeObserver(self, name: .musicaLocalTrackFinished, object: nil)
         center.addObserver(self, selector: #selector(self.handleInterruption(_:)), name: AVAudioSession.interruptionNotification, object: nil)
         center.addObserver(self, selector: #selector(self.audioSessionRouteChanged(_:)), name: AVAudioSession.routeChangeNotification, object: nil)
         center.addObserver(self, selector: #selector(handleRemotePlayPause), name: .musicaRemotePlayPause, object: nil)
         center.addObserver(self, selector: #selector(handleRemotePrevFromList), name: .musicaRemotePrev, object: nil)
         center.addObserver(self, selector: #selector(handleRemoteNextFromList), name: .musicaRemoteNext, object: nil)
+        MPMusicPlayerController.applicationQueuePlayer.beginGeneratingPlaybackNotifications()
+        center.addObserver(self, selector: #selector(handleAMPlaybackStateChanged),
+                           name: .MPMusicPlayerControllerPlaybackStateDidChange, object: nil)
+        center.addObserver(self, selector: #selector(handleAMNowPlayingItemChanged),
+                           name: .MPMusicPlayerControllerNowPlayingItemDidChange, object: nil)
+        center.addObserver(self, selector: #selector(handleLocalTrackFinished),
+                           name: .musicaLocalTrackFinished, object: nil)
 
         // 表示する音楽情報を更新
         displayMusicLibraryData.musicLibraryCode = newMusicLibraryCode
@@ -258,20 +283,12 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         }
         returnEditFlg = false
         musicLabraryTableview.reloadData()
-        // audioが設定されてなかったらtableを更新
-        if(audioPlayer == nil){
-            return
-        }else{
-            //audioPlayer.delegate = nil
-            audioPlayer.delegate = self   
+        if audioPlayer != nil {
+            audioPlayer.delegate = self
         }
-        // playerの更新
-        //miniPlayerReload()
-        // 再生状態の取得
         if NowPlayingMusicLibraryData.musicLibraryCode != NOW_NONE_MUSICLIBRARY_CODE {
             miniPlayerReload()
         }
-        // 広告の準備
         loadInterstitial()
     }
     
@@ -381,50 +398,16 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         cell.albumTitleLabel.text = playData.artist
         cell.trackNumLabel.text = String( indexPath.row + 1 )
         
-        // audioPlayer が再生されていない、かつ表示しているライブラリと再生中のライブラリの曲が一致していなければ、gifは表示しない
-        if (audioPlayer != nil && audioPlayer.isPlaying && displayMusicLibraryData.musicLibraryCode == NowPlayingMusicLibraryData.musicLibraryCode ){
-            if SHUFFLE_FLG {
-                if NowPlayingMusicLibraryData.nowPlaying != NOW_NOT_PLAYING && NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying].url == playData.url{
-                    let gifData = darkPlayGif(vc : self)
-//                    let jscript = "var meta = document.createElement('meta'); meta.setAttribute('name', 'viewport'); meta.setAttribute('content', 'width=device-width'); document.getElementsByTagName('head')[0].appendChild(meta);"
-//                    let userScript = WKUserScript(source: jscript, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-//                    let wkUController = WKUserContentController()
-//                    wkUController.addUserScript(userScript)
-//                    let wkWebConfig = WKWebViewConfiguration()
-//                    wkWebConfig.userContentController = wkUController
-//                    //cell.animationGifWebView = WKWebView(frame: self.view.bounds, configuration: wkWebConfig)
-                    cell.animationGifWebView.scrollView.isScrollEnabled = false
-                    cell.animationGifWebView.load(gifData as Data, mimeType: "image/gif", characterEncodingName: "utf-8", baseURL: NSURL() as URL)
-                    cell.trackNumLabel.isHidden = true
-                    cell.animationGifWebView.isHidden = false
-                }else{
-                    cell.animationGifWebView.isHidden = true
-                    cell.trackNumLabel.isHidden = false
-                }
-            }else {
-                if NowPlayingMusicLibraryData.nowPlaying != NOW_NOT_PLAYING && NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying].url == playData.url{
-                    let gifData = darkPlayGif(vc : self)
-                    //cell.animationGifWebView.scalesPageToFit = true
-//                    let jscript = "var meta = document.createElement('meta'); meta.setAttribute('name', 'viewport'); meta.setAttribute('content', 'width=device-width'); document.getElementsByTagName('head')[0].appendChild(meta);"
-//                    let userScript = WKUserScript(source: jscript, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-//                    let wkUController = WKUserContentController()
-//                    wkUController.addUserScript(userScript)
-//                    let wkWebConfig = WKWebViewConfiguration()
-//                    wkWebConfig.userContentController = wkUController
-                    //cell.animationGifWebView = WKWebView(frame: self.view.bounds, configuration: wkWebConfig)
-                    cell.animationGifWebView.scrollView.isScrollEnabled = false
-                    cell.animationGifWebView.load(gifData as Data, mimeType: "image/gif", characterEncodingName: "utf-8", baseURL: NSURL() as URL)
-                    cell.trackNumLabel.isHidden = true
-                    cell.animationGifWebView.isHidden = false
-                }else{
-                    cell.animationGifWebView.isHidden = true
-                    cell.trackNumLabel.isHidden = false
-                }
-            }
-        
-        }else{
-            cell.animationGifWebView.isHidden = true
-            cell.trackNumLabel.isHidden = false
+        let amPlayer = MPMusicPlayerController.applicationQueuePlayer
+        let isPlaying = audioPlayer?.isPlaying == true || amPlayer.playbackState == .playing
+        let isSameLibrary = displayMusicLibraryData.musicLibraryCode == NowPlayingMusicLibraryData.musicLibraryCode
+        if isPlaying && isSameLibrary && NowPlayingMusicLibraryData.nowPlaying != NOW_NOT_PLAYING {
+            let nowTrack = SHUFFLE_FLG
+                ? NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying]
+                : NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying]
+            cell.setWaveformAnimating(nowTrack.selectionKey == playData.selectionKey)
+        } else {
+            cell.setWaveformAnimating(false)
         }
         cell.accessoryType = UITableViewCell.AccessoryType.disclosureIndicator
         cell.rightUtilityButtons = self.getRightUtilityButtonsToCell() as [AnyObject]
@@ -559,7 +542,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         }
         if ADApearFlg() {
             if MUSIC_LIBRARY_AD_INTERVAL == 0 {
-                MUSIC_LIBRARY_AD_INTERVAL = 2
+                MUSIC_LIBRARY_AD_INTERVAL = 5
             }
             // 広告出現頻度
             if forceADFlg || MUSIC_LIBRARY_TO_PLAYVIEW % MUSIC_LIBRARY_AD_INTERVAL == 0{
@@ -577,8 +560,9 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
             }
         }
         if SHUFFLE_FLG {
+            let key = displayMusicLibraryData.trackData[indexPath.row].selectionKey
             for i in 0...NowPlayingMusicLibraryData.trackDataShuffled.count - 1 {
-                if displayMusicLibraryData.trackData[indexPath.row].url == NowPlayingMusicLibraryData.trackDataShuffled[i].url{
+                if NowPlayingMusicLibraryData.trackDataShuffled[i].selectionKey == key {
                     newSelectPlayNum = i
                 }
             }
@@ -612,52 +596,83 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     @IBAction func playBtnTapped(_ sender: Any) {
         playBackBtn.isEnabled = true
         playNextBtn.isEnabled = true
-        // 再生中のライブラリが表示されているものが同じかチェック→違ったら更新
-        if NowPlayingMusicLibraryData.musicLibraryCode != displayMusicLibraryData.musicLibraryCode || audioPlayer == nil{
+        let amPlayer = MPMusicPlayerController.applicationQueuePlayer
+        let isSameLibrary = NowPlayingMusicLibraryData.musicLibraryCode == displayMusicLibraryData.musicLibraryCode
+        // amPlaybackActive tracks intent rather than amPlayer.playbackState, because
+        // play()/pause() are async and playbackState stays stale for 2-3 taps.
+        let amIsActive = amPlaybackActive
+            || amPlayer.playbackState == .playing
+            || amPlayer.playbackState == .paused
+        let isAnyActive = audioPlayer != nil || amIsActive
+        var justStartedAM = false
+        if !isSameLibrary || !isAnyActive {
+            // 別ライブラリ or 何も再生されていない → 最初の曲から再生
+            amPlaybackActive = false  // reset before potentially setting for AM below
             NowPlayingMusicLibraryData = NowPlayingData()
             NowPlayingMusicLibraryData = displayMusicLibraryData
             NowPlayingMusicLibraryData.musicLibraryCode = newMusicLibraryCode
-            // audioPlayer作成前もしくは他のmusiclibrary再生中なら、最初の曲を再生
             NowPlayingMusicLibraryData.nowPlaying = 0
             if SHUFFLE_FLG{
                 if self.playMusicWrapper(playData: NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying]) == false {
-                    //Viewの更新
                     NowPlayingMusicLibraryData.nowPlaying = 0
                     musicLabraryTableview.reloadData()
                     miniPlayerErrReload()
-                    audioPlayer = nil
                     return
                 }
             }else{
                 if self.playMusicWrapper(playData: NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying]) == false {
-                    //Viewの更新
                     NowPlayingMusicLibraryData.nowPlaying = 0
                     musicLabraryTableview.reloadData()
                     miniPlayerErrReload()
-                    audioPlayer = nil
                     return
                 }
             }
-            // ボタンはストップボタン化
             playBtn.setImage(stopBtnLImage.withRenderingMode(.alwaysTemplate), for: .normal)
-        }else{
-            if (audioPlayer.isPlaying){
-                // 一旦音楽は止める
+            if audioPlayer == nil {
+                // Apple Music just started — override stale miniPlayerReload from playMusicWrapper.
+                // (amPlaybackActive already set to true by playMusicWrapper)
+                justStartedAM = true
+                miniPlayerReload(overrideIsPlaying: true)
+                NotificationCenter.default.post(name: .musicaPlaybackStateChanged, object: nil,
+                                                userInfo: ["isPlaying": true])
+            }
+        } else if audioPlayer != nil {
+            // ローカル曲のトグル
+            if audioPlayer.isPlaying {
                 audioPlayer.stop()
                 playBtn.setImage(playBtnLImage.withRenderingMode(.alwaysTemplate), for: .normal)
-                
-            }else{
+            } else {
                 audioPlayer.play()
                 playBtn.setImage(stopBtnLImage.withRenderingMode(.alwaysTemplate), for: .normal)
                 miniPlayerReload()
             }
+        } else {
+            // Apple Music のトグル
+            // play()/pause() は非同期 → amPlaybackActive で意図した状態を管理する
+            let willPlay = !amPlaybackActive
+            amPlaybackActive = willPlay
+            willPlay ? amPlayer.play() : amPlayer.pause()
+            playBtn.setImage(
+                (willPlay ? stopBtnLImage : playBtnLImage).withRenderingMode(.alwaysTemplate),
+                for: .normal)
+            miniPlayerReload(overrideIsPlaying: willPlay)
+            // PracticeVC / DictationVC のミニプレイヤーをタイマー非依存で即時更新
+            NotificationCenter.default.post(name: .musicaPlaybackStateChanged, object: nil,
+                                            userInfo: ["isPlaying": willPlay])
+            let ppCfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
+            miniPlayerPlayPauseBtn?.setImage(
+                UIImage(systemName: willPlay ? "pause.fill" : "play.fill", withConfiguration: ppCfg),
+                for: .normal)
+            NowPlayingMusicLibraryData.nowPlayingLibrary = self.musicLibraryName
+            tappedAnimation(tappedBtn: playBtn)
+            musicLabraryTableview.reloadData()
+            return
         }
         NowPlayingMusicLibraryData.nowPlayingLibrary = self.musicLibraryName
-        // アニメーション
         tappedAnimation(tappedBtn: playBtn)
-        // 新カードの再生/停止アイコンを即時更新
         let ppCfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
-        let ppSymbol = (audioPlayer?.isPlaying ?? false) ? "pause.fill" : "play.fill"
+        let isPlaying = justStartedAM ? true : (audioPlayer?.isPlaying ?? amPlaybackActive)
+        let ppSymbol = isPlaying ? "pause.fill" : "play.fill"
         miniPlayerPlayPauseBtn?.setImage(UIImage(systemName: ppSymbol, withConfiguration: ppCfg), for: .normal)
         musicLabraryTableview.reloadData()
     }
@@ -731,8 +746,11 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     // PlayMusicVCが nav スタックにいる場合はそちらに任せて二重処理を防ぐ
     @objc private func handleRemotePlayPause() {
         guard !(navigationController?.topViewController is PlayMusicViewController) else { return }
+        let isAMActive = audioPlayer == nil && amPlaybackActive
         playBtnTapped(self)
-        miniPlayerReload()
+        // For AM, playBtnTapped already calls miniPlayerReload(overrideIsPlaying:).
+        // Extra reload here would read stale amPlayer.playbackState and overwrite it.
+        if !isAMActive { miniPlayerReload() }
     }
 
     @objc private func handleRemotePrevFromList() {
@@ -742,7 +760,65 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
 
     @objc private func handleRemoteNextFromList() {
         guard !(navigationController?.topViewController is PlayMusicViewController) else { return }
+        NEXT_TAP_FLG = true
         nextMusicPlay()
+    }
+
+    // Apple Music の再生状態が実際に確定したタイミングで呼ばれる
+    @objc private func handleAMPlaybackStateChanged() {
+        guard audioPlayer == nil,
+              NowPlayingMusicLibraryData.musicLibraryCode == displayMusicLibraryData.musicLibraryCode,
+              NowPlayingMusicLibraryData.nowPlaying >= 0 else { return }
+        let isPlaying = MPMusicPlayerController.applicationQueuePlayer.playbackState == .playing
+        amPlaybackActive = isPlaying
+        let ppCfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
+        miniPlayerPlayPauseBtn?.setImage(
+            UIImage(systemName: isPlaying ? "pause.fill" : "play.fill", withConfiguration: ppCfg),
+            for: .normal)
+        playBtn.setImage(
+            (isPlaying ? stopBtnLImage : playBtnLImage).withRenderingMode(.alwaysTemplate),
+            for: .normal)
+        NotificationCenter.default.post(name: .musicaPlaybackStateChanged, object: nil,
+                                        userInfo: ["isPlaying": isPlaying])
+    }
+
+    /// リピートなし設定で最終曲が終わったとき停止すべきか判定
+    private func shouldStopAtEnd() -> Bool {
+        guard repeatState == REPEAT_STATE_NONE else { return false }
+        let tracks = SHUFFLE_FLG
+            ? NowPlayingMusicLibraryData.trackDataShuffled
+            : NowPlayingMusicLibraryData.trackData
+        return NowPlayingMusicLibraryData.nowPlaying == tracks.count - 1
+    }
+
+    private func stopAtEnd() {
+        audioPlayer?.stop()
+        playBtn.setImage(playBtnLImage.withRenderingMode(.alwaysTemplate), for: .normal)
+        miniPlayerReload(overrideIsPlaying: false)
+    }
+
+    /// PlayMusicVC が pop された後、ローカルファイルが自然終了したとき
+    @objc private func handleLocalTrackFinished() {
+        if shouldStopAtEnd() {
+            stopAtEnd()
+            return
+        }
+        nextMusicPlay()
+    }
+
+    /// Apple Music が自動的に次のトラックへ進んだときに呼ばれる
+    @objc private func handleAMNowPlayingItemChanged() {
+        guard audioPlayer == nil else { return }
+        let player = MPMusicPlayerController.applicationQueuePlayer
+        guard let pid = player.nowPlayingItem?.persistentID, pid != 0 else { return }
+        // NowPlayingMusicLibraryData 内で一致するトラックを探して nowPlaying を更新
+        let tracks = SHUFFLE_FLG
+            ? NowPlayingMusicLibraryData.trackDataShuffled
+            : NowPlayingMusicLibraryData.trackData
+        if let idx = tracks.firstIndex(where: { $0.persistentID == pid }) {
+            NowPlayingMusicLibraryData.nowPlaying = idx
+        }
+        miniPlayerReload()
     }
 
     // 次の曲再生
@@ -756,6 +832,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                 musicLabraryTableview.reloadData()
                 miniPlayerErrReload()
                 audioPlayer = nil
+                amPlaybackActive = false
                 return
             }
         }else {
@@ -765,14 +842,14 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                 musicLabraryTableview.reloadData()
                 miniPlayerErrReload()
                 audioPlayer = nil
+                amPlaybackActive = false
                 return
             }
-            
         }
     }
     // 前の曲再生
     @objc func prevMusicPlay(){
-        
+
         if audioPlayer != nil && NowPlayingMusicLibraryData.musicLibraryCode == displayMusicLibraryData.musicLibraryCode{
             if audioPlayer.currentTime > 3 {
                 audioPlayer.currentTime = 0
@@ -788,6 +865,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                 musicLabraryTableview.reloadData()
                 miniPlayerErrReload()
                 audioPlayer = nil
+                amPlaybackActive = false
                 return
             }
         }else {
@@ -797,9 +875,9 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                 musicLabraryTableview.reloadData()
                 miniPlayerErrReload()
                 audioPlayer = nil
+                amPlaybackActive = false
                 return
             }
-            
         }
     }
     @objc func play (){
@@ -884,7 +962,8 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                     fetchData[i].lyric = displayMusicLibraryData.trackData[i].lyric
                     fetchData[i].musicLibraryName = self.title
                     fetchData[i].trackTitle = displayMusicLibraryData.trackData[i].title
-                    fetchData[i].url = String(describing: displayMusicLibraryData.trackData[i].url!)
+                    let t = displayMusicLibraryData.trackData[i]
+                    fetchData[i].url = t.url != nil ? String(describing: t.url!) : "am://\(t.persistentID)"
                     
                 }
                 do{
@@ -989,18 +1068,29 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
             showAlertMusicErrMsgOneOkBtn(title: ERR_DIALOGUE_TITLE_MUSIC_DATA_NONE,messege: ERR_DIALOGUE_MESSAGE_MUSIC_DATA_NONE)
             return false
         }
-        //audioPlayer.delegate = nil
-        audioPlayer.delegate = self
-        
-        //再生時の設置
+        // Apple Music は audioPlayer が nil のままなのでガード
+        if audioPlayer != nil {
+            audioPlayer.delegate = self
+            audioPlayer.volume = volume
+            let speed = speedList[speedRow] * 10
+            audioPlayer.rate = Float(round(speed) / 10)
+            amPlaybackActive = false
+            // MusicPlayListVC が次曲を引き継ぐ（PlayMusicVC の pop 後 or ここ起点の再生）
+            audioPlayer.onFinish = { [weak self] in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    if self.shouldStopAtEnd() {
+                        self.stopAtEnd()
+                        return
+                    }
+                    self.nextMusicPlay()
+                }
+            }
+        } else {
+            amPlaybackActive = true  // AM track started playing
+        }
         autoScrollTrackTitleLebel.text = playData.title
-        audioPlayer.volume = volume
-        let speed = speedList[speedRow] * 10
-        audioPlayer.rate = Float(round(speed) / 10)
-        
-        // Viewの更新
-        miniPlayerReload()
-        //musicLabraryTableview.reloadData()
+        miniPlayerReload(overrideIsPlaying: audioPlayer == nil ? true : nil)
         return true
     }
     
@@ -1093,18 +1183,21 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
     }
     
     // 上部のミニplayer更新
-    func miniPlayerReload(){
+    func miniPlayerReload(overrideIsPlaying: Bool? = nil) {
+        let knownPlayState = overrideIsPlaying
         DispatchQueue.main.async {
+            // amPlayer.play()/pause() は非同期のため、呼び出し直後は playbackState が古い値のまま。
+            // overrideIsPlaying が渡された場合はそちらを使い、stale な読み取りを避ける。
+            let playing = knownPlayState ?? (audioPlayer?.isPlaying ?? (MPMusicPlayerController.applicationQueuePlayer.playbackState == .playing))
             // 再生中のライブラリが表示されているものが同じかチェック→違ったら表示をデフォルトに戻す。
             if NowPlayingMusicLibraryData.musicLibraryCode == displayMusicLibraryData.musicLibraryCode {
                 if SHUFFLE_FLG {
                     self.autoScrollTrackTitleLebel.text = NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying].title
                     // ボタンの設定
-                    if audioPlayer != nil && audioPlayer.isPlaying{
+                    if playing {
                         self.playBtn.setImage(stopBtnLImage.withRenderingMode(.alwaysTemplate), for: .normal)
-                    }else{
+                    } else {
                         self.playBtn.setImage(playBtnLImage.withRenderingMode(.alwaysTemplate), for: .normal)
-                        
                     }
                     self.imageIconView.contentMode = .scaleAspectFit
                     if NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying].artworkImg ==  nil{
@@ -1120,14 +1213,13 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                         self.autoScrollTrackTitleLebel.text = NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying].title
                     }
                 }else{
-                    
+
                     self.autoScrollTrackTitleLebel.text = NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying].title
                     // ボタンの設定
-                    if audioPlayer != nil && audioPlayer.isPlaying{
+                    if playing {
                         self.playBtn.setImage(stopBtnLImage.withRenderingMode(.alwaysTemplate), for: .normal)
-                    }else{
+                    } else {
                         self.playBtn.setImage(playBtnLImage.withRenderingMode(.alwaysTemplate), for: .normal)
-                        
                     }
                     self.imageIconView.contentMode = .scaleAspectFit
                     if NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying].artworkImg ==  nil{
@@ -1149,7 +1241,6 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                 self.imageIconView.contentMode = .center
             }
             // ── 新カード同期 ──────────────────────────────────────────────
-            let isPlaying = audioPlayer != nil && audioPlayer.isPlaying
             if NowPlayingMusicLibraryData.musicLibraryCode == displayMusicLibraryData.musicLibraryCode,
                NowPlayingMusicLibraryData.nowPlaying >= 0 {
                 let track = SHUFFLE_FLG
@@ -1158,7 +1249,7 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                 self.syncMiniPlayerCard(artworkImg: track.artworkImg,
                                         title: track.title,
                                         artist: track.artist,
-                                        isPlaying: isPlaying)
+                                        isPlaying: playing)
             } else {
                 self.resetMiniPlayerCard()
             }
@@ -1350,27 +1441,13 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
             
             switch interruptionType {
             case .began:
-                // interruptionが開始した時(電話がかかってきたなど)
-                if audioPlayer == nil {
-                }else{
-                    if playedFlg {
-                        playedFlg = false
-                        //audioPlayer.play()
-                    }
-                }
+                // 割り込み開始（電話等）― AVAudioEngine は iOS に止められるので何もしない
                 miniPlayerReload()
                 break
             case .ended:
-                // interruptionが終了した時の処理
-                
-                if(audioPlayer == nil){
-                }else{
-                    playedFlg = true
-                    audioPlayer.stop()
-                }
+                // 割り込み終了 ― HighSpeedAudioPlayer が内部で自動再開するので stop() を呼ばない
                 miniPlayerReload()
                 break
-                
             }
         }
         
@@ -1415,6 +1492,24 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         miniPlayerCardShadow?.layer.shadowOpacity = 0
         // 編集完了ボタンの無効化
         navigationItem.rightBarButtonItems = [makeAddTrackBtn()]
+        guard let coordinator = transitionCoordinator, !isMovingFromParent else { return }
+        guard let bar = navigationController?.navigationBar else { return }
+
+        // ① CATransition を先に登録 → 現在の「ラージタイトル・高さ大」状態を "before" としてキャプチャ
+        let navFade = CATransition()
+        navFade.duration = coordinator.transitionDuration
+        navFade.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        navFade.type = .fade
+        bar.layer.add(navFade, forKey: "largeToSmallFade")
+
+        // ② largeTitleDisplayMode を即時に .never にしてナビゲーションバーの高さを縮める
+        //    performWithoutAnimation でスナップをUIKitアニメーション無しにし、
+        //    この変化 + PlayMusicVC.viewWillAppear の appearance 変更が "after" にまとめて含まれる。
+        //    ユーザーには CATransition のクロスフェードだけが見えてスナップは視覚上消える。
+        UIView.performWithoutAnimation {
+            navigationItem.largeTitleDisplayMode = .never
+            bar.layoutIfNeeded()
+        }
     }
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         //Track 一覧画面へ
@@ -1424,15 +1519,19 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
             // 値を渡す
             secondVc.musicLibraryName = musicLibraryName
             // 遷移前の再生状態を保持（停止中なら再生を開始しない）
-            secondVc.preservePlayState = !(audioPlayer?.isPlaying ?? false)
+            let isCurrentlyPlaying = audioPlayer?.isPlaying ?? (MPMusicPlayerController.applicationQueuePlayer.playbackState == .playing)
+            secondVc.preservePlayState = !isCurrentlyPlaying
             mMusicController.commandAllRemove()
         }else if segue.identifier == "toMusicSetting" {
             // musicLyricEditViewControllerをインスタンス化
             let secondVc = segue.destination as! scanViewController
             secondVc.EDIT_FLG = true
-            secondVc.title = displayMusicLibraryData.trackData[selectIndex].title
-            secondVc.editTrackUrl = displayMusicLibraryData.trackData[selectIndex].url!
-            secondVc.nowLyricText = displayMusicLibraryData.trackData[selectIndex].lyric
+            let track = displayMusicLibraryData.trackData[selectIndex]
+            secondVc.title = track.title
+            secondVc.editTrackUrl = track.url
+            secondVc.editPersistentID = track.persistentID
+            secondVc.isAppleMusicTrack = track.url == nil && track.persistentID != 0
+            secondVc.nowLyricText = track.lyric
             secondVc.editPlayNum = selectIndex
             secondVc.editShffuleFromTypeFlg = false
             secondVc.editLibraryName = self.title!
@@ -1462,7 +1561,8 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
                     fetchData[i].lyric = displayMusicLibraryData.trackData[i].lyric
                     fetchData[i].musicLibraryName = self.musicLibraryName
                     fetchData[i].trackTitle = displayMusicLibraryData.trackData[i].title
-                    fetchData[i].url = String(describing: displayMusicLibraryData.trackData[i].url!)
+                    let t = displayMusicLibraryData.trackData[i]
+                    fetchData[i].url = t.url != nil ? String(describing: t.url!) : "am://\(t.persistentID)"
 
                 }
                 do{
@@ -1479,6 +1579,9 @@ class MusicPlayListViewController: UIViewController, UITableViewDataSource, UITa
         // AVAudio Session
         center.removeObserver(self, name: AVAudioSession.interruptionNotification, object: nil)
         center.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
+        center.removeObserver(self, name: .MPMusicPlayerControllerPlaybackStateDidChange, object: nil)
+        center.removeObserver(self, name: .MPMusicPlayerControllerNowPlayingItemDidChange, object: nil)
+        center.removeObserver(self, name: .musicaLocalTrackFinished, object: nil)
     }
     
 }

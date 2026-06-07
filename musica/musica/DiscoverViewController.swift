@@ -8,6 +8,7 @@
 import UIKit
 import WebKit
 import SDWebImage
+import GoogleMobileAds
 
 // MARK: - DiscoverViewController
 
@@ -30,6 +31,7 @@ class DiscoverViewController: UIViewController {
     private var viewMode: Int = 0   // 0: songs  1: music-videos
     private var rankingItems: [[String: Any]] = []
     private var isSearchActive = false
+    private var isLoading = false
 
     // ランキングセグエで渡すデータ
     private var selectedMusicName  = ""
@@ -42,6 +44,7 @@ class DiscoverViewController: UIViewController {
     private var urlObserver: NSKeyValueObservation?
     private var isNavigatingToPlayer = false
 
+    private let discoverBannerView = BannerView()
 
     // MARK: UI
 
@@ -72,7 +75,8 @@ class DiscoverViewController: UIViewController {
 
     private let tableView: UITableView = {
         let tv = UITableView(frame: .zero, style: .plain)
-        tv.register(DiscoverRankingCell.self, forCellReuseIdentifier: DiscoverRankingCell.reuseID)
+        tv.register(DiscoverRankingCell.self,  forCellReuseIdentifier: DiscoverRankingCell.reuseID)
+        tv.register(DiscoverSkeletonCell.self, forCellReuseIdentifier: DiscoverSkeletonCell.reuseID)
         tv.rowHeight = 72
         tv.separatorInset = UIEdgeInsets(top: 0, left: 76, bottom: 0, right: 0)
         tv.translatesAutoresizingMaskIntoConstraints = false
@@ -121,6 +125,7 @@ class DiscoverViewController: UIViewController {
         navigationItem.title = localText(key: "tab_discovery")
 
         buildLayout()
+        setupDiscoverBanner()
         buildCountryButtons()
         syncCountryToSetting()
         segment.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
@@ -176,11 +181,23 @@ class DiscoverViewController: UIViewController {
         for btn in countryStack.arrangedSubviews {
             fadeInRanDomAnimesion(view: btn)
         }
+
+        loadDiscoverBannerIfNeeded()
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         isNavigatingToPlayer = false  // ポップ完了後にリセット（インタラクティブポップ中の再プッシュを防ぐ）
+        if isLoading {
+            let skeletons = tableView.visibleCells.compactMap { $0 as? DiscoverSkeletonCell }
+            if skeletons.isEmpty {
+                // viewDidLoad時にboundsが0でcellが生成されていないケース
+                tableView.reloadData()
+            } else {
+                // cellは存在するがboundsが0だったためshimmerが未構築のケース
+                skeletons.forEach { $0.startShimmer() }
+            }
+        }
     }
 
     // MARK: Layout
@@ -358,9 +375,9 @@ class DiscoverViewController: UIViewController {
 
     private func fetchRanking() {
         rankingItems = []
+        isLoading = true
         tableView.reloadData()
         errorLabel.isHidden = true
-        spinner.startAnimating()
 
         let code = countries[selectedCountryIndex].code
         let type = viewMode == 0 ? "songs" : "music-videos"
@@ -370,7 +387,7 @@ class DiscoverViewController: UIViewController {
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
             DispatchQueue.main.async {
                 guard let self else { return }
-                self.spinner.stopAnimating()
+                self.isLoading = false
                 guard
                     let data = data,
                     let rawJSON = try? JSONSerialization.jsonObject(with: data),
@@ -379,6 +396,7 @@ class DiscoverViewController: UIViewController {
                     let items = feed["results"] as? [[String: Any]]
                 else {
                     self.errorLabel.isHidden = false
+                    self.tableView.reloadData()
                     return
                 }
                 self.rankingItems = items
@@ -414,10 +432,16 @@ class DiscoverViewController: UIViewController {
 extension DiscoverViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        rankingItems.count
+        isLoading ? 15 : rankingItems.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if isLoading {
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: DiscoverSkeletonCell.reuseID, for: indexPath) as! DiscoverSkeletonCell
+            cell.startShimmer()
+            return cell
+        }
         let cell = tableView.dequeueReusableCell(
             withIdentifier: DiscoverRankingCell.reuseID, for: indexPath) as! DiscoverRankingCell
         let item = rankingItems[indexPath.row]
@@ -431,6 +455,7 @@ extension DiscoverViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard !isLoading else { return }
         tableView.deselectRow(at: indexPath, animated: true)
         let item = rankingItems[indexPath.row]
         selectedMusicName   = item["name"]         as? String ?? ""
@@ -516,6 +541,196 @@ extension DiscoverViewController: UISearchBarDelegate {
             webView.load(URLRequest(url: url))
         }
         searchBar.resignFirstResponder()
+    }
+}
+
+// MARK: - BannerViewDelegate
+
+extension DiscoverViewController: BannerViewDelegate {
+
+    fileprivate func setupDiscoverBanner() {
+        guard AD_DISPLAY_RANKING_BANNER else { return }
+        #if targetEnvironment(simulator)
+        discoverBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID_TEST
+        #else
+        discoverBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID
+        #endif
+        discoverBannerView.rootViewController = self
+        discoverBannerView.delegate = self
+        discoverBannerView.isHidden = true
+        discoverBannerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(discoverBannerView)
+        NSLayoutConstraint.activate([
+            discoverBannerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            discoverBannerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            discoverBannerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+        ])
+    }
+
+    fileprivate func loadDiscoverBannerIfNeeded() {
+        guard AD_DISPLAY_RANKING_BANNER else { return }
+        guard discoverBannerView.isHidden else { return }
+        let width = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        discoverBannerView.adSize = currentOrientationAnchoredAdaptiveBanner(width: width)
+        discoverBannerView.load(Request())
+    }
+
+    func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+        bannerView.isHidden = false
+        let h = bannerView.adSize.size.height
+        tableView.contentInset.bottom = h
+        tableView.verticalScrollIndicatorInsets.bottom = h
+    }
+
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+        bannerView.isHidden = true
+        tableView.contentInset.bottom = 0
+        tableView.verticalScrollIndicatorInsets.bottom = 0
+    }
+}
+
+// MARK: - DiscoverSkeletonCell
+
+final class DiscoverSkeletonCell: UITableViewCell {
+
+    static let reuseID = "DiscoverSkeletonCell"
+
+    private let rankPlaceholder    = UIView()
+    private let artworkPlaceholder = UIView()
+    private let titlePlaceholder   = UIView()
+    private let artistPlaceholder  = UIView()
+
+    private var shimmerWrapper:   CALayer?
+    private var shimmerGradient:  CAGradientLayer?
+    private var needsShimmer = false   // startShimmer後にboundsが0でも再トライするためのフラグ
+
+    private var placeholders: [UIView] {
+        [rankPlaceholder, artworkPlaceholder, titlePlaceholder, artistPlaceholder]
+    }
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        backgroundColor = AppColor.surface
+        selectionStyle  = .none
+        isUserInteractionEnabled = false
+
+        for v in placeholders {
+            v.backgroundColor = AppColor.surfaceSecondary
+            v.translatesAutoresizingMaskIntoConstraints = false
+            contentView.addSubview(v)
+        }
+
+        rankPlaceholder.layer.cornerRadius    = 4
+        artworkPlaceholder.layer.cornerRadius = 8
+        titlePlaceholder.layer.cornerRadius   = 4
+        artistPlaceholder.layer.cornerRadius  = 4
+
+        NSLayoutConstraint.activate([
+            rankPlaceholder.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
+            rankPlaceholder.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            rankPlaceholder.widthAnchor.constraint(equalToConstant: 22),
+            rankPlaceholder.heightAnchor.constraint(equalToConstant: 14),
+
+            artworkPlaceholder.leadingAnchor.constraint(equalTo: rankPlaceholder.trailingAnchor, constant: 12),
+            artworkPlaceholder.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            artworkPlaceholder.widthAnchor.constraint(equalToConstant: 50),
+            artworkPlaceholder.heightAnchor.constraint(equalToConstant: 50),
+
+            titlePlaceholder.leadingAnchor.constraint(equalTo: artworkPlaceholder.trailingAnchor, constant: 12),
+            titlePlaceholder.topAnchor.constraint(equalTo: artworkPlaceholder.topAnchor, constant: 5),
+            titlePlaceholder.widthAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.5),
+            titlePlaceholder.heightAnchor.constraint(equalToConstant: 14),
+
+            artistPlaceholder.leadingAnchor.constraint(equalTo: titlePlaceholder.leadingAnchor),
+            artistPlaceholder.topAnchor.constraint(equalTo: titlePlaceholder.bottomAnchor, constant: 8),
+            artistPlaceholder.widthAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.33),
+            artistPlaceholder.heightAnchor.constraint(equalToConstant: 12),
+        ])
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        // needsShimmer=true かつまだ構築されていない場合にだけ構築を試みる
+        // （removeShimmerでwrapperがnilになってもフラグで再トライできる）
+        if needsShimmer && shimmerWrapper == nil {
+            buildShimmerIfNeeded()
+        }
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        needsShimmer = false
+        removeShimmer()
+    }
+
+    func startShimmer() {
+        needsShimmer = true
+        removeShimmer()           // 既存を消す
+        buildShimmerIfNeeded()    // bounds有効なら即構築、無効なら layoutSubviews に委ねる
+    }
+
+    // ── Private ──────────────────────────────────────────────────────
+
+    private func removeShimmer() {
+        shimmerWrapper?.removeFromSuperlayer()
+        shimmerWrapper  = nil
+        shimmerGradient = nil
+    }
+
+    private func buildShimmerIfNeeded() {
+        let w = contentView.bounds.width
+        let h = contentView.bounds.height
+        guard w > 0 else { return }
+
+        // 既存を除去して作り直す（何度呼ばれても1本）
+        shimmerWrapper?.removeFromSuperlayer()
+
+        // ── ラッパー（プレースホルダー形状のマスク付き）────────────────
+        let wrapper = CALayer()
+        wrapper.frame = contentView.bounds
+        wrapper.mask  = buildMask(width: w, height: h)
+        contentView.layer.addSublayer(wrapper)
+        shimmerWrapper = wrapper
+
+        // ── グラデーション（cell幅の3倍、左から右へスライド）────────────
+        // transform.translation.x アニメなので全幅でピクセル速度が一定になる
+        let gradient = CAGradientLayer()
+        gradient.colors = [
+            UIColor.clear.cgColor,
+            UIColor.white.withAlphaComponent(0.28).cgColor,
+            UIColor.clear.cgColor,
+        ]
+        gradient.locations  = [0.4, 0.5, 0.6]   // 細い光の帯
+        gradient.startPoint = CGPoint(x: 0, y: 0.5)
+        gradient.endPoint   = CGPoint(x: 1, y: 0.5)
+        // 3倍幅にして「帯が左端から来て右端へ抜ける」ようにする
+        gradient.frame           = CGRect(x: -w, y: 0, width: w * 3, height: h)
+        gradient.backgroundColor = AppColor.surfaceSecondary.cgColor
+        wrapper.addSublayer(gradient)
+        shimmerGradient = gradient
+
+        let anim = CABasicAnimation(keyPath: "transform.translation.x")
+        anim.fromValue   = 0
+        anim.toValue     = w * 2   // 左端(-w)→右端(+w) の移動量
+        anim.duration    = 1.5
+        anim.repeatCount = .infinity
+        gradient.add(anim, forKey: "shimmer")
+    }
+
+    // プレースホルダーの形だけグラデーションを通すマスクレイヤー
+    private func buildMask(width: CGFloat, height: CGFloat) -> CALayer {
+        let mask = CALayer()
+        mask.frame = CGRect(x: 0, y: 0, width: width, height: height)
+        for v in placeholders {
+            let s = CALayer()
+            s.frame           = v.frame
+            s.backgroundColor = UIColor.white.cgColor
+            s.cornerRadius    = v.layer.cornerRadius
+            mask.addSublayer(s)
+        }
+        return mask
     }
 }
 

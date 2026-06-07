@@ -235,6 +235,8 @@
 //　音楽ライブラリ登録
 "musiclibrary_select_fromalbum" = "Choose a song for each album!";
 "musiclibrary_select_library" = "Choose a song for each library!";
+"library_select_album_title" = "Select Album";
+"library_select_playlist_title" = "Select Playlist";
 
 // 音楽再生
 "musiclibrary_not_play" = "Not playing";
@@ -370,9 +372,9 @@
 "text_help_title" = "How to use Scan & Translate";
 "text_help_body" = "Here's how to use the scan and translation features.";
 "text_help_nolook" = "Skip";
-"text_help_look" = "Show both";
-"text_help_look_scan" = "Scan only";
-"text_help_look_trans" = "Translation only";
+"text_help_look" = "📖 How to use all features";
+"text_help_look_scan" = "📷 How to use scan";
+"text_help_look_trans" = "🌐 How to use translation";
 "text_help_1" = "Use the scan feature to read text from images.";
 "text_help_2" = "Tap here to scan from images saved on your device!";
 "text_help_3" = "Tap here to take a new photo for scanning!";
@@ -446,6 +448,9 @@
 "player_state_off" = "Off";
 "player_repeat_all" = "All";
 "player_repeat_one" = "1 Song";
+"player_no_lyrics_title" = "No Lyrics Registered";
+"player_no_lyrics_sub" = "Add lyrics from the Text tab\nto start dictation practice";
+"player_no_lyrics_btn" = "Add Lyrics";
 
 /*******************************************************************
  Playback Speed
@@ -526,6 +531,7 @@
 "dictsetup_manual_btn" = "✏️  Enter text manually";
 "dictsetup_analyzing" = "Analyzing audio...";
 "dictsetup_loading_model" = "Loading model...";
+"dictsetup_overlay_title" = "Transcribing Lyrics\nfrom Audio";
 "dictsetup_other_methods_close" = "Close other methods";
 "dictsetup_other_methods_open" = "Other methods";
 "dictsetup_caption_input_btn" = "Enter subtitles";
@@ -539,6 +545,7 @@
 "dictsetup_text_registered_sub" = "Text is registered for this audio. You can start practice.";
 "dictsetup_text_empty" = "Prepare text";
 "dictsetup_text_empty_sub" = "Auto-fetch from audio (recommended) or read text from a photo.";
+"dictsetup_text_empty_sub_drm" = "Apple Music tracks cannot be transcribed automatically due to iOS restrictions. You can still register lyrics via photo OCR or manual input. For other tracks, automatic transcription from audio is also available.";
 "dictsetup_transcribing_fmt" = "Transcribing... (%d chunks total)";
 "dictsetup_transcribing" = "Transcribing...";
 "dictsetup_reading_image" = "Reading image...";
@@ -663,6 +670,13 @@
 "region_sheet_title" = "Loop Section";
 "section_repeat_range" = "Loop Range";
 "section_repeat_loop" = "Section Loop";
+"section_repeat_set_start" = "Set as Start";
+"section_repeat_set_end" = "Set as End";
+"section_repeat_loop_on" = " Looping";
+"section_repeat_loop_off" = " Loop OFF";
+"section_repeat_tips" = "Play the track, then tap \"Set as Start\" / \"Set as End\" at the right moment to mark the loop region. You can also drag the handles directly.";
+"section_repeat_close" = "Done";
+"section_repeat_turn_off" = "Turn off loop section";
 
 /* ── Premium Plan screen ─────────────────── */
 "premium_title" = "Premium Plan";
@@ -718,9 +732,15 @@
 "scan_no_engine_body" = "No speech recognition engine is available.";
 "scan_recording_label" = "🎙 Recording... Tap to stop";
 "scan_transcribing" = "Transcribing...";
-"scan_transcribe_complete_title" = "Transcription complete";
+"scan_transcribe_complete_title" = "Transcription Complete";
+"scan_transcribe_complete_body" = "Text has been extracted from the audio.\nYou can review and edit it in the text area.";
 "scan_transcribe_apply_body" = "Apply to text area?\n\n%@";
 "scan_transcribe_apply_btn" = "Apply";
+"text_help_voice_btn" = "🎤 How to use voice buttons";
+"scan_voice_help_title" = "About Voice Buttons";
+"scan_voice_help_body" = "【🎵 Transcribe from audio (waveform button)】\nAvailable only when a track is selected from a library in the Home tab.\nAI (WhisperKit) automatically transcribes the selected track and fills the text area.\n\n【🎤 Mic input (green mic button)】\nRecognizes microphone audio in real time and converts it to text.\nWorks with lyrics you read aloud or audio played nearby.";
+"text_help_voice_1" = "🎵 Waveform button: Available only when a track is selected in the Home tab. AI automatically transcribes the audio and fills the text area.";
+"text_help_voice_2" = "🎤 Mic button: Recognizes microphone audio in real time. Works with lyrics you read aloud or audio played nearby.";
 
 /* ── Weak Words ──────────────────────────────── */
 "weak_word_title" = "Weak Words";
@@ -744,3 +764,54 @@
 "history_no_score" = "No score";
 "history_best_badge" = "Best 🏆";
 "history_year_comparison" = "Year Comparison";
+"player_segment_lyrics" = "Lyrics";
+"history_detail_btn" = "View detailed history →";
+"history_streak_active_fmt" = "%d-day streak!";
+"history_streak_inactive" = "Start practicing today!";
+"history_stats_fmt" = "Month: %d  Year: %d";
+"history_year_fmt" = "%d";
+"history_total_count_fmt" = "Total: %d";
+"history_recent_header" = "Recent Practice";
+"history_track_count_mastered_fmt" = "Practiced %d · Mastered %d 🏆";
+"history_track_count_fmt" = "Practiced %d songs";
+"history_filter_all" = "All";
+"history_type_dictation" = "Dictation";
+"history_type_section_repeat" = "Loop Section";
+"history_type_flash_card" = "Flash Cards";
+"history_session_count_fmt" = "×%d";
+"practice_flash_card_sub" = "Learn words from lyrics";
+"apple_music_no_lyric_edit_title" = "Apple Music Track";
+"apple_music_no_lyric_edit_body" = "Lyrics cannot be directly added to Apple Music tracks.";
+"apple_music_speed_limit" = "Max 2×";
+"scan_apple_music_no_recognition" = "No audio recognition";
+
+/* ── Music Access Permission Error ───────────────── */
+"permission_err_body" = "Access to your music library is not allowed.\nPlease follow the steps below to update the setting.";
+"permission_step1" = "Open the \"Settings\" app";
+"permission_step2" = "Select \"musica\"";
+"permission_step3" = "Turn on \"Media & Apple Music\"";
+
+/* ── Apple Music Limitation Notice ───────────────── */
+"am_notice_title" = "Contains Apple Music tracks";
+"am_notice_body" = "Due to iOS restrictions, playback speed is limited to 2× max. Lyrics transcription via voice recognition is not available.";
+"practice_speed_am_notice" = "Apple Music playback is limited to 2× due to iOS restrictions. Audio saved on your device (imported from CD, downloaded purchases, etc.) supports up to 50×.";
+"am_lyric_notice" = "Due to iOS restrictions, automatic transcription from the audio file is not available for Apple Music tracks. You can register lyrics by reading them aloud into the mic or typing them directly.";
+
+/* ── Flash Card Screen ─────────────────────────────── */
+"flash_card_hint" = "Tap to reveal meaning";
+"flash_card_review_btn" = "Again";
+"flash_card_known_btn" = "Got it";
+"flash_card_empty" = "No words could be extracted from the lyrics.\nPlease register lyrics and try again.";
+"flash_card_score_fmt" = "Remembered %2$d of %1$d words";
+
+/* ── WhisperKit Progress ───────────────────────────── */
+"whisper_preparing_model_fmt" = "Preparing model... (first run will download %@)";
+"whisper_redownloading_fmt" = "Re-downloading model... (%@)";
+"whisper_detecting_silence" = "Detecting silence boundaries...";
+"whisper_transcribing_auto_fmt" = "[%d/%d] Transcribing...";
+"whisper_transcribing_fmt" = "(%d/%d) Transcribing...";
+"whisper_transcribing_preview_fmt" = "(%d/%d) [%@] %@";
+"whisper_detecting_lang_fmt" = "(%d/%d) Detecting language...";
+"whisper_preparing_audio" = "Preparing audio file...";
+"whisper_export_session_error" = "Could not create export session";
+"whisper_export_fail_fmt" = "Audio export failed (status: %d)";

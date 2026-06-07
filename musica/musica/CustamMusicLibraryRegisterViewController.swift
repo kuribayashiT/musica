@@ -30,6 +30,7 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
     var selectedIconNum = 0
     var selectedColorNum = 0
     var keyBoardMaxHeight:CGFloat = 0
+    private var pendingLibraryName: String = ""
     var nowCV = UIViewController()
     @IBOutlet weak var progress: UIProgressView!
     
@@ -75,14 +76,6 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
             registMusicLibrayBtn.titleLabel?.font = AppFont.button
         }
 
-        // ガイドカードをテーブルヘッダーに
-        selectedTrackDataTableView.tableHeaderView = makeLibraryGuideCard(
-            step: 3, total: 3,
-            icon: "folder.badge.plus",
-            title: "ライブラリ名を入力して登録",
-            body: "曲の順番はドラッグで並び替えられます。不要な曲は左スワイプで削除できます。"
-        )
-
         // キーボードの「閉じる」ボタン作成
         let kbToolBar = UIToolbar(frame: CGRect(x: 0, y: 0, width: 320, height: 40))
         kbToolBar.barStyle = UIBarStyle.default  // スタイルを設定
@@ -102,7 +95,7 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
         // チェックされたアルバムのトラックを全てリスト化
         for album in osAlbumDataList{
             for track in album.trackData{
-                let key = "\(String(describing: track.url))"
+                let key = track.selectionKey
                 if selectedTracks[key] != nil {
                     if selectedTrackDataList.count == 0{
                         selectedTrackDataList.append(track)
@@ -146,7 +139,7 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
         // チェックされたライブラリのトラックを全てリスト化
         for library in osLibraryDataList{
             for track in library.trackData{
-                let key = "\(String(describing: track.url))"
+                let key = track.selectionKey
                 if selectedTracks[key] != nil {
                     if selectedTrackDataList.count == 0{
                         selectedTrackDataList.append(track)
@@ -163,6 +156,15 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
                 }
             }
         }
+
+        let hasAmTracks = selectedTrackDataList.contains { $0.url == nil && $0.persistentID != 0 }
+        selectedTrackDataTableView.tableHeaderView = makeLibraryGuideCard(
+            step: 3, total: 3,
+            icon: "folder.badge.plus",
+            title: "ライブラリ名を入力して登録",
+            body: "曲の順番はドラッグで並び替えられます。不要な曲は左スワイプで削除できます。",
+            showAmNotice: hasAmTracks
+        )
     }
     override func viewDidAppear(_ animated: Bool) {
        super.viewDidAppear(animated)
@@ -242,9 +244,13 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
         let cell = selectedTrackDataTableView.dequeueReusableCell(withIdentifier: "RegistMusicData", for: indexPath) as! CustamMusicLibraryRegisterTableViewCell
         
         // テーブルに選択されたTrackのデータを表示する
-        cell.trackTitleLabel.text = selectedTrackDataList[(indexPath as NSIndexPath).row].title
-        cell.artistLabel.text = selectedTrackDataList[(indexPath as NSIndexPath).row].artist
-        cell.albumTitleLabel.text = selectedTrackDataList[(indexPath as NSIndexPath).row].albumName
+        let row = (indexPath as NSIndexPath).row
+        let track = selectedTrackDataList[row]
+        cell.trackTitleLabel.text = track.title
+        cell.artistLabel.text = track.url == nil
+            ? "Apple Music · \(track.artist)"
+            : track.artist
+        cell.albumTitleLabel.text = track.albumName
         return cell
     }
     
@@ -253,10 +259,10 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
         
         //削除の場合、配列からデータを削除する。
         if( editingStyle == UITableViewCell.EditingStyle.delete) {
-            
+
             selectedTrackDataList[indexPath.row].checkedFlg = false
-            let key = "\(String(describing: selectedTrackDataList[indexPath.row].url))"
-            
+            let key = selectedTrackDataList[indexPath.row].selectionKey
+
             selectedTracks.removeValue(forKey: key)
             selectedTrackDataList.remove(at: indexPath.row)
             chechNumCount = chechNumCount - 1
@@ -284,8 +290,7 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
      *******************************************************************/
     // MusicLibraryを登録する
     @IBAction func registMusicLibrayBtnTapped(_ sender: Any) {
-        let musicLibraryName = libraryResistNameTextField.text
-        if musicLibraryName == "" {
+        guard let name = libraryResistNameTextField.text, !name.isEmpty else {
             showAlertMsgOneOkBtn(title: MUSICLIBRALY_REGIST_ERR_NONNAME_DIALOG_TITLE,
                                  messege:MUSICLIBRALY_REGIST_ERR_NONNAME_DIALOG_MESSAGE)
             return
@@ -295,102 +300,89 @@ class CustamMusicLibraryRegisterViewController: UIViewController , UITableViewDa
                                  messege:MUSICLIBRALY_REGIST_ERR_NONSELECT_DIALOG_MESSAGE)
             return
         }
-        
+
+        pendingLibraryName = name
         if #available(iOS 13.0, *) {
             self.isModalInPresentation = true
         }
-        let duration: TimeInterval? = 0.2
-        UIView.animate(
-            withDuration: duration!,
-            animations:{
-                self.waitView.isHidden = false
-                self.libraryResistNameTextField.resignFirstResponder()
-                self.keyboardWillBeHidden()
-                //NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
-                self.navigationController?.navigationBar.isUserInteractionEnabled = false
-                self.navigationController?.interactivePopGestureRecognizer!.isEnabled = false
-                self.navigationController?.navigationBar.tintColor = AppColor.inactive
-                self.waitView.alpha = 1.0
+        UIView.animate(withDuration: 0.2, animations: {
+            self.waitView.isHidden = false
+            self.libraryResistNameTextField.resignFirstResponder()
+            self.keyboardWillBeHidden()
+            self.navigationController?.navigationBar.isUserInteractionEnabled = false
+            self.navigationController?.interactivePopGestureRecognizer!.isEnabled = false
+            self.navigationController?.navigationBar.tintColor = AppColor.inactive
+            self.waitView.alpha = 1.0
+        }, completion: { _ in
+            self.executeRegistration()
+        })
+    }
 
-            }, completion:{ finished in
-                //if (finished) {
-                    if CUSTOM_LYBRARY_FROM_MUSICLIST {
-                        if CUSTOM_LYBRARY_NAME != musicLibraryName{
-                            if checkMusicLibraryNameExistence(checkName:musicLibraryName!) {
-                                self.navigationController?.navigationBar.isUserInteractionEnabled = true
-                                self.navigationController?.navigationBar.tintColor = AppColor.accent
-                                self.waitView.isHidden = true
-                                showAlertMsgOneOkBtn(title: MUSICLIBRALY_REGIST_ERR_SAMENAME_DIALOG_TITLE,messege: MUSICLIBRALY_REGIST_ERR_SAMENAME_DIALOG_MESSAGE)
-
-                                if #available(iOS 13.0, *) {
-                                    self.isModalInPresentation = false
-                                }
-                                return
+    private func executeRegistration() {
+        let musicLibraryName = pendingLibraryName
+        if CUSTOM_LYBRARY_FROM_MUSICLIST {
+            if CUSTOM_LYBRARY_NAME != musicLibraryName {
+                if checkMusicLibraryNameExistence(checkName: musicLibraryName) {
+                    self.navigationController?.navigationBar.isUserInteractionEnabled = true
+                    self.navigationController?.navigationBar.tintColor = AppColor.accent
+                    self.waitView.isHidden = true
+                    showAlertMsgOneOkBtn(title: MUSICLIBRALY_REGIST_ERR_SAMENAME_DIALOG_TITLE, messege: MUSICLIBRALY_REGIST_ERR_SAMENAME_DIALOG_MESSAGE)
+                    if #available(iOS 13.0, *) { self.isModalInPresentation = false }
+                    return
+                }
+            }
+            let appDelegate: AppDelegate = UIApplication.shared.delegate as! AppDelegate
+            TAB_MOVE_FLG = false
+            updateMusicLibrary(appdelegate: appDelegate, oldLibraryName: CUSTOM_LYBRARY_NAME, newLibraryName: musicLibraryName, trackList: self.selectedTrackDataList, progress: self.progress, vc: self) { (rs: Bool) in
+                if rs {
+                    DispatchQueue.main.async {
+                        do {
+                            try appDelegate.managedObjectContext.save()
+                            if CUSTOM_LYBRARY_NAME != "" {
+                                CUSTOM_LYBRARY_FLG = true
+                                CUSTOM_LYBRARY_NAME = ""
                             }
-                        }
-                        // 登録する
-                        let appDelegate:AppDelegate = UIApplication.shared.delegate as! AppDelegate
-                        TAB_MOVE_FLG = false
-                        updateMusicLibrary(appdelegate:appDelegate,oldLibraryName:CUSTOM_LYBRARY_NAME,newLibraryName:musicLibraryName!,trackList:self.selectedTrackDataList ,progress:self.progress,vc:self, completion: {(rs: Bool)  -> Void in
-                            if rs {
-                                DispatchQueue.main.async{
-                                    do {
-                                        try appDelegate.managedObjectContext.save()
-                                        if CUSTOM_LYBRARY_NAME != "" {
-                                            CUSTOM_LYBRARY_FLG = true
-                                            CUSTOM_LYBRARY_NAME = ""
-                                        }
-                                        CUSTOM_LYBRARY_FROM_MUSICLIST = false
-                                        self.waitView.isHidden = true
-                                        self.coredataSuccessDialog()
-                                    }catch {
-                                        self.coredataErrDialog()
-                                    }
-                                }
-                            }else{
-                                DispatchQueue.main.async{
-                                    self.coredataErrDialog()
-                                }
-                            }
-                        })
-                    }else{
-                        if checkMusicLibraryNameExistence(checkName:musicLibraryName!) {
-                            self.navigationController?.navigationBar.isUserInteractionEnabled = true
-                            self.navigationController?.navigationBar.tintColor = AppColor.accent
+                            CUSTOM_LYBRARY_FROM_MUSICLIST = false
                             self.waitView.isHidden = true
-                            showAlertMsgOneOkBtn(title: MUSICLIBRALY_REGIST_ERR_SAMENAME_DIALOG_TITLE,messege: MUSICLIBRALY_REGIST_ERR_SAMENAME_DIALOG_MESSAGE)
-                            if #available(iOS 13.0, *) {
-                                self.isModalInPresentation = false
-                            }
-                            return
+                            FA.log(FA.songAdd, params: ["count": self.selectedTrackDataList.count])
+                            self.coredataSuccessDialog()
+                        } catch {
+                            self.coredataErrDialog()
                         }
-                        TAB_MOVE_FLG = false
-                        // 登録する
-                        let appDelegate:AppDelegate = UIApplication.shared.delegate as! AppDelegate
-                        registNewMusicLibrary(appdelegate:appDelegate,libraryName:musicLibraryName!,trackList:self.selectedTrackDataList ,progress:self.progress,vc:self, completion: {(rs: Bool)  -> Void in
-                            if rs {
-                                DispatchQueue.main.async{
-                                    do {
-                                        try appDelegate.managedObjectContext.save()
-                                        CUSTOM_LYBRARY_NAME = ""
-                                        self.waitView.isHidden = true
-                                        self.coredataSuccessDialog()
-                                    }catch {
-                                        DispatchQueue.main.async{
-                                            self.coredataErrDialog()
-                                        }
-                                    }
-                                }
-                            }else{
-                                DispatchQueue.main.async{
-                                    self.coredataErrDialog()
-                                }
-                            }
-                            
-                        })
                     }
-               // }
-        });
+                } else {
+                    DispatchQueue.main.async { self.coredataErrDialog() }
+                }
+            }
+        } else {
+            if checkMusicLibraryNameExistence(checkName: musicLibraryName) {
+                self.navigationController?.navigationBar.isUserInteractionEnabled = true
+                self.navigationController?.navigationBar.tintColor = AppColor.accent
+                self.waitView.isHidden = true
+                showAlertMsgOneOkBtn(title: MUSICLIBRALY_REGIST_ERR_SAMENAME_DIALOG_TITLE, messege: MUSICLIBRALY_REGIST_ERR_SAMENAME_DIALOG_MESSAGE)
+                if #available(iOS 13.0, *) { self.isModalInPresentation = false }
+                return
+            }
+            TAB_MOVE_FLG = false
+            let appDelegate: AppDelegate = UIApplication.shared.delegate as! AppDelegate
+            registNewMusicLibrary(appdelegate: appDelegate, libraryName: musicLibraryName, trackList: self.selectedTrackDataList, progress: self.progress, vc: self) { (rs: Bool) in
+                if rs {
+                    DispatchQueue.main.async {
+                        do {
+                            try appDelegate.managedObjectContext.save()
+                            CUSTOM_LYBRARY_NAME = ""
+                            self.waitView.isHidden = true
+                            FA.log(FA.songAdd, params: ["count": self.selectedTrackDataList.count])
+                            self.coredataSuccessDialog()
+                        } catch {
+                            DispatchQueue.main.async { self.coredataErrDialog() }
+                        }
+                    }
+                } else {
+                    DispatchQueue.main.async { self.coredataErrDialog() }
+                }
+            }
+        }
     }
 
     /*******************************************************************

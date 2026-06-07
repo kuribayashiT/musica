@@ -15,9 +15,8 @@ final class SectionRepeatViewController: UIViewController {
     var track: TrackData!
 
     // MARK: Audio
-    private var audioPlayer: AVAudioPlayer?
+    private var audioPlayer: HighSpeedAudioPlayer?
     private var isPlaying = false
-    private var loopTimer: Timer?
 
     // MARK: Region state
     private var startRatio: CGFloat = 0.0
@@ -27,26 +26,26 @@ final class SectionRepeatViewController: UIViewController {
     private let musicController = MusicController()
 
     // MARK: Views
-    private let songCard        = UIView()
-    private let artView         = UIImageView()
-    private let titleLabel      = UILabel()
-    private let artistLabel     = UILabel()
-
-    private let trackView       = RangeTrackView()
-    private let currentTimeLbl  = UILabel()
-    private let totalTimeLbl    = UILabel()
-    private let loopSwitch      = UISwitch()
-    private let loopLabel       = UILabel()
-
-    private let playPauseBtn    = UIButton(type: .system)
-    private let rewindBtn       = UIButton(type: .system)
-    private let forwardBtn      = UIButton(type: .system)
-    private let setStartBtn     = UIButton(type: .system)
-    private let setEndBtn       = UIButton(type: .system)
+    private let artView           = UIImageView()
+    private let titleLabel        = UILabel()
+    private let artistLabel       = UILabel()
+    private let trackView         = RangeTrackView()
+    private let rangeSummaryLabel = UILabel()   // "0:30  〜  1:15"
+    private let startTimeBtnLabel = UILabel()   // セットボタン上の時刻
+    private let endTimeBtnLabel   = UILabel()
+    private let loopToggleBtn     = UIButton(type: .system)
+    private let playPauseBtn      = UIButton(type: .system)
+    private let rewindBtn         = UIButton(type: .system)
+    private let forwardBtn        = UIButton(type: .system)
 
     private var positionUpdateTimer: Timer?
 
     // MARK: Lifecycle
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        FA.logScreen(FA.Screen.sectionRepeat, vc: "SectionRepeatViewController")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -79,7 +78,7 @@ final class SectionRepeatViewController: UIViewController {
 
     private func loadSavedRegion() {
         guard let url = track.url else { return }
-        let saved = musicController.getSectionRepeatSetting(url: url)
+        let saved     = musicController.getSectionRepeatSetting(url: url)
         startRatio    = saved[0]
         endRatio      = saved[1]
         isLoopEnabled = musicController.getSectionRepeatEnabled(url: url)
@@ -140,10 +139,10 @@ final class SectionRepeatViewController: UIViewController {
         card.backgroundColor    = AppColor.surface
         card.layer.cornerRadius = 16
 
-        artView.contentMode       = .scaleAspectFill
-        artView.clipsToBounds     = true
+        artView.contentMode        = .scaleAspectFill
+        artView.clipsToBounds      = true
         artView.layer.cornerRadius = 10
-        artView.backgroundColor   = AppColor.accent.withAlphaComponent(0.15)
+        artView.backgroundColor    = AppColor.accent.withAlphaComponent(0.15)
         artView.translatesAutoresizingMaskIntoConstraints = false
         if let img = track.artworkImg {
             artView.image = img
@@ -154,13 +153,13 @@ final class SectionRepeatViewController: UIViewController {
             artView.contentMode = .center
         }
 
-        titleLabel.text          = track.title.isEmpty ? "不明" : track.title
+        titleLabel.text          = track.title.isEmpty  ? localText(key: "practice_unknown") : track.title
         titleLabel.font          = UIFont.systemFont(ofSize: 15, weight: .bold)
         titleLabel.textColor     = AppColor.textPrimary
         titleLabel.numberOfLines = 1
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        artistLabel.text      = track.artist.isEmpty ? "不明" : track.artist
+        artistLabel.text      = track.artist.isEmpty ? localText(key: "practice_unknown") : track.artist
         artistLabel.font      = UIFont.systemFont(ofSize: 13)
         artistLabel.textColor = AppColor.textSecondary
         artistLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -194,124 +193,186 @@ final class SectionRepeatViewController: UIViewController {
         card.backgroundColor    = AppColor.surface
         card.layer.cornerRadius = 18
 
-        // セクションタイトル
+        // ── ヘッダー: タイトル + ループトグルボタン ──
         let sectionLabel = UILabel()
         sectionLabel.text      = localText(key: "section_repeat_range")
         sectionLabel.font      = UIFont.systemFont(ofSize: 15, weight: .bold)
         sectionLabel.textColor = AppColor.textPrimary
         sectionLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        // ループ ON/OFF
-        loopLabel.text      = localText(key: "section_repeat_loop")
-        loopLabel.font      = UIFont.systemFont(ofSize: 14)
-        loopLabel.textColor = AppColor.textSecondary
-        loopLabel.translatesAutoresizingMaskIntoConstraints = false
+        updateLoopToggleAppearance()
+        loopToggleBtn.layer.cornerRadius = 14
+        loopToggleBtn.clipsToBounds      = true
+        loopToggleBtn.addTarget(self, action: #selector(loopToggleTapped), for: .touchUpInside)
+        loopToggleBtn.translatesAutoresizingMaskIntoConstraints = false
 
-        loopSwitch.isOn        = isLoopEnabled
-        loopSwitch.onTintColor = AppColor.accent
-        loopSwitch.addTarget(self, action: #selector(loopSwitchChanged), for: .valueChanged)
-        loopSwitch.translatesAutoresizingMaskIntoConstraints = false
+        // ── 仕切り線 ──
+        let divider = UIView()
+        divider.backgroundColor = AppColor.textSecondary.withAlphaComponent(0.15)
+        divider.translatesAutoresizingMaskIntoConstraints = false
 
-        // RangeTrackView
+        // ── RangeTrackView ──
         let duration = audioPlayer?.duration ?? 0
         trackView.duration   = duration
         trackView.startRatio = startRatio
         trackView.endRatio   = endRatio
         trackView.translatesAutoresizingMaskIntoConstraints = false
+        trackView.onStartChanged = { [weak self] v in
+            guard let self else { return }
+            self.startRatio = v
+            self.updateRangeDisplay()
+        }
+        trackView.onEndChanged = { [weak self] v in
+            guard let self else { return }
+            self.endRatio = v
+            self.updateRangeDisplay()
+        }
 
-        trackView.onStartChanged = { [weak self] v in self?.startRatio = v }
-        trackView.onEndChanged   = { [weak self] v in self?.endRatio   = v }
+        // ── 端時刻ラベル (00:00 / 総時間) ──
+        let startEdgeLbl = UILabel()
+        startEdgeLbl.text      = "00:00"
+        startEdgeLbl.font      = UIFont.systemFont(ofSize: 11)
+        startEdgeLbl.textColor = AppColor.textSecondary
+        startEdgeLbl.translatesAutoresizingMaskIntoConstraints = false
 
-        // 端時刻ラベル
-        let startTimeLbl = UILabel()
-        startTimeLbl.text      = "00:00"
-        startTimeLbl.font      = UIFont.systemFont(ofSize: 11)
-        startTimeLbl.textColor = AppColor.textSecondary
-        startTimeLbl.translatesAutoresizingMaskIntoConstraints = false
+        let endEdgeLbl = UILabel()
+        endEdgeLbl.text      = formatTimeString(d: duration)
+        endEdgeLbl.font      = UIFont.systemFont(ofSize: 11)
+        endEdgeLbl.textColor = AppColor.textSecondary
+        endEdgeLbl.translatesAutoresizingMaskIntoConstraints = false
 
-        totalTimeLbl.text      = formatTimeString(d: duration)
-        totalTimeLbl.font      = UIFont.systemFont(ofSize: 11)
-        totalTimeLbl.textColor = AppColor.textSecondary
-        totalTimeLbl.translatesAutoresizingMaskIntoConstraints = false
+        // ── 区間サマリー（大きく中央表示） ──
+        rangeSummaryLabel.font                     = UIFont.monospacedDigitSystemFont(ofSize: 26, weight: .bold)
+        rangeSummaryLabel.textColor                = AppColor.textPrimary
+        rangeSummaryLabel.textAlignment            = .center
+        rangeSummaryLabel.adjustsFontSizeToFitWidth = true
+        rangeSummaryLabel.minimumScaleFactor        = 0.65
+        rangeSummaryLabel.translatesAutoresizingMaskIntoConstraints = false
+        updateRangeDisplay()
 
-        // 現在位置ラベル
-        currentTimeLbl.text      = "現在位置: 00:00"
-        currentTimeLbl.font      = UIFont.systemFont(ofSize: 12)
-        currentTimeLbl.textColor = AppColor.accent
-        currentTimeLbl.textAlignment = .center
-        currentTimeLbl.translatesAutoresizingMaskIntoConstraints = false
+        // ── セットボタン ──
+        let startBtnView = makeSetButtonView(
+            timeLbl:    startTimeBtnLabel,
+            actionText: localText(key: "section_repeat_set_start"),
+            isStart:    true,
+            action:     #selector(setStartTapped)
+        )
+        let endBtnView = makeSetButtonView(
+            timeLbl:    endTimeBtnLabel,
+            actionText: localText(key: "section_repeat_set_end"),
+            isStart:    false,
+            action:     #selector(setEndTapped)
+        )
 
-        // 現在位置セットボタン
-        configSetButton(setStartBtn, title: "◀ スタートをここに", action: #selector(setStartTapped))
-        configSetButton(setEndBtn,   title: "エンドをここに ▶",   action: #selector(setEndTapped))
-
-        let btnStack = UIStackView(arrangedSubviews: [setStartBtn, setEndBtn])
+        let btnStack = UIStackView(arrangedSubviews: [startBtnView, endBtnView])
         btnStack.axis         = .horizontal
         btnStack.distribution = .fillEqually
         btnStack.spacing      = 12
         btnStack.translatesAutoresizingMaskIntoConstraints = false
 
-        let divider = UIView()
-        divider.backgroundColor = AppColor.textSecondary.withAlphaComponent(0.15)
-        divider.translatesAutoresizingMaskIntoConstraints = false
-
         card.addSubview(sectionLabel)
-        card.addSubview(loopLabel)
-        card.addSubview(loopSwitch)
+        card.addSubview(loopToggleBtn)
         card.addSubview(divider)
         card.addSubview(trackView)
-        card.addSubview(startTimeLbl)
-        card.addSubview(totalTimeLbl)
-        card.addSubview(currentTimeLbl)
+        card.addSubview(startEdgeLbl)
+        card.addSubview(endEdgeLbl)
+        card.addSubview(rangeSummaryLabel)
         card.addSubview(btnStack)
 
         NSLayoutConstraint.activate([
             sectionLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 18),
             sectionLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 18),
+            sectionLabel.trailingAnchor.constraint(lessThanOrEqualTo: loopToggleBtn.leadingAnchor, constant: -8),
 
-            loopLabel.centerYAnchor.constraint(equalTo: sectionLabel.centerYAnchor),
-            loopLabel.trailingAnchor.constraint(equalTo: loopSwitch.leadingAnchor, constant: -8),
-
-            loopSwitch.centerYAnchor.constraint(equalTo: sectionLabel.centerYAnchor),
-            loopSwitch.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -18),
+            loopToggleBtn.centerYAnchor.constraint(equalTo: sectionLabel.centerYAnchor),
+            loopToggleBtn.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -18),
+            loopToggleBtn.heightAnchor.constraint(equalToConstant: 28),
 
             divider.topAnchor.constraint(equalTo: sectionLabel.bottomAnchor, constant: 14),
             divider.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 18),
             divider.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -18),
             divider.heightAnchor.constraint(equalToConstant: 1),
 
-            trackView.topAnchor.constraint(equalTo: divider.bottomAnchor, constant: 12),
+            trackView.topAnchor.constraint(equalTo: divider.bottomAnchor, constant: 16),
             trackView.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 18),
             trackView.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -18),
             trackView.heightAnchor.constraint(equalToConstant: RangeTrackView.preferredHeight),
 
-            startTimeLbl.topAnchor.constraint(equalTo: trackView.bottomAnchor, constant: 4),
-            startTimeLbl.leadingAnchor.constraint(equalTo: trackView.leadingAnchor),
+            startEdgeLbl.topAnchor.constraint(equalTo: trackView.bottomAnchor, constant: 4),
+            startEdgeLbl.leadingAnchor.constraint(equalTo: trackView.leadingAnchor),
 
-            totalTimeLbl.topAnchor.constraint(equalTo: trackView.bottomAnchor, constant: 4),
-            totalTimeLbl.trailingAnchor.constraint(equalTo: trackView.trailingAnchor),
+            endEdgeLbl.topAnchor.constraint(equalTo: trackView.bottomAnchor, constant: 4),
+            endEdgeLbl.trailingAnchor.constraint(equalTo: trackView.trailingAnchor),
 
-            currentTimeLbl.topAnchor.constraint(equalTo: startTimeLbl.bottomAnchor, constant: 10),
-            currentTimeLbl.centerXAnchor.constraint(equalTo: card.centerXAnchor),
+            rangeSummaryLabel.topAnchor.constraint(equalTo: startEdgeLbl.bottomAnchor, constant: 20),
+            rangeSummaryLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 18),
+            rangeSummaryLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -18),
 
-            btnStack.topAnchor.constraint(equalTo: currentTimeLbl.bottomAnchor, constant: 14),
+            btnStack.topAnchor.constraint(equalTo: rangeSummaryLabel.bottomAnchor, constant: 16),
             btnStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 18),
             btnStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -18),
-            btnStack.heightAnchor.constraint(equalToConstant: 44),
+            btnStack.heightAnchor.constraint(equalToConstant: 64),
             btnStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -18),
         ])
         return card
     }
 
-    private func configSetButton(_ btn: UIButton, title: String, action: Selector) {
-        btn.setTitle(title, for: .normal)
-        btn.titleLabel?.font   = UIFont.systemFont(ofSize: 12, weight: .medium)
-        btn.layer.cornerRadius = 10
-        btn.layer.borderWidth  = 1
-        btn.layer.borderColor  = AppColor.accent.withAlphaComponent(0.4).cgColor
-        btn.backgroundColor    = AppColor.accent.withAlphaComponent(0.08)
-        btn.setTitleColor(AppColor.accent, for: .normal)
-        btn.addTarget(self, action: action, for: .touchUpInside)
+    /// 再生位置をスタート/エンドにセットするボタン（時刻＋説明ラベル付き）
+    private func makeSetButtonView(timeLbl: UILabel,
+                                   actionText: String,
+                                   isStart: Bool,
+                                   action: Selector) -> UIControl {
+        let ctrl = UIControl()
+        ctrl.backgroundColor    = AppColor.accent.withAlphaComponent(0.1)
+        ctrl.layer.cornerRadius = 14
+        ctrl.addTarget(self, action: action, for: .touchUpInside)
+
+        let iconName = isStart ? "arrow.right.to.line" : "arrow.left.to.line"
+        let iconCfg  = UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold)
+        let iconView = UIImageView(image: UIImage(systemName: iconName, withConfiguration: iconCfg))
+        iconView.tintColor   = AppColor.accent
+        iconView.contentMode = .scaleAspectFit
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+
+        timeLbl.font          = UIFont.monospacedDigitSystemFont(ofSize: 17, weight: .bold)
+        timeLbl.textColor     = AppColor.accent
+        timeLbl.textAlignment = .center
+        timeLbl.translatesAutoresizingMaskIntoConstraints = false
+
+        let actionLbl = UILabel()
+        actionLbl.text          = actionText
+        actionLbl.font          = UIFont.systemFont(ofSize: 10)
+        actionLbl.textColor     = AppColor.textSecondary
+        actionLbl.textAlignment = .center
+        actionLbl.numberOfLines = 1
+        actionLbl.adjustsFontSizeToFitWidth = true
+        actionLbl.minimumScaleFactor = 0.8
+        actionLbl.translatesAutoresizingMaskIntoConstraints = false
+
+        ctrl.addSubview(iconView)
+        ctrl.addSubview(timeLbl)
+        ctrl.addSubview(actionLbl)
+
+        NSLayoutConstraint.activate([
+            timeLbl.centerXAnchor.constraint(equalTo: ctrl.centerXAnchor),
+            timeLbl.centerYAnchor.constraint(equalTo: ctrl.centerYAnchor, constant: -9),
+
+            iconView.centerYAnchor.constraint(equalTo: timeLbl.centerYAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 14),
+            iconView.heightAnchor.constraint(equalToConstant: 14),
+
+            actionLbl.topAnchor.constraint(equalTo: timeLbl.bottomAnchor, constant: 4),
+            actionLbl.leadingAnchor.constraint(equalTo: ctrl.leadingAnchor, constant: 6),
+            actionLbl.trailingAnchor.constraint(equalTo: ctrl.trailingAnchor, constant: -6),
+        ])
+
+        if isStart {
+            iconView.trailingAnchor.constraint(equalTo: timeLbl.leadingAnchor, constant: -4).isActive = true
+        } else {
+            iconView.leadingAnchor.constraint(equalTo: timeLbl.trailingAnchor, constant: 4).isActive = true
+        }
+
+        return ctrl
     }
 
     // MARK: Player Card
@@ -321,31 +382,28 @@ final class SectionRepeatViewController: UIViewController {
         card.backgroundColor    = AppColor.surface
         card.layer.cornerRadius = 18
 
-        let cfg = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
+        let cfg      = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
         let smallCfg = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
 
-        // ⟲5s
         rewindBtn.setImage(UIImage(systemName: "gobackward.5", withConfiguration: smallCfg), for: .normal)
         rewindBtn.tintColor = AppColor.textPrimary
         rewindBtn.addTarget(self, action: #selector(rewindTapped), for: .touchUpInside)
         rewindBtn.translatesAutoresizingMaskIntoConstraints = false
 
-        // ▶/⏸
         playPauseBtn.setImage(UIImage(systemName: "play.fill", withConfiguration: cfg), for: .normal)
         playPauseBtn.tintColor = AppColor.accent
         playPauseBtn.addTarget(self, action: #selector(playPauseTapped), for: .touchUpInside)
         playPauseBtn.translatesAutoresizingMaskIntoConstraints = false
 
-        // 5s⟳
         forwardBtn.setImage(UIImage(systemName: "goforward.5", withConfiguration: smallCfg), for: .normal)
         forwardBtn.tintColor = AppColor.textPrimary
         forwardBtn.addTarget(self, action: #selector(forwardTapped), for: .touchUpInside)
         forwardBtn.translatesAutoresizingMaskIntoConstraints = false
 
         let btnStack = UIStackView(arrangedSubviews: [rewindBtn, playPauseBtn, forwardBtn])
-        btnStack.axis         = .horizontal
-        btnStack.spacing      = 32
-        btnStack.alignment    = .center
+        btnStack.axis      = .horizontal
+        btnStack.spacing   = 32
+        btnStack.alignment = .center
         btnStack.translatesAutoresizingMaskIntoConstraints = false
 
         card.addSubview(btnStack)
@@ -370,13 +428,13 @@ final class SectionRepeatViewController: UIViewController {
         card.backgroundColor    = AppColor.accent.withAlphaComponent(0.08)
         card.layer.cornerRadius = 14
 
-        let icon = UIImageView(image: UIImage(systemName: "lightbulb.fill",
-            withConfiguration: UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)))
+        let iconCfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+        let icon    = UIImageView(image: UIImage(systemName: "lightbulb.fill", withConfiguration: iconCfg))
         icon.tintColor = AppColor.accent
         icon.translatesAutoresizingMaskIntoConstraints = false
 
         let label = UILabel()
-        label.text          = "ハンドルをドラッグして区間を設定。「スタートをここに」ボタンで再生中の位置をすばやくセットできます。"
+        label.text          = localText(key: "section_repeat_tips")
         label.font          = UIFont.systemFont(ofSize: 12)
         label.textColor     = AppColor.accent
         label.numberOfLines = 0
@@ -398,6 +456,34 @@ final class SectionRepeatViewController: UIViewController {
         return card
     }
 
+    // MARK: Display Updates
+
+    private func updateRangeDisplay() {
+        let duration = audioPlayer?.duration ?? 0
+        let startT   = TimeInterval(startRatio) * duration
+        let endT     = TimeInterval(endRatio)   * duration
+        rangeSummaryLabel.text = "\(formatTimeString(d: startT))  〜  \(formatTimeString(d: endT))"
+        startTimeBtnLabel.text = formatTimeString(d: startT)
+        endTimeBtnLabel.text   = formatTimeString(d: endT)
+    }
+
+    private func updateLoopToggleAppearance() {
+        let cfg   = UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold)
+        let title = isLoopEnabled
+            ? localText(key: "section_repeat_loop_on")
+            : localText(key: "section_repeat_loop_off")
+        loopToggleBtn.setImage(UIImage(systemName: "repeat", withConfiguration: cfg), for: .normal)
+        loopToggleBtn.setTitle(title, for: .normal)
+        loopToggleBtn.titleLabel?.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+        loopToggleBtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 12)
+        let isOn = isLoopEnabled
+        loopToggleBtn.tintColor      = isOn ? AppColor.accent : AppColor.textSecondary
+        loopToggleBtn.setTitleColor(isOn ? AppColor.accent : AppColor.textSecondary, for: .normal)
+        loopToggleBtn.backgroundColor = isOn
+            ? AppColor.accent.withAlphaComponent(0.12)
+            : AppColor.textSecondary.withAlphaComponent(0.1)
+    }
+
     // MARK: Actions
 
     @objc private func playPauseTapped() {
@@ -407,11 +493,8 @@ final class SectionRepeatViewController: UIViewController {
             isPlaying = false
             updatePlayButton(playing: false)
         } else {
-            // スタート位置より前なら先頭へ
             let startTime = TimeInterval(startRatio) * player.duration
-            if player.currentTime < startTime {
-                player.currentTime = startTime
-            }
+            if player.currentTime < startTime { player.currentTime = startTime }
             player.play()
             isPlaying = true
             updatePlayButton(playing: true)
@@ -436,24 +519,30 @@ final class SectionRepeatViewController: UIViewController {
     @objc private func setStartTapped() {
         guard let player = audioPlayer else { return }
         let newRatio = CGFloat(player.currentTime / player.duration)
-        startRatio = max(0, min(newRatio, endRatio - 0.01))
+        startRatio           = max(0, min(newRatio, endRatio - 0.01))
         trackView.startRatio = startRatio
+        updateRangeDisplay()
         saveRegion()
+        FA.log(FA.sectionRepeatSave, params: ["start": Double(startRatio), "end": Double(endRatio)])
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 
     @objc private func setEndTapped() {
         guard let player = audioPlayer else { return }
         let newRatio = CGFloat(player.currentTime / player.duration)
-        endRatio = max(startRatio + 0.01, min(newRatio, 1))
+        endRatio           = max(startRatio + 0.01, min(newRatio, 1))
         trackView.endRatio = endRatio
+        updateRangeDisplay()
         saveRegion()
+        FA.log(FA.sectionRepeatSave, params: ["start": Double(startRatio), "end": Double(endRatio)])
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 
-    @objc private func loopSwitchChanged(_ sender: UISwitch) {
-        isLoopEnabled = sender.isOn
+    @objc private func loopToggleTapped() {
+        isLoopEnabled = !isLoopEnabled
+        updateLoopToggleAppearance()
         saveRegion()
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
     // MARK: Position Monitoring
@@ -470,20 +559,12 @@ final class SectionRepeatViewController: UIViewController {
         guard duration > 0 else { return }
 
         let current = player.currentTime
-        let ratio   = CGFloat(current / duration)
+        trackView.positionRatio = CGFloat(current / duration)
 
-        // RangeTrackView の再生位置を更新
-        trackView.positionRatio = ratio
-
-        // 現在位置ラベル更新
-        currentTimeLbl.text = "現在位置: \(formatTimeString(d: current))"
-
-        // ループ処理
         if isPlaying && isLoopEnabled {
             let endTime = TimeInterval(endRatio) * duration
             if current >= endTime {
-                let startTime = TimeInterval(startRatio) * duration
-                player.currentTime = startTime
+                player.currentTime = TimeInterval(startRatio) * duration
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
             }
         }
@@ -493,14 +574,10 @@ final class SectionRepeatViewController: UIViewController {
         audioPlayer?.stop()
         positionUpdateTimer?.invalidate()
         positionUpdateTimer = nil
-        loopTimer?.invalidate()
-        loopTimer = nil
     }
 
-    // MARK: Helpers
-
     private func updatePlayButton(playing: Bool) {
-        let cfg = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
+        let cfg  = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
         let name = playing ? "pause.fill" : "play.fill"
         playPauseBtn.setImage(UIImage(systemName: name, withConfiguration: cfg), for: .normal)
     }

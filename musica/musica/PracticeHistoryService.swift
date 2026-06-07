@@ -14,9 +14,9 @@ enum PracticeType: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .dictation:    return "ディクテーション"
-        case .sectionRepeat: return "区間リピート"
-        case .flashCard:    return "フラッシュカード"
+        case .dictation:    return localText(key: "history_type_dictation")
+        case .sectionRepeat: return localText(key: "history_type_section_repeat")
+        case .flashCard:    return localText(key: "history_type_flash_card")
         }
     }
 

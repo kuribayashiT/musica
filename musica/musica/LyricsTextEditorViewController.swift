@@ -22,6 +22,7 @@ final class LyricsTextEditorViewController: UIViewController {
     private let textView        = UITextView()
     private let placeholderLabel = UILabel()
     private let charCountLabel  = UILabel()
+    private var textViewBottomConstraint: NSLayoutConstraint?
 
     // MARK: - Lifecycle
 
@@ -76,18 +77,21 @@ final class LyricsTextEditorViewController: UIViewController {
               let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
               let curveRaw = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
         else { return }
-        let kbHeightInView = max(0, view.bounds.maxY - view.convert(kbFrame, from: nil).minY)
+        let kbHeight = max(0, view.bounds.maxY - view.convert(kbFrame, from: nil).minY)
+        // textView の bottom を safeArea 起点で計算: constant = -(kbHeight - safeBottom + margin)
+        textViewBottomConstraint?.constant = kbHeight > 0
+            ? -kbHeight + view.safeAreaInsets.bottom - 16
+            : -16
         let options = UIView.AnimationOptions(rawValue: curveRaw << 16)
         UIView.animate(withDuration: duration, delay: 0, options: options) {
-            self.textView.contentInset.bottom          = kbHeightInView
-            self.textView.verticalScrollIndicatorInsets.bottom = kbHeightInView
+            self.view.layoutIfNeeded()
         }
     }
 
     @objc private func keyboardWillHide() {
+        textViewBottomConstraint?.constant = -16
         UIView.animate(withDuration: 0.25) {
-            self.textView.contentInset                      = .zero
-            self.textView.verticalScrollIndicatorInsets     = .zero
+            self.view.layoutIfNeeded()
         }
     }
 
@@ -194,7 +198,12 @@ final class LyricsTextEditorViewController: UIViewController {
             textView.topAnchor.constraint(equalTo: hintCard.bottomAnchor, constant: 14),
             textView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             textView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            textView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            {
+                let c = textView.bottomAnchor.constraint(
+                    equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
+                textViewBottomConstraint = c
+                return c
+            }(),
 
             placeholderLabel.topAnchor.constraint(equalTo: textView.topAnchor, constant: 14),
             placeholderLabel.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 16),

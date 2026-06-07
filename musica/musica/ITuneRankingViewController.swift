@@ -14,7 +14,7 @@ import GoogleMobileAds
 import DGElasticPullToRefresh
 import UserNotifications
 
-class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScreenContentDelegate, UITableViewDataSource, AVAudioPlayerDelegate, APVAdManagerDelegate ,FADDelegate{
+class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScreenContentDelegate, UITableViewDataSource, AVAudioPlayerDelegate, APVAdManagerDelegate ,FADDelegate, BannerViewDelegate{
 
     /*
      広告関連
@@ -35,7 +35,8 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
     var aPVAd: UIView = UIView()
     var aPVAdManager: APVAdManager?
     
-    @IBOutlet weak var bannerView: BannerView!
+    @IBOutlet weak var bannerView: BannerView!   // storyboard outlet — kept to avoid crash, always hidden
+    private let rankingBannerView = BannerView()
     /*
      ボタン関連
      */
@@ -108,6 +109,7 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
         
         myADViewDialog.frame =  CGRect(x: 0, y: 0 , width: myAppFrameSize.width - 32 ,height:(myAppFrameSize.width - 32) * 15/32 + 70)
         popupView.baseAdView.addSubview(myADViewDialog)
+        setupRankingBanner()
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -152,13 +154,8 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
             KAKIN_FLG = UserDefaults.standard.bool(forKey: "kakin")
         }
         
-        if AD_DISPLAY_RANKING_BANNER {
-            bannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID
-            bannerView.rootViewController = self
-            custumLoadBannerAd(bannerView: self.bannerView,setBannerView:self.view)
-        }else{
-            bannerView.isHidden = true
-        }
+        bannerView.isHidden = true  // storyboard outlet は常に非表示
+        loadRankingBannerIfNeeded()
         let nibObjectsDialog = Bundle.main.loadNibNamed("PopUpAdView", owner: nil, options: nil)
         let adViewDialog = (nibObjectsDialog?.first as? NativeAdView)!
         setAdView(adViewDialog,adUnitID: ADMOB_NATIVE_ADVANCE_DIALOG_RECOMMEND)
@@ -300,25 +297,13 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
             adView.addSubview(myADView)
             return CGFloat(Int(myAppFrameSize.width) * 11 / 16 + 4)
         } else {
-            if AD_DISPLAY_RANKING_BANNER{
-                bannerView.isHidden = false
-                return bannerView.frame.height
-            }else{
-                bannerView.isHidden = true
-                return 0
-            }
+            return 0
         }
     }
     // tableフッターを返却
     func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
         if section == 1 {
-            if AD_DISPLAY_RANKING_BANNER{
-                let uiView = UIView()
-                return uiView
-            }else{
-                bannerView.isHidden = true
-                return UIView()
-            }
+            return UIView()
         } else {
             return UIView()
         }
@@ -626,6 +611,51 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
             secondVc.searchWord = keyWard//.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? "エンコードできませんでした"
         }
     }
+    // MARK: - Ranking Banner
+
+    private func setupRankingBanner() {
+        guard AD_DISPLAY_RANKING_BANNER else { dlog("RankingBanner: flag=false, skip"); return }
+        #if targetEnvironment(simulator)
+        rankingBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID_TEST
+        #else
+        rankingBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID
+        #endif
+        rankingBannerView.rootViewController = self
+        rankingBannerView.delegate = self
+        rankingBannerView.isHidden = true
+        rankingBannerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(rankingBannerView)
+        NSLayoutConstraint.activate([
+            rankingBannerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            rankingBannerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            rankingBannerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+        ])
+        dlog("RankingBanner: setup done, adUnitID=\(rankingBannerView.adUnitID ?? "nil")")
+    }
+
+    private func loadRankingBannerIfNeeded() {
+        guard AD_DISPLAY_RANKING_BANNER else { return }
+        let width = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        dlog("RankingBanner: loading, width=\(width)")
+        rankingBannerView.adSize = currentOrientationAnchoredAdaptiveBanner(width: width)
+        rankingBannerView.load(Request())
+    }
+
+    func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+        dlog("RankingBanner: ✅ ad received, size=\(bannerView.adSize.size)")
+        bannerView.isHidden = false
+        let h = bannerView.adSize.size.height
+        iTunesRankingTableView.contentInset.bottom = h
+        iTunesRankingTableView.verticalScrollIndicatorInsets.bottom = h
+    }
+
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+        dlog("RankingBanner: ❌ failed: \(error)")
+        bannerView.isHidden = true
+        iTunesRankingTableView.contentInset.bottom = 0
+        iTunesRankingTableView.verticalScrollIndicatorInsets.bottom = 0
+    }
+
     // オブジェクト破棄時に監視を解除
     deinit {
         if isObservingItemsArray {
@@ -634,5 +664,6 @@ class ITuneRankingViewController: UIViewController ,UITableViewDelegate,FullScre
         //イベントリスナーの削除
         NotificationCenter.default.removeObserver(self)
     }
-    
+
 }
+

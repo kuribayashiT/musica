@@ -26,9 +26,43 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
     var osAlbumDataList : [AlbumData] = []
     var osLibraryDataList : [AlbumData] = []
 
+    // セグメントを section header として保持（removeFromSuperview 後に再利用）
+    private var segmentHeaderView: UIView?
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "アルバムを選択"
+        self.title = localText(key: "library_select_album_title")
+        navigationItem.largeTitleDisplayMode = .always
+        extendedLayoutIncludesOpaqueBars = true
+
+        // セグメントをストーリーボード位置から外し、section header として使う
+        // → tableView が画面上端まで届き、ラージタイトルのスクロール折りたたみが機能する
+        listModeSegment.removeFromSuperview()
+        listModeSegment.translatesAutoresizingMaskIntoConstraints = false
+        let segWrapper = UIView()
+        segWrapper.backgroundColor = AppColor.surface
+        segWrapper.addSubview(listModeSegment)
+        NSLayoutConstraint.activate([
+            listModeSegment.topAnchor.constraint(equalTo: segWrapper.topAnchor, constant: 8),
+            listModeSegment.bottomAnchor.constraint(equalTo: segWrapper.bottomAnchor, constant: -8),
+            listModeSegment.leadingAnchor.constraint(equalTo: segWrapper.leadingAnchor, constant: 16),
+            listModeSegment.trailingAnchor.constraint(equalTo: segWrapper.trailingAnchor, constant: -16),
+        ])
+        segmentHeaderView = segWrapper
+
+        // tableView を画面上端まで伸ばす（ラージタイトルのスクロール折りたたみに必要）
+        OSAlbumtableview.translatesAutoresizingMaskIntoConstraints = false
+        view.constraints.first(where: {
+            ($0.firstItem as? UIView == OSAlbumtableview && $0.firstAttribute == .top) ||
+            ($0.secondItem as? UIView == OSAlbumtableview && $0.secondAttribute == .top)
+        })?.isActive = false
+        OSAlbumtableview.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+
+        // iOS 15+ のセクションヘッダー上部パディングを除去
+        if #available(iOS 15.0, *) {
+            OSAlbumtableview.sectionHeaderTopPadding = 0
+        }
+
         OSAlbumtableview.tableHeaderView = makeLibraryGuideCard(
             step: 1, total: 3,
             icon: "music.note.list",
@@ -39,6 +73,245 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
         if CUSTOM_LYBRARY_FROM_MUSICLIST {
             nowTrackListCheck()
         }
+        setupPermissionGuide()
+    }
+
+    private func setupPermissionGuide() {
+        // 旧スクリーンショット画像を非表示にして、モダンなガイドビューに置き換える
+        musicAccessErrView.subviews.compactMap { $0 as? UIImageView }.forEach { $0.isHidden = true }
+
+        // 説明ラベルのテキストを更新
+        let labels = musicAccessErrView.subviews.compactMap { $0 as? UILabel }
+        if let bodyLabel = labels.first(where: { $0.numberOfLines == 4 }) {
+            bodyLabel.text = localText(key: "permission_err_body")
+            bodyLabel.textColor = AppColor.textPrimary
+        }
+        if let hintLabel = labels.first(where: { $0.textColor == UIColor(red: 1, green: 0, blue: 0, alpha: 1) }) {
+            hintLabel.isHidden = true
+        }
+
+        let guide = buildPermissionGuideView()
+        guide.translatesAutoresizingMaskIntoConstraints = false
+        musicAccessErrView.addSubview(guide)
+
+        // 旧画像の位置（y=119 付近）に合わせて配置
+        let oldImg = musicAccessErrView.subviews.compactMap { $0 as? UIImageView }.first
+        if let img = oldImg {
+            NSLayoutConstraint.activate([
+                guide.topAnchor.constraint(equalTo: img.topAnchor),
+                guide.leadingAnchor.constraint(equalTo: img.leadingAnchor),
+                guide.trailingAnchor.constraint(equalTo: img.trailingAnchor),
+                guide.bottomAnchor.constraint(equalTo: img.bottomAnchor),
+            ])
+        } else {
+            NSLayoutConstraint.activate([
+                guide.topAnchor.constraint(equalTo: musicAccessErrView.topAnchor, constant: 80),
+                guide.leadingAnchor.constraint(equalTo: musicAccessErrView.leadingAnchor, constant: 8),
+                guide.trailingAnchor.constraint(equalTo: musicAccessErrView.trailingAnchor, constant: -8),
+            ])
+        }
+    }
+
+    private func buildPermissionGuideView() -> UIView {
+        let container = UIView()
+        container.backgroundColor = .clear
+
+        // ── ステップカード ──────────────────────────────────────────────
+        let stepsCard = UIView()
+        stepsCard.backgroundColor = AppColor.surface
+        stepsCard.layer.cornerRadius = 14
+        stepsCard.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(stepsCard)
+
+        let steps: [(String, String)] = [
+            ("1", localText(key: "permission_step1")),
+            ("2", localText(key: "permission_step2")),
+            ("3", localText(key: "permission_step3")),
+        ]
+        var prevBadge: UIView? = nil
+        for (badge, text) in steps {
+            let badgeView = makeStepBadge(number: badge)
+            let lbl = UILabel()
+            lbl.text = text
+            lbl.font = .systemFont(ofSize: 14, weight: .medium)
+            lbl.textColor = AppColor.textPrimary
+            lbl.numberOfLines = 2
+            lbl.translatesAutoresizingMaskIntoConstraints = false
+            badgeView.translatesAutoresizingMaskIntoConstraints = false
+            stepsCard.addSubview(badgeView)
+            stepsCard.addSubview(lbl)
+            let topAnchor: NSLayoutYAxisAnchor = prevBadge?.bottomAnchor ?? stepsCard.topAnchor
+            let topConst: CGFloat = prevBadge == nil ? 16 : 12
+            NSLayoutConstraint.activate([
+                badgeView.leadingAnchor.constraint(equalTo: stepsCard.leadingAnchor, constant: 16),
+                badgeView.topAnchor.constraint(equalTo: topAnchor, constant: topConst),
+                badgeView.widthAnchor.constraint(equalToConstant: 24),
+                badgeView.heightAnchor.constraint(equalToConstant: 24),
+                lbl.centerYAnchor.constraint(equalTo: badgeView.centerYAnchor),
+                lbl.leadingAnchor.constraint(equalTo: badgeView.trailingAnchor, constant: 10),
+                lbl.trailingAnchor.constraint(equalTo: stepsCard.trailingAnchor, constant: -16),
+            ])
+            prevBadge = badgeView
+        }
+        if let last = prevBadge {
+            last.bottomAnchor.constraint(equalTo: stepsCard.bottomAnchor, constant: -16).isActive = true
+        }
+
+        // ── 設定画面モック ──────────────────────────────────────────────
+        let mockCard = buildSettingsMock()
+        mockCard.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(mockCard)
+
+        NSLayoutConstraint.activate([
+            stepsCard.topAnchor.constraint(equalTo: container.topAnchor, constant: 8),
+            stepsCard.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            stepsCard.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+
+            mockCard.topAnchor.constraint(equalTo: stepsCard.bottomAnchor, constant: 16),
+            mockCard.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            mockCard.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            mockCard.bottomAnchor.constraint(lessThanOrEqualTo: container.bottomAnchor, constant: -8),
+        ])
+
+        return container
+    }
+
+    private func makeStepBadge(number: String) -> UIView {
+        let v = UIView()
+        v.backgroundColor = AppColor.accent
+        v.layer.cornerRadius = 12
+        let lbl = UILabel()
+        lbl.text = number
+        lbl.font = .systemFont(ofSize: 13, weight: .bold)
+        lbl.textColor = .white
+        lbl.textAlignment = .center
+        lbl.translatesAutoresizingMaskIntoConstraints = false
+        v.addSubview(lbl)
+        NSLayoutConstraint.activate([
+            lbl.centerXAnchor.constraint(equalTo: v.centerXAnchor),
+            lbl.centerYAnchor.constraint(equalTo: v.centerYAnchor),
+        ])
+        return v
+    }
+
+    private func buildSettingsMock() -> UIView {
+        let card = UIView()
+        card.backgroundColor = AppColor.surface
+        card.layer.cornerRadius = 14
+        card.layer.borderWidth = 1
+        card.layer.borderColor = UIColor.separator.cgColor
+
+        // ナビゲーションバー風ヘッダー
+        let navBar = UIView()
+        navBar.backgroundColor = UIColor.systemGroupedBackground
+        navBar.layer.cornerRadius = 14
+        navBar.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        navBar.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(navBar)
+
+        let backLbl = UILabel()
+        backLbl.text = "< 設定"
+        backLbl.font = .systemFont(ofSize: 13, weight: .regular)
+        backLbl.textColor = AppColor.accent
+        backLbl.translatesAutoresizingMaskIntoConstraints = false
+        navBar.addSubview(backLbl)
+
+        let titleLbl = UILabel()
+        titleLbl.text = "musica"
+        titleLbl.font = .systemFont(ofSize: 15, weight: .semibold)
+        titleLbl.textColor = AppColor.textPrimary
+        titleLbl.translatesAutoresizingMaskIntoConstraints = false
+        navBar.addSubview(titleLbl)
+
+        // セクションヘッダー
+        let sectionLbl = UILabel()
+        sectionLbl.text = "musicaにアクセスを許可"
+        sectionLbl.font = .systemFont(ofSize: 11, weight: .regular)
+        sectionLbl.textColor = AppColor.textSecondary
+        sectionLbl.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(sectionLbl)
+
+        // セパレーター
+        let sep = UIView()
+        sep.backgroundColor = UIColor.separator
+        sep.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(sep)
+
+        // トグル行
+        let rowBg = UIView()
+        rowBg.backgroundColor = UIColor.systemGroupedBackground
+        rowBg.layer.cornerRadius = 10
+        rowBg.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(rowBg)
+
+        // 音符アイコン
+        let iconBg = UIView()
+        iconBg.backgroundColor = UIColor.systemPink
+        iconBg.layer.cornerRadius = 6
+        iconBg.translatesAutoresizingMaskIntoConstraints = false
+        rowBg.addSubview(iconBg)
+
+        let iconCfg = UIImage.SymbolConfiguration(pointSize: 11, weight: .medium)
+        let iconView = UIImageView(image: UIImage(systemName: "music.note", withConfiguration: iconCfg))
+        iconView.tintColor = .white
+        iconView.contentMode = .center
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        iconBg.addSubview(iconView)
+
+        let rowLbl = UILabel()
+        rowLbl.text = "メディアとApple Music"
+        rowLbl.font = .systemFont(ofSize: 14, weight: .regular)
+        rowLbl.textColor = AppColor.textPrimary
+        rowLbl.translatesAutoresizingMaskIntoConstraints = false
+        rowBg.addSubview(rowLbl)
+
+        // ONトグル（UISwitch で描画）
+        let toggle = UISwitch()
+        toggle.isOn = true
+        toggle.isUserInteractionEnabled = false
+        toggle.translatesAutoresizingMaskIntoConstraints = false
+        toggle.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        rowBg.addSubview(toggle)
+
+        NSLayoutConstraint.activate([
+            navBar.topAnchor.constraint(equalTo: card.topAnchor),
+            navBar.leadingAnchor.constraint(equalTo: card.leadingAnchor),
+            navBar.trailingAnchor.constraint(equalTo: card.trailingAnchor),
+            navBar.heightAnchor.constraint(equalToConstant: 44),
+            backLbl.leadingAnchor.constraint(equalTo: navBar.leadingAnchor, constant: 14),
+            backLbl.centerYAnchor.constraint(equalTo: navBar.centerYAnchor),
+            titleLbl.centerXAnchor.constraint(equalTo: navBar.centerXAnchor),
+            titleLbl.centerYAnchor.constraint(equalTo: navBar.centerYAnchor),
+
+            sectionLbl.topAnchor.constraint(equalTo: navBar.bottomAnchor, constant: 12),
+            sectionLbl.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+
+            sep.topAnchor.constraint(equalTo: sectionLbl.bottomAnchor, constant: 6),
+            sep.leadingAnchor.constraint(equalTo: card.leadingAnchor),
+            sep.trailingAnchor.constraint(equalTo: card.trailingAnchor),
+            sep.heightAnchor.constraint(equalToConstant: 0.5),
+
+            rowBg.topAnchor.constraint(equalTo: sep.bottomAnchor, constant: 0),
+            rowBg.leadingAnchor.constraint(equalTo: card.leadingAnchor),
+            rowBg.trailingAnchor.constraint(equalTo: card.trailingAnchor),
+            rowBg.bottomAnchor.constraint(equalTo: card.bottomAnchor),
+            rowBg.heightAnchor.constraint(equalToConstant: 52),
+
+            iconBg.leadingAnchor.constraint(equalTo: rowBg.leadingAnchor, constant: 14),
+            iconBg.centerYAnchor.constraint(equalTo: rowBg.centerYAnchor),
+            iconBg.widthAnchor.constraint(equalToConstant: 28),
+            iconBg.heightAnchor.constraint(equalToConstant: 28),
+            iconView.centerXAnchor.constraint(equalTo: iconBg.centerXAnchor),
+            iconView.centerYAnchor.constraint(equalTo: iconBg.centerYAnchor),
+
+            rowLbl.leadingAnchor.constraint(equalTo: iconBg.trailingAnchor, constant: 12),
+            rowLbl.centerYAnchor.constraint(equalTo: rowBg.centerYAnchor),
+
+            toggle.trailingAnchor.constraint(equalTo: rowBg.trailingAnchor, constant: -14),
+            toggle.centerYAnchor.constraint(equalTo: rowBg.centerYAnchor),
+        ])
+
+        return card
     }
     /*******************************************************************
      共通処理
@@ -80,64 +353,26 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
                 OSAlbumList[_albumIndex].artist = album.representativeItem?.albumArtist ?? "NO ARTIST DATA"
                 
                 for song in album.items {
-                    OSAlbumList[_albumIndex].trackData.append(TrackData())
-                    OSAlbumList[_albumIndex].trackData[trackIndex].artist = ""
-                    OSAlbumList[_albumIndex].trackData[trackIndex].albumName = OSAlbumList[_albumIndex].title!
-                    OSAlbumList[_albumIndex].trackData[trackIndex].albumArtistName = OSAlbumList[_albumIndex].artist!
-                    OSAlbumList[_albumIndex].trackData[trackIndex].artworkImg = OSAlbumList[_albumIndex].artwork?.image(at: (OSAlbumList[_albumIndex].artwork?.bounds.size)!)
-                    
-                    // アーティスト名
-                    guard let artist = song.value(forProperty: MPMediaItemPropertyArtist) else {
-                        
-                        dlog("artist:NILL")
-                        break
+                    guard let title = song.value(forProperty: MPMediaItemPropertyTitle) as? String,
+                          !title.isEmpty else { continue }
+                    var track = TrackData()
+                    track.albumName       = OSAlbumList[_albumIndex].title!
+                    track.albumArtistName = OSAlbumList[_albumIndex].artist!
+                    if let aw = OSAlbumList[_albumIndex].artwork {
+                        track.artworkImg = aw.image(at: aw.bounds.size)
                     }
-                    OSAlbumList[_albumIndex].trackData[trackIndex].artist = artist as! String
-                    dlog("artist: \(OSAlbumList[_albumIndex].trackData[trackIndex].artist)")
-                    
-                    // 楽曲のタイトル
-                    guard let title = song.value(forProperty: MPMediaItemPropertyTitle) else {
-                        
-                        dlog("title:NILL")
-                        break
-                    }
-                    OSAlbumList[_albumIndex].trackData[trackIndex].title = title as! String
-                    dlog("title: \(OSAlbumList[_albumIndex].trackData[trackIndex].title)")
-                    
-                    // 楽曲の歌詞
-                    guard let lyric = song.value(forProperty: MPMediaItemPropertyLyrics) else {
-                        
-                        dlog("lyric:NILL")
-                        break
-                    }
-                    OSAlbumList[_albumIndex].trackData[trackIndex].lyric = lyric as! String
-                    //曲のパス
-                    let path = song.assetURL ?? nil
-                    
-                    OSAlbumList[_albumIndex].trackData[trackIndex].url = path
-                    OSAlbumList[_albumIndex].trackData[trackIndex].existFlg = true
+                    track.title             = title
+                    track.artist            = song.value(forProperty: MPMediaItemPropertyArtist) as? String ?? ""
+                    track.lyric             = song.value(forProperty: MPMediaItemPropertyLyrics) as? String ?? ""
+                    track.genre             = song.value(forProperty: MPMediaItemPropertyGenre) as? String ?? ""
+                    track.url               = song.assetURL
+                    track.hasProtectedAsset = song.hasProtectedAsset
+                    track.persistentID      = song.persistentID
+                    track.isCloudItem       = song.value(forProperty: MPMediaItemPropertyIsCloudItem) as? Bool ?? false
+                    track.existFlg          = true
+                    track.checkedFlg        = selectedTracks[track.selectionKey] ?? false
+                    OSAlbumList[_albumIndex].trackData.append(track)
                     OSAlbumList[_albumIndex].existFlg = true
-                    //ジャンル
-                    guard let genre = song.value(forProperty: MPMediaItemPropertyGenre) else {
-                        break
-                    }
-                    OSAlbumList[_albumIndex].trackData[trackIndex].genre = genre as! String
-                    // チェック状態の取得
-                    let key = "\(String(describing: OSAlbumList[_albumIndex].trackData[trackIndex].url))"
-                    
-                    
-                    if let selected = selectedTracks[key]{
-                        OSAlbumList[_albumIndex].trackData[trackIndex].checkedFlg = selected
-                    }else{
-                        OSAlbumList[_albumIndex].trackData[trackIndex].checkedFlg = false
-                    }
-                    // iCloud上のものか確認
-                    guard let isCloudItem = song.value(forProperty: MPMediaItemPropertyIsCloudItem) else {
-                        break
-                    }
-                    OSAlbumList[_albumIndex].trackData[trackIndex].isCloudItem = isCloudItem as! Bool
-                    // track のインクリメント
-                    trackIndex = trackIndex + 1
                 }
             }
         }
@@ -152,75 +387,24 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
                 OSLibraryList[albumIndex].artist = "DEVICE Play List"//library.representativeItem?.albumArtist ?? "NO ARTIST DATA"
                 
                 for song in library.items {
-                    OSLibraryList[albumIndex].trackData.append(TrackData())
-                    OSLibraryList[albumIndex].trackData[trackIndex].artist = ""
-                    OSLibraryList[albumIndex].trackData[trackIndex].albumName = OSLibraryList[albumIndex].title!
-                    OSLibraryList[albumIndex].trackData[trackIndex].albumArtistName = OSLibraryList[albumIndex].artist!
-
-                    let artworkImg = song.artwork?.image(at: (song.artwork?.bounds.size)!)
-                    if artworkImg != nil {
-                        OSLibraryList[albumIndex].trackData[trackIndex].artworkImg = artworkImg
-                    }
-                    
-                    // アーティスト名　album.representativeItem?.artwork
-                    guard let artist = song.value(forProperty: MPMediaItemPropertyArtist) else {
-                        dlog("artist:NILL")
-                        break
-                    }
-                    OSLibraryList[albumIndex].trackData[trackIndex].artist = artist as! String
-                    dlog("artist: \(OSLibraryList[albumIndex].trackData[trackIndex].artist)")
-                    
-                    // 楽曲のタイトル
-                    guard let title = song.value(forProperty: MPMediaItemPropertyTitle) else {
-                        dlog("title:NILL")
-                        break
-                    }
-                    OSLibraryList[albumIndex].trackData[trackIndex].title = title as! String
-                    dlog("title: \(OSLibraryList[albumIndex].trackData[trackIndex].title)")
-                    
-                    // 楽曲の歌詞
-                    guard let lyric = song.value(forProperty: MPMediaItemPropertyLyrics) else {
-                        dlog("lyric:NILL")
-                        break
-                    }
-                    OSLibraryList[albumIndex].trackData[trackIndex].lyric = lyric as! String
-                    dlog("lyric: \(OSLibraryList[albumIndex].trackData[trackIndex].lyric)")
-                    
-                    //曲のパス
-                    let path = song.assetURL ?? nil
-                    
-                    OSLibraryList[albumIndex].trackData[trackIndex].url = path
-                    
-                    // path が存在するトラックは、フラグを立てる
-                    OSLibraryList[albumIndex].trackData[trackIndex].existFlg = true
+                    guard let title = song.value(forProperty: MPMediaItemPropertyTitle) as? String,
+                          !title.isEmpty else { continue }
+                    var track = TrackData()
+                    track.albumName       = OSLibraryList[albumIndex].title!
+                    track.albumArtistName = OSLibraryList[albumIndex].artist!
+                    if let aw = song.artwork { track.artworkImg = aw.image(at: aw.bounds.size) }
+                    track.title             = title
+                    track.artist            = song.value(forProperty: MPMediaItemPropertyArtist) as? String ?? ""
+                    track.lyric             = song.value(forProperty: MPMediaItemPropertyLyrics) as? String ?? ""
+                    track.genre             = song.value(forProperty: MPMediaItemPropertyGenre) as? String ?? ""
+                    track.url               = song.assetURL
+                    track.hasProtectedAsset = song.hasProtectedAsset
+                    track.persistentID      = song.persistentID
+                    track.isCloudItem       = song.value(forProperty: MPMediaItemPropertyIsCloudItem) as? Bool ?? false
+                    track.existFlg          = true
+                    track.checkedFlg        = selectedTracks[track.selectionKey] ?? false
+                    OSLibraryList[albumIndex].trackData.append(track)
                     OSLibraryList[albumIndex].existFlg = true
-                    
-                    dlog("path: \(String(describing: OSLibraryList[albumIndex].trackData[trackIndex].url))")
-                    
-                    //ジャンル
-                    guard let genre = song.value(forProperty: MPMediaItemPropertyGenre) else {
-                        dlog("genre:NILL")
-                        break
-                    }
-                    OSLibraryList[albumIndex].trackData[trackIndex].genre = genre as! String
-                    dlog("genre: \(OSLibraryList[albumIndex].trackData[trackIndex].genre)")
-
-                    // チェック状態の取得
-                    let key = "\(String(describing: OSLibraryList[albumIndex].trackData[trackIndex].url))"
-                    
-                    if let selected = selectedTracks[key]{
-                        OSLibraryList[albumIndex].trackData[trackIndex].checkedFlg = selected
-                    }else{
-                        OSLibraryList[albumIndex].trackData[trackIndex].checkedFlg = false
-                    }
-                    
-                    // iCloud上のものか確認
-                    guard let isCloudItem = song.value(forProperty: MPMediaItemPropertyIsCloudItem) else {
-                        break
-                    }
-                    OSLibraryList[albumIndex].trackData[trackIndex].isCloudItem = isCloudItem as! Bool
-                    // track のインクリメント
-                    trackIndex = trackIndex + 1
                 }
             }
         }
@@ -240,26 +424,32 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
         selectMusicView.isHidden = false
         // navigationbarの色設定
         selectMusicButton.addTarget(self, action: #selector(self.toRegistMusicLibrary), for: UIControl.Event.touchUpInside)
-        self.navigationController?.navigationBar.isTranslucent = false
+        // ラージタイトルのスクロール折りたたみに必要（translucent にすることでスクロールビューが nav bar の下まで延びる）
+        self.navigationController?.navigationBar.isTranslucent = true
+        self.navigationController?.navigationBar.prefersLargeTitles = true
         if #available(iOS 15.0, *) {
+            let navColor  = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
+            let textColor = NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
             let appearance = UINavigationBarAppearance()
             appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
-            self.navigationController!.navigationBar.standardAppearance = appearance
-            self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
+            appearance.backgroundColor = navColor
+            appearance.titleTextAttributes      = [.foregroundColor: textColor]
+            appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
+            self.navigationController!.navigationBar.standardAppearance   = appearance
+            self.navigationController!.navigationBar.scrollEdgeAppearance = appearance
             self.navigationController!.navigationBar.tintColor = AppColor.accent
         } else {
             self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
+            self.navigationController?.navigationBar.titleTextAttributes = [.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
             self.navigationController!.navigationBar.tintColor = AppColor.accent
         }
 
         selectBannerView.isHidden = true
-        selectMusicView.frame = CGRect(x: 0, y: Int(myAppFrameSize.height - footerDammyView.frame.size.height - getTabHeghtPlusSafeArea()), width: Int(myAppFrameSize.width), height: Int(footerDammyView.frame.size.height))
+        let tabH = tabBarController?.tabBar.frame.height ?? getTabHeghtPlusSafeArea()
+        let footerH: CGFloat = 76
+        selectMusicView.frame = CGRect(x: 0, y: Int(myAppFrameSize.height - footerH - tabH), width: Int(myAppFrameSize.width), height: Int(footerH))
         updateFooterAppearance()
-        OSAlbumtableview.translatesAutoresizingMaskIntoConstraints = false
-        footerHeight.constant = -92
+        footerHeight.constant = -footerH
         OSAlbumtableview.reloadData()
     }
     override func viewDidAppear(_ animated: Bool) {
@@ -271,6 +461,10 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
             window.addSubview(createFooterView())
         }
     }
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        selectMusicView.isHidden = true
+    }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -281,24 +475,34 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
         return 1
     }
 
+    // セグメントコントロールを sticky な section header として表示
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        return segmentHeaderView
+    }
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 52
+    }
+
     // tableフッダーの高さをかえします。
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
         return 0
     }
     func createFooterView() -> UIView {
-        selectMusicView.frame = CGRect(x: 0, y: Int(myAppFrameSize.height - footerDammyView.frame.size.height - getTabHeghtPlusSafeArea()), width: Int(myAppFrameSize.width), height: Int(footerDammyView.frame.size.height))
+        let tabH = tabBarController?.tabBar.frame.height ?? getTabHeghtPlusSafeArea()
+        let footerH: CGFloat = 76
+        selectMusicView.frame = CGRect(x: 0, y: Int(myAppFrameSize.height - footerH - tabH), width: Int(myAppFrameSize.width), height: Int(footerH))
         selectMusicView.isUserInteractionEnabled = true
 
         selectMusicLabel.font = AppFont.subheadline
         selectMusicLabel.sizeToFit()
-        selectMusicLabel.layer.position = CGPoint(x: Int(myAppFrameSize.width) / 2, y: 22)
+        selectMusicLabel.layer.position = CGPoint(x: Int(myAppFrameSize.width) / 2, y: 16)
 
         selectMusicButton.setTitle("次へ →", for: .normal)
         selectMusicButton.frame = CGRect(x: 0, y: 0, width: 200, height: 44)
         selectMusicButton.setTitleColor(.white, for: .normal)
         selectMusicButton.titleLabel?.font = AppFont.button
         selectMusicButton.layer.cornerRadius = 14
-        selectMusicButton.layer.position = CGPoint(x: Int(myAppFrameSize.width) / 2, y: 62)
+        selectMusicButton.layer.position = CGPoint(x: Int(myAppFrameSize.width) / 2, y: 52)
 
         if !selectMusicViewMakeFlg {
             selectMusicView.contentView.addSubview(selectMusicLabel)
@@ -380,10 +584,12 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
                 cell.AlbumImage.layer.borderWidth = ICON_BORDERWIDTH
                 cell.AlbumImage.image = image
             } else {
-                // アートワークがないとき (灰色表示)
-                cell.AlbumImage.image = nil
-                cell.AlbumImage.backgroundColor = UIColor.gray
-                cell.AlbumImage.layer.borderColor = UIColor.gray.cgColor
+                let s = cell.AlbumImage.bounds.size.width > 0 ? cell.AlbumImage.bounds.size : CGSize(width: 60, height: 60)
+                cell.AlbumImage.image = playlistThumbnail(name: LibraryData.title ?? "", size: s)
+                cell.AlbumImage.contentMode = .scaleAspectFill
+                cell.AlbumImage.backgroundColor = .clear
+                cell.AlbumImage.layer.cornerRadius = ICON_CORNER_RADIUS_SETTINMGS
+                cell.AlbumImage.layer.borderWidth = ICON_BORDERWIDTH
             }
         }
         fadeInRanDomAnimesion(view : cell.AlbumImage)
@@ -458,8 +664,10 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
     @IBAction func listModeSegmentChanged(_ sender: UISegmentedControl) {
         switch sender.selectedSegmentIndex {
         case 0:
+            self.title = localText(key: "library_select_album_title")
             showToastMsg(messege:LISTMODE_ALBUM_MSG,time:2.0, tab: COLOR_THEMA.HOME.rawValue,setVc:self,Hposi:32)
         case 1:
+            self.title = localText(key: "library_select_playlist_title")
             showToastMsg(messege:LISTMODE_LIVRARY_MSG,time:2.0, tab: COLOR_THEMA.HOME.rawValue,setVc:self,Hposi:32)
         default:
             break
@@ -469,6 +677,57 @@ class CustomMusicLibraryAlbumViewController: UIViewController , UITableViewDataS
     
     @IBAction func forSettingAPPBtnTapped(_ sender: Any) {
         UIApplication.shared.open(NSURL(string: UIApplication.openSettingsURLString)! as URL)
+    }
+
+    // プレイリスト名からテーマカラー＋アイコンでサムネイルを生成する
+    private func playlistThumbnail(name: String, size: CGSize) -> UIImage {
+        struct Theme { let top: UIColor; let bottom: UIColor; let symbol: String }
+        func hsl(_ h: CGFloat, _ s: CGFloat, _ b: CGFloat) -> UIColor {
+            UIColor(hue: h / 360, saturation: s, brightness: b, alpha: 1)
+        }
+        let n = name.lowercased()
+        let theme: Theme
+        if n.contains("クラシック") || n.contains("classic") {
+            theme = Theme(top: hsl(36, 0.70, 0.52), bottom: hsl(48, 0.60, 0.78), symbol: "music.note")
+        } else if n.contains("最近再生") || n.contains("recently played") {
+            theme = Theme(top: hsl(210, 0.75, 0.45), bottom: hsl(220, 0.55, 0.72), symbol: "clock.fill")
+        } else if n.contains("最近追加") || n.contains("recently added") {
+            theme = Theme(top: hsl(148, 0.70, 0.38), bottom: hsl(160, 0.55, 0.65), symbol: "plus.circle.fill")
+        } else if n.contains("トップレート") || n.contains("top rated") {
+            theme = Theme(top: hsl(350, 0.75, 0.48), bottom: hsl(10, 0.60, 0.72), symbol: "star.fill")
+        } else if n.contains("トップ") || n.contains("top") {
+            theme = Theme(top: hsl(22, 0.80, 0.48), bottom: hsl(38, 0.65, 0.74), symbol: "flame.fill")
+        } else if n.contains("90年代") || n.contains("90s") || n.contains("'90") {
+            theme = Theme(top: hsl(270, 0.65, 0.42), bottom: hsl(290, 0.50, 0.68), symbol: "waveform")
+        } else if n.contains("80年代") || n.contains("80s") || n.contains("'80") {
+            theme = Theme(top: hsl(195, 0.70, 0.40), bottom: hsl(215, 0.55, 0.68), symbol: "headphones")
+        } else if n.contains("70年代") || n.contains("70s") || n.contains("'70") {
+            theme = Theme(top: hsl(30, 0.75, 0.42), bottom: hsl(45, 0.60, 0.68), symbol: "music.note.list")
+        } else if n.contains("お気に入り") || n.contains("favorite") || n.contains("liked") {
+            theme = Theme(top: hsl(340, 0.72, 0.45), bottom: hsl(355, 0.60, 0.72), symbol: "heart.fill")
+        } else if n.contains("ダウンロード") || n.contains("download") {
+            theme = Theme(top: hsl(148, 0.68, 0.38), bottom: hsl(162, 0.52, 0.62), symbol: "arrow.down.circle.fill")
+        } else {
+            // 名前のハッシュ値から一意の色を決定
+            let h = CGFloat(abs(name.hashValue) % 360)
+            theme = Theme(top: hsl(h, 0.65, 0.42), bottom: hsl(fmod(h + 40, 360), 0.50, 0.68), symbol: "music.note.list")
+        }
+
+        return UIGraphicsImageRenderer(size: size).image { ctx in
+            let cg = ctx.cgContext
+            let colors = [theme.top.cgColor, theme.bottom.cgColor] as CFArray
+            guard let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 1]) else { return }
+            cg.drawLinearGradient(gradient, start: .zero, end: CGPoint(x: size.width, y: size.height), options: [])
+
+            let ptSize = size.width * 0.40
+            let symConf = UIImage.SymbolConfiguration(pointSize: ptSize, weight: .medium)
+            if let icon = UIImage(systemName: theme.symbol, withConfiguration: symConf)?
+                .withTintColor(UIColor.white.withAlphaComponent(0.88), renderingMode: .alwaysOriginal) {
+                let ix = (size.width - icon.size.width) / 2
+                let iy = (size.height - icon.size.height) / 2
+                icon.draw(at: CGPoint(x: ix, y: iy))
+            }
+        }
     }
 
 }

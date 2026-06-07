@@ -7,10 +7,13 @@
 //
 
 import UIKit
+import MediaPlayer
+import NaturalLanguage
+import GoogleMobileAds
 
 // MARK: - PracticeViewController
 
-final class PracticeViewController: UIViewController, UIAdaptivePresentationControllerDelegate {
+final class PracticeViewController: UIViewController, UIAdaptivePresentationControllerDelegate, FullScreenContentDelegate, BannerViewDelegate {
 
     // MARK: Models
 
@@ -24,33 +27,31 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
         let action: () -> Void
     }
 
-    private struct SpeedPreset {
-        let label: String
-        let emoji: String
-        let description: String
-        let rowIndex: Int
-    }
+    // MARK: Speed Card Config
 
-    // MARK: Data
+    private let speedSnapPoints: [Double] = [
+        0.5, 0.6, 0.7, 0.75, 0.8, 0.9,
+        1.0, 1.1, 1.2, 1.25, 1.3, 1.4, 1.5, 1.6, 1.7, 1.75, 1.8, 1.9,
+        2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
+        6.0, 7.0, 8.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0
+    ]
+    private let speedMin: Double = 0.5
+    private let speedMax: Double = 50.0
+    private let amSpeedMax: Double = 2.0
 
-    private var presets: [SpeedPreset] {
-        [
-            SpeedPreset(label: "0.5x", emoji: "🐌", description: localText(key: "speed_very_slow"),    rowIndex: 0),
-            SpeedPreset(label: "0.6x", emoji: "🐢", description: localText(key: "speed_slow"),          rowIndex: 1),
-            SpeedPreset(label: "0.7x", emoji: "🐾", description: localText(key: "speed_somewhat_slow"), rowIndex: 2),
-            SpeedPreset(label: "0.8x", emoji: "🎵", description: localText(key: "speed_slightly_slow"), rowIndex: 3),
-            SpeedPreset(label: "1.0x", emoji: "✅", description: localText(key: "speed_normal"),         rowIndex: 5),
-            SpeedPreset(label: "1.2x", emoji: "⚡", description: localText(key: "speed_slightly_fast"), rowIndex: 7),
-            SpeedPreset(label: "1.5x", emoji: "🔥", description: localText(key: "speed_fast"),           rowIndex: 10),
-            SpeedPreset(label: "1.7x", emoji: "💨", description: localText(key: "speed_fairly_fast"),   rowIndex: 12),
-            SpeedPreset(label: "2.0x", emoji: "🚀", description: localText(key: "speed_double"),         rowIndex: 15),
-            SpeedPreset(label: "3.0x", emoji: "🌪️", description: localText(key: "speed_triple"),        rowIndex: 25),
-            SpeedPreset(label: "5.0x", emoji: "💫", description: localText(key: "speed_5x"),             rowIndex: 45),
-            SpeedPreset(label: "10x",  emoji: "☄️", description: localText(key: "speed_10x"),            rowIndex: 73),
-            SpeedPreset(label: "20x",  emoji: "🛸", description: localText(key: "speed_20x"),            rowIndex: 83),
-            SpeedPreset(label: "50x",  emoji: "⚡⚡", description: localText(key: "speed_50x"),          rowIndex: 89),
-        ]
+    private var isAppleMusicActive: Bool {
+        guard NowPlayingMusicLibraryData.nowPlaying != NOW_NOT_PLAYING else { return false }
+        let list = SHUFFLE_FLG ? NowPlayingMusicLibraryData.trackDataShuffled : NowPlayingMusicLibraryData.trackData
+        guard NowPlayingMusicLibraryData.nowPlaying < list.count else { return false }
+        let track = list[NowPlayingMusicLibraryData.nowPlaying]
+        return track.url == nil && track.persistentID != 0
     }
+    private let lowSpeedPills:  [(String, Double)] = [
+        ("0.5×", 0.5), ("0.75×", 0.75), ("1.0×", 1.0), ("1.5×", 1.5), ("2.0×", 2.0)
+    ]
+    private let highSpeedPills: [(String, Double)] = [
+        ("8×", 8.0), ("10×", 10.0), ("20×", 20.0), ("30×", 30.0), ("50×", 50.0)
+    ]
 
     // lazy で self 参照
     private lazy var features: [PracticeFeature] = [
@@ -63,8 +64,8 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
         ),
         PracticeFeature(
             symbol: "rectangle.on.rectangle.angled",
-            title: "フラッシュカード",
-            description: "歌詞から単語を学習",
+            title: localText(key: "history_type_flash_card"),
+            description: localText(key: "practice_flash_card_sub"),
             status: .available,
             action: { [weak self] in self?.openFlashCard() }
         ),
@@ -81,13 +82,25 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
 
     private let scrollView = UIScrollView()
     private let stack     = UIStackView()
-    private var presetCardViews: [UIView] = []
+    private var speedPillButtons: [UIButton] = []
+    private weak var speedCardSlider: UISlider?
+    private weak var speedCardLabel:  UILabel?
+
+    // MARK: Ad
+    private var interstitial: InterstitialAd?
+    private var sessionsSinceLastAd = 0
+    private var lastAdShownDate: Date?
+    private var returningFromPractice = false
+    private let practiceBannerView = BannerView()
 
     // MARK: Lifecycle
 
     // 再生ボタン参照（状態更新用）
     private weak var nowPlayingPlayBtn: UIButton?
     private var isReturningFromPush = false
+    // musicaPlaybackStateChanged で受け取った最新の再生状態。
+    // buildContent() が再構築時に amPlayer.playbackState を読む前に上書きされないよう保持する。
+    private var lastKnownIsPlaying: Bool? = nil
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -95,6 +108,8 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
         navigationItem.largeTitleDisplayMode = .always
         title = localText(key: "practice_title")
         setupScrollView()
+        setupPracticeBanner()
+        loadPracticeInterstitial()
 
         NotificationCenter.default.addObserver(
             self,
@@ -126,10 +141,16 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
         if !isReturningFromPush {
             resetScrollForLargeTitle()
         }
+        loadPracticeBannerIfNeeded()
+        if isReturningFromPush && returningFromPractice {
+            returningFromPractice = false
+            tryShowPracticeAdIfNeeded()
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        FA.logScreen(FA.Screen.practice, vc: "PracticeViewController")
         if !isReturningFromPush {
             resetScrollForLargeTitle()
         }
@@ -138,11 +159,14 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
 
     @objc private func onPlaybackStateChanged(_ notification: Notification) {
         let isPlaying = notification.userInfo?["isPlaying"] as? Bool ?? false
+        lastKnownIsPlaying = isPlaying
         updateNowPlayingButton(isPlaying: isPlaying)
     }
 
     @objc private func onTrackChanged() {
-        buildContent()
+        lastKnownIsPlaying = nil
+        UIView.performWithoutAnimation { buildContent() }
+        loadPracticeBannerIfNeeded()
     }
 
     private func updateNowPlayingButton(isPlaying: Bool) {
@@ -197,9 +221,12 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
         }
 
         stack.addArrangedSubview(sectionHeader(localText(key: "practice_speed_header")))
-        stack.addArrangedSubview(buildPresetGrid())
+        stack.addArrangedSubview(buildSpeedCard())
+        if isAppleMusicActive {
+            stack.addArrangedSubview(buildAmSpeedNotice())
+        }
 
-        stack.addArrangedSubview(sectionHeader("練習履歴"))
+        stack.addArrangedSubview(sectionHeader(localText(key: "history_title")))
         stack.addArrangedSubview(buildHistorySection())
     }
 
@@ -337,7 +364,7 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
         prevBtn.addTarget(self, action: #selector(prevTrackTapped), for: .touchUpInside)
         prevBtn.translatesAutoresizingMaskIntoConstraints = false
 
-        let isPlaying = audioPlayer?.isPlaying ?? false
+        let isPlaying = lastKnownIsPlaying ?? (audioPlayer?.isPlaying ?? (MPMusicPlayerController.applicationQueuePlayer.playbackState == .playing))
         let ppBtn = UIButton(type: .system)
         ppBtn.backgroundColor = AppColor.accent
         ppBtn.tintColor = .white
@@ -560,117 +587,196 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
         features[tag].action()
     }
 
-    // MARK: Speed Presets
+    // MARK: Speed Card
 
-    private static let presetCardWidth: CGFloat = 76
-    private static let presetCardHeight: CGFloat = 90
+    private func buildSpeedCard() -> UIView {
+        let card = UIView()
+        card.backgroundColor    = AppColor.surface
+        card.layer.cornerRadius = 16
 
-    private func buildPresetGrid() -> UIView {
-        let scroll = UIScrollView()
-        scroll.showsHorizontalScrollIndicator = false
-        scroll.translatesAutoresizingMaskIntoConstraints = false
+        // 速度ラベル
+        let speedLabel = UILabel()
+        speedLabel.font          = AppFont.title
+        speedLabel.textColor     = AppColor.accent
+        speedLabel.textAlignment = .center
+        speedCardLabel = speedLabel
 
-        let hStack = UIStackView()
-        hStack.axis      = .horizontal
-        hStack.spacing   = 10
-        hStack.alignment = .fill
-        hStack.translatesAutoresizingMaskIntoConstraints = false
+        // スライダー（対数スケール）
+        let slider = UISlider()
+        slider.minimumValue          = 0
+        slider.maximumValue          = 1
+        slider.minimumTrackTintColor = AppColor.accent
+        slider.maximumTrackTintColor = AppColor.separator
+        slider.addTarget(self, action: #selector(practiceSliderChanged(_:)), for: .valueChanged)
+        speedCardSlider = slider
 
-        presetCardViews.removeAll()
-        for (i, preset) in presets.enumerated() {
-            let card = buildPresetCard(preset)
-            card.tag = i
-            card.widthAnchor.constraint(equalToConstant: PracticeViewController.presetCardWidth).isActive = true
-            let tap = UITapGestureRecognizer(target: self, action: #selector(presetTapped(_:)))
-            card.addGestureRecognizer(tap)
-            card.isUserInteractionEnabled = true
-            hStack.addArrangedSubview(card)
-            presetCardViews.append(card)
+        let amLimited = isAppleMusicActive
+        // Apple Music は iOS 制限により最大 2× → スライダー上限を 2× 位置に固定
+        if amLimited {
+            let amPos = Float(log(amSpeedMax / speedMin) / log(speedMax / speedMin))
+            slider.maximumValue = amPos
         }
 
-        scroll.addSubview(hStack)
-        NSLayoutConstraint.activate([
-            scroll.heightAnchor.constraint(equalToConstant: PracticeViewController.presetCardHeight),
+        let minLabel = UILabel()
+        minLabel.text      = "0.5×"
+        minLabel.font      = AppFont.caption2
+        minLabel.textColor = AppColor.textSecondary
 
-            hStack.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor),
-            hStack.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor),
-            hStack.leadingAnchor.constraint(equalTo: scroll.contentLayoutGuide.leadingAnchor),
-            hStack.trailingAnchor.constraint(equalTo: scroll.contentLayoutGuide.trailingAnchor),
-            hStack.heightAnchor.constraint(equalTo: scroll.frameLayoutGuide.heightAnchor),
-        ])
-        return scroll
-    }
+        let maxLabel = UILabel()
+        maxLabel.text      = amLimited ? "2×" : "50×"
+        maxLabel.font      = AppFont.caption2
+        maxLabel.textColor = AppColor.textSecondary
 
-    private func buildPresetCard(_ preset: SpeedPreset) -> UIView {
-        let isActive = preset.rowIndex == speedRow
-        let card     = UIView()
-        card.backgroundColor  = isActive ? AppColor.accent : AppColor.surface
-        card.layer.cornerRadius = 14
-        card.clipsToBounds    = true
+        let sliderRow = UIStackView(arrangedSubviews: [minLabel, slider, maxLabel])
+        sliderRow.axis      = .horizontal
+        sliderRow.spacing   = 6
+        sliderRow.alignment = .center
 
-        let emojiLabel = UILabel()
-        emojiLabel.text      = preset.emoji
-        emojiLabel.font      = UIFont.systemFont(ofSize: 20)
-        emojiLabel.textAlignment = .center
+        // 低速ピル行
+        let lowStack = UIStackView()
+        lowStack.axis         = .horizontal
+        lowStack.distribution = .fillEqually
+        lowStack.spacing      = 6
 
-        let labelLabel = UILabel()
-        labelLabel.text          = preset.label
-        labelLabel.font          = UIFont.systemFont(ofSize: 13, weight: .bold)
-        labelLabel.textColor     = isActive ? .white : AppColor.textPrimary
-        labelLabel.textAlignment = .center
+        // 高速ピル行
+        let highStack = UIStackView()
+        highStack.axis         = .horizontal
+        highStack.distribution = .fillEqually
+        highStack.spacing      = 6
 
-        let descLabel = UILabel()
-        descLabel.text          = preset.description
-        descLabel.font          = UIFont.systemFont(ofSize: 10)
-        descLabel.textColor     = isActive ? UIColor.white.withAlphaComponent(0.8) : AppColor.textSecondary
-        descLabel.textAlignment = .center
-        descLabel.adjustsFontSizeToFitWidth  = true
-        descLabel.minimumScaleFactor = 0.7
+        speedPillButtons.removeAll()
+        for (label, value) in lowSpeedPills {
+            let btn = makeSpeedPillButton(label: label, value: value)
+            lowStack.addArrangedSubview(btn)
+            speedPillButtons.append(btn)
+        }
+        for (label, value) in highSpeedPills {
+            let btn = makeSpeedPillButton(label: label, value: value)
+            if amLimited {
+                btn.isUserInteractionEnabled = false
+                btn.alpha = 0.3
+            }
+            highStack.addArrangedSubview(btn)
+            speedPillButtons.append(btn)
+        }
 
-        let vStack = UIStackView(arrangedSubviews: [emojiLabel, labelLabel, descLabel])
+        let vStack = UIStackView(arrangedSubviews: [speedLabel, sliderRow, lowStack, highStack])
         vStack.axis      = .vertical
-        vStack.spacing   = 2
-        vStack.alignment = .center
+        vStack.spacing   = 12
         vStack.translatesAutoresizingMaskIntoConstraints = false
         card.addSubview(vStack)
         NSLayoutConstraint.activate([
-            vStack.centerXAnchor.constraint(equalTo: card.centerXAnchor),
-            vStack.centerYAnchor.constraint(equalTo: card.centerYAnchor),
-            vStack.leadingAnchor.constraint(greaterThanOrEqualTo: card.leadingAnchor, constant: 4),
-            vStack.trailingAnchor.constraint(lessThanOrEqualTo: card.trailingAnchor, constant: -4),
+            vStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 18),
+            vStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            vStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+            vStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -18),
+            lowStack.heightAnchor.constraint(equalToConstant: 34),
+            highStack.heightAnchor.constraint(equalToConstant: 34),
         ])
+
+        // 現在の速度でUIを初期化
+        let currentSpeed = max(speedMin, min(speedMax, speedList[speedRow]))
+        syncSpeedCard(speed: currentSpeed)
         return card
     }
 
-    @objc private func presetTapped(_ sender: UITapGestureRecognizer) {
-        guard let tag = sender.view?.tag, tag < presets.count else { return }
-        speedRow = presets[tag].rowIndex
+    private func makeSpeedPillButton(label: String, value: Double) -> UIButton {
+        let btn = UIButton(type: .system)
+        btn.setTitle(label, for: .normal)
+        btn.titleLabel?.font   = AppFont.footnote
+        btn.layer.cornerRadius = 8
+        btn.layer.borderWidth  = 1
+        btn.tag = Int(value * 1000)
+        btn.addTarget(self, action: #selector(practicePillTapped(_:)), for: .touchUpInside)
+        return btn
+    }
 
-        // 再生中のオーディオに即時反映
-        let speed = speedList[speedRow] * 10
-        audioPlayer?.rate = Float(round(speed) / 10)
+    @objc private func practiceSliderChanged(_ slider: UISlider) {
+        let raw     = speedMin * pow(speedMax / speedMin, Double(slider.value))
+        let snapped = speedSnapPoints.min(by: { abs($0 - raw) < abs($1 - raw) }) ?? raw
+        applyPracticeSpeed(snapped, updateSlider: false)
+    }
 
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    @objc private func practicePillTapped(_ sender: UIButton) {
+        let speed = Double(sender.tag) / 1000.0
+        applyPracticeSpeed(speed, updateSlider: true)
+    }
 
-        // タップアニメーション
-        UIView.animate(withDuration: 0.12, animations: {
-            sender.view?.transform = CGAffineTransform(scaleX: 0.93, y: 0.93)
-        }) { _ in
-            UIView.animate(withDuration: 0.12) { sender.view?.transform = .identity }
+    private func applyPracticeSpeed(_ speed: Double, updateSlider: Bool) {
+        let clamped = isAppleMusicActive ? min(speed, amSpeedMax) : speed
+        let nearest = speedList.enumerated().min { abs($0.element - clamped) < abs($1.element - clamped) }
+        speedRow = nearest?.offset ?? 5
+        let rate = Float((clamped * 10).rounded() / 10)
+        if let ap = audioPlayer {
+            ap.rate = rate
+        } else {
+            MPMusicPlayerController.applicationQueuePlayer.currentPlaybackRate = rate
         }
+        syncSpeedCard(speed: clamped, updateSlider: updateSlider)
+        FA.log(FA.speedChange, params: ["speed": clamped, "source": "practice_tab"])
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    }
 
-        // カードの見た目だけ更新（全体再構築しないのでレイアウト変化なし）
-        for (i, card) in presetCardViews.enumerated() {
-            let isActive = presets[i].rowIndex == speedRow
-            card.backgroundColor = isActive ? AppColor.accent : AppColor.surface
-            guard let vStack = card.subviews.first(where: { $0 is UIStackView }) as? UIStackView else { continue }
-            if vStack.arrangedSubviews.count >= 3 {
-                (vStack.arrangedSubviews[1] as? UILabel)?.textColor = isActive ? .white : AppColor.textPrimary
-                (vStack.arrangedSubviews[2] as? UILabel)?.textColor = isActive ? UIColor.white.withAlphaComponent(0.8) : AppColor.textSecondary
+    private func syncSpeedCard(speed: Double, updateSlider: Bool = true) {
+        if speed >= 10 || speed == Double(Int(speed)) {
+            speedCardLabel?.text = String(format: "%.4g×", speed)
+        } else {
+            speedCardLabel?.text = String(format: "%.2g×", speed)
+        }
+        if updateSlider {
+            let pos = Float(log(speed / speedMin) / log(speedMax / speedMin))
+            speedCardSlider?.setValue(max(0, min(1, pos)), animated: false)
+        }
+        let amLim = isAppleMusicActive
+        for btn in speedPillButtons {
+            let val = Double(btn.tag) / 1000.0
+            if amLim && val > amSpeedMax {
+                // 非活性ピルはスタイルを変えない（alpha 0.3 は buildSpeedCard で設定済み）
+                continue
             }
+            let on  = abs(val - speed) < 0.001
+            btn.backgroundColor   = on ? AppColor.accent : AppColor.surfaceSecondary
+            btn.setTitleColor(on ? .white : AppColor.textPrimary, for: .normal)
+            btn.layer.borderColor = on ? AppColor.accent.cgColor : AppColor.border.cgColor
         }
     }
 
+
+    private func buildAmSpeedNotice() -> UIView {
+        let notice = UIView()
+        notice.backgroundColor  = UIColor.systemOrange.withAlphaComponent(0.12)
+        notice.layer.cornerRadius = 12
+        notice.translatesAutoresizingMaskIntoConstraints = false
+
+        let img = UIImageView(image: UIImage(systemName: "exclamationmark.triangle",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 14, weight: .medium)))
+        img.tintColor    = .systemOrange
+        img.contentMode  = .scaleAspectFit
+        img.setContentHuggingPriority(.required, for: .horizontal)
+        img.translatesAutoresizingMaskIntoConstraints = false
+
+        let lbl = UILabel()
+        lbl.text          = localText(key: "practice_speed_am_notice")
+        lbl.font          = AppFont.footnote
+        lbl.textColor     = AppColor.textSecondary
+        lbl.numberOfLines = 0
+        lbl.translatesAutoresizingMaskIntoConstraints = false
+
+        let row = UIStackView(arrangedSubviews: [img, lbl])
+        row.axis      = .horizontal
+        row.spacing   = 10
+        row.alignment = .top
+        row.translatesAutoresizingMaskIntoConstraints = false
+
+        notice.addSubview(row)
+        NSLayoutConstraint.activate([
+            row.topAnchor.constraint(equalTo: notice.topAnchor, constant: 10),
+            row.bottomAnchor.constraint(equalTo: notice.bottomAnchor, constant: -10),
+            row.leadingAnchor.constraint(equalTo: notice.leadingAnchor, constant: 12),
+            row.trailingAnchor.constraint(equalTo: notice.trailingAnchor, constant: -12),
+        ])
+        return notice
+    }
 
     // MARK: Dictation Card (動的)
 
@@ -880,9 +986,18 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
     }
 
     private func startDictation(track: TrackData, lyrics: String) {
+        FA.log(FA.dictationStart, params: ["track": track.title ?? ""])
         let vc = DictationViewController()
         vc.track  = track
         vc.lyrics = lyrics
+        // SetupVCを経由しない場合、歌詞全体の支配的言語を検出してフィルタ
+        // （nil = "すべて" という DictationVC の意味論を壊さないよう呼び出し元で解決）
+        let rec = NLLanguageRecognizer()
+        rec.processString(lyrics)
+        if let dominant = rec.dominantLanguage, dominant != .undetermined {
+            vc.selectedLyricLang = dominant
+        }
+        returningFromPractice = true
         navigationController?.pushViewController(vc, animated: true)
     }
 
@@ -911,6 +1026,7 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
 
         let vc    = SectionRepeatViewController()
         vc.track  = track
+        returningFromPractice = true
         navigationController?.pushViewController(vc, animated: true)
     }
 
@@ -945,9 +1061,13 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
             return
         }
 
+        FA.log(FA.flashCardStart, params: ["track": track.title ?? ""])
         let vc    = FlashCardViewController()
         vc.track  = track
-        vc.onDismiss = { [weak self] in self?.buildContent() }
+        vc.onDismiss = { [weak self] in
+            self?.buildContent()
+            self?.tryShowPracticeAdIfNeeded()
+        }
         let nav   = UINavigationController(rootViewController: vc)
         nav.modalPresentationStyle = .pageSheet
         if #available(iOS 15.0, *),
@@ -961,6 +1081,7 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
 
     private func openWeakWords() {
         let vc  = WeakWordListViewController()
+        returningFromPractice = true
         navigationController?.pushViewController(vc, animated: true)
     }
 
@@ -987,7 +1108,7 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
 
         // 詳細ボタン
         let detailBtn = UIButton(type: .system)
-        detailBtn.setTitle("詳細な練習記録を見る →", for: .normal)
+        detailBtn.setTitle(localText(key: "history_detail_btn"), for: .normal)
         detailBtn.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         detailBtn.setTitleColor(AppColor.accent, for: .normal)
         detailBtn.addTarget(self, action: #selector(openHistoryDetail), for: .touchUpInside)
@@ -1014,7 +1135,7 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
         iconView.translatesAutoresizingMaskIntoConstraints = false
 
         let label = UILabel()
-        label.text          = "まだ練習記録がありません\n今日から始めましょう！"
+        label.text          = localText(key: "history_empty_start")
         label.font          = UIFont.systemFont(ofSize: 14)
         label.textColor     = AppColor.textSecondary
         label.textAlignment = .center
@@ -1047,13 +1168,13 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
         streakEmoji.translatesAutoresizingMaskIntoConstraints = false
 
         let streakLabel = UILabel()
-        streakLabel.text      = s.streak >= 1 ? "\(s.streak)日連続練習中！" : "今日から練習を始めよう！"
+        streakLabel.text      = s.streak >= 1 ? String(format: localText(key: "history_streak_active_fmt"), s.streak) : localText(key: "history_streak_inactive")
         streakLabel.font      = UIFont.systemFont(ofSize: 16, weight: .bold)
         streakLabel.textColor = s.streak >= 1 ? AppColor.accent : AppColor.textPrimary
         streakLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let statsLabel = UILabel()
-        statsLabel.text      = "今月 \(s.thisMonthCount)回  今年 \(s.thisYearCount)回"
+        statsLabel.text      = String(format: localText(key: "history_stats_fmt"), s.thisMonthCount, s.thisYearCount)
         statsLabel.font      = UIFont.systemFont(ofSize: 11)
         statsLabel.textColor = AppColor.textSecondary
         statsLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -1128,14 +1249,14 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
         let total        = monthly.reduce(0) { $0 + $1.count }
 
         let header = UILabel()
-        header.text      = "\(currentYear)年"
+        header.text      = String(format: localText(key: "history_year_fmt"), currentYear)
         header.font      = UIFont.systemFont(ofSize: 14, weight: .semibold)
         header.textColor = AppColor.textSecondary
         header.translatesAutoresizingMaskIntoConstraints = false
         card.addSubview(header)
 
         let totalLabel = UILabel()
-        totalLabel.text      = "計 \(total)回"
+        totalLabel.text      = String(format: localText(key: "history_total_count_fmt"), total)
         totalLabel.font      = UIFont.systemFont(ofSize: 12)
         totalLabel.textColor = AppColor.textSecondary
         totalLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -1209,7 +1330,7 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
         let card = makeHistoryCard()
 
         let header = UILabel()
-        header.text      = "最近の練習"
+        header.text      = localText(key: "history_recent_header")
         header.font      = UIFont.systemFont(ofSize: 14, weight: .semibold)
         header.textColor = AppColor.textSecondary
         header.translatesAutoresizingMaskIntoConstraints = false
@@ -1302,6 +1423,85 @@ final class PracticeViewController: UIViewController, UIAdaptivePresentationCont
 
     @objc private func openHistoryDetail() {
         navigationController?.pushViewController(PracticeHistoryViewController(), animated: true)
+    }
+
+    // MARK: Banner Ad
+
+    private func setupPracticeBanner() {
+        guard AD_DISPLAY_PRACTICE_BANNER else { return }
+        #if targetEnvironment(simulator)
+        practiceBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID_TEST
+        #else
+        practiceBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID
+        #endif
+        practiceBannerView.rootViewController = self
+        practiceBannerView.delegate = self
+        practiceBannerView.isHidden = true
+        practiceBannerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(practiceBannerView)
+        NSLayoutConstraint.activate([
+            practiceBannerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            practiceBannerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            practiceBannerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+        ])
+    }
+
+    private func loadPracticeBannerIfNeeded() {
+        guard AD_DISPLAY_PRACTICE_BANNER else { dlog("PracticeBanner: AD_DISPLAY_PRACTICE_BANNER=false, skip"); return }
+        let width = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        dlog("PracticeBanner: loading, width=\(width), adUnitID=\(practiceBannerView.adUnitID ?? "nil")")
+        practiceBannerView.adSize = currentOrientationAnchoredAdaptiveBanner(width: width)
+        practiceBannerView.load(Request())
+    }
+
+    // MARK: Interstitial Ad
+
+    private func loadPracticeInterstitial() {
+        guard ADApearFlg() else { return }
+        #if targetEnvironment(simulator)
+        let id = ADMOB_INTERSTITIAL_SCAN_OR_TRANS_test
+        #else
+        let id = ADMOB_INTERSTITIAL_PRACTICE
+        #endif
+        InterstitialAd.load(with: id, request: Request()) { [weak self] ad, error in
+            if let error = error { dlog("Practice interstitial failed to load: \(error)"); return }
+            self?.interstitial = ad
+            self?.interstitial?.fullScreenContentDelegate = self
+        }
+    }
+
+    @discardableResult
+    private func tryShowPracticeAdIfNeeded() -> Bool {
+        sessionsSinceLastAd += 1
+        guard ADApearFlg(), let ad = interstitial else { return false }
+        guard sessionsSinceLastAd >= 3 else { return false }
+        if let last = lastAdShownDate, Date().timeIntervalSince(last) < 180 { return false }
+        FA.log(FA.adInterstitialShow, params: ["sessions_since_last": sessionsSinceLastAd, "source": "practice"])
+        sessionsSinceLastAd = 0
+        lastAdShownDate = Date()
+        ad.present(from: self)
+        return true
+    }
+
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        loadPracticeInterstitial()
+    }
+
+    // MARK: BannerViewDelegate
+
+    func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+        dlog("PracticeBanner: ✅ ad received, size=\(bannerView.adSize.size)")
+        bannerView.isHidden = false
+        let h = bannerView.adSize.size.height
+        scrollView.contentInset.bottom = h
+        scrollView.verticalScrollIndicatorInsets.bottom = h
+    }
+
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+        dlog("PracticeBanner: ❌ failed: \(error)")
+        bannerView.isHidden = true
+        scrollView.contentInset.bottom = 0
+        scrollView.verticalScrollIndicatorInsets.bottom = 0
     }
 
     // MARK: UIAdaptivePresentationControllerDelegate

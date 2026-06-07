@@ -9,6 +9,7 @@
 import Foundation
 import CoreData
 import Firebase
+import MediaPlayer
 
 /// CoreData に保存された URL 文字列を解決する。
 /// file:// スキームで保存先が存在しない場合、同一ファイル名を
@@ -111,7 +112,8 @@ func updateMusicLibrary(appdelegate:AppDelegate ,oldLibraryName:String,newLibrar
         }
         for (index, musicData) in trackList.enumerated(){
             // すでに登録済みだったらスキップ
-            if !sortTrackExist(tempContext:tempContext,checkUrl:String(describing: musicData.url!), musicLibraryName: newLibraryName, index: index){
+            let urlStr = musicData.url != nil ? String(describing: musicData.url!) : "am://\(musicData.persistentID)"
+            if !sortTrackExist(tempContext:tempContext,checkUrl:urlStr, musicLibraryName: newLibraryName, index: index){
                 registNewMusic(appdelegate:appdelegate,tempContext:tempContext ,libraryName:newLibraryName,musicData:musicData,index:index, completion: {(_rs: Bool)  -> Void in
                     if _rs {
                         CUSTOM_LYBRARY_NAME = ""
@@ -140,7 +142,9 @@ func registNewMusic(appdelegate:AppDelegate ,tempContext:NSManagedObjectContext 
     musiclyModel.artist = musicData.artist
     musiclyModel.lyric = musicData.lyric
     musiclyModel.trackTitle = musicData.title
-    musiclyModel.url = String(describing: musicData.url!)
+    musiclyModel.url = musicData.url != nil
+        ? String(describing: musicData.url!)
+        : "am://\(musicData.persistentID)"
     musiclyModel.indicatoryNum = Int16(index)
     if musicData.artworkImg == nil {
         musiclyModel.artworkData = nil
@@ -202,8 +206,14 @@ func getMusicLibraryTrackData(musicLibraryName:String) -> [TrackData]{
             trackData[i].albumName = fetchData[i].albumTitle!
             trackData[i].title = fetchData[i].trackTitle!
             trackData[i].artist = fetchData[i].artist!
-            trackData[i].url = resolvedFileURL(from: fetchData[i].url!)
             trackData[i].lyric = fetchData[i].lyric!
+            let storedURL = fetchData[i].url!
+            if storedURL.hasPrefix("am://"), let pid = UInt64(storedURL.dropFirst(5)) {
+                trackData[i].persistentID = pid
+                trackData[i].url = nil
+            } else {
+                trackData[i].url = resolvedFileURL(from: storedURL)
+            }
             
             if fetchData[i].artworkData == nil {
                 trackData[i].artworkImg = nil

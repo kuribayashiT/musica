@@ -8,6 +8,7 @@
 
 import UIKit
 import AVFoundation
+import MediaPlayer
 import NaturalLanguage
 import Speech
 
@@ -76,8 +77,14 @@ final class DictationViewController: UIViewController {
     private weak var miniPlayerTitleLabel: UILabel?
     private var bottomInputConstraint: NSLayoutConstraint!
     private var prevLineTopConstraint: NSLayoutConstraint?
+    private var lastKnownIsPlaying: Bool? = nil
 
     // MARK: Lifecycle
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        FA.logScreen(FA.Screen.dictation, vc: "DictationViewController")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -104,9 +111,13 @@ final class DictationViewController: UIViewController {
     // MARK: Lyrics Parsing
 
     private func parseLyrics() {
+//        let allLines = lyrics
+//            .components(separatedBy: "\n")
+//            .map { $0.trimmingCharacters(in: .whitespaces) }
+//            .filter { !$0.isEmpty }
         let allLines = lyrics
-            .components(separatedBy: "\n")
-            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .components(separatedBy: .newlines) // ここを変更
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) } // ここも変更
             .filter { !$0.isEmpty }
 
         // 言語フィルタ：選択言語がある場合は該当行だけを使う
@@ -403,7 +414,7 @@ final class DictationViewController: UIViewController {
          speakBtn, speakArrow, speakBubble, answerField, micBtn, checkBtn, skipBtn].forEach { view.addSubview($0) }
 
         NSLayoutConstraint.activate([
-            progressLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: track.url != nil ? 92 : 16),
+            progressLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 92),
             progressLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
             progressBar.topAnchor.constraint(equalTo: progressLabel.bottomAnchor, constant: 6),
@@ -472,7 +483,6 @@ final class DictationViewController: UIViewController {
 
     private func setupMiniPlayer() {
         let shadowWrap = miniPlayerCard
-        shadowWrap.isHidden = track.url == nil
         shadowWrap.backgroundColor = .clear
         shadowWrap.layer.cornerRadius = 16
         shadowWrap.layer.shadowColor = UIColor.black.cgColor
@@ -491,7 +501,7 @@ final class DictationViewController: UIViewController {
 
         let bgImg = UIImageView()
         bgImg.contentMode = .scaleAspectFill
-        bgImg.image = track.artworkImg ?? UIImage(named: "onpu_BL")
+        bgImg.image = track.artworkImg ?? makeDefaultArtwork()
         bgImg.translatesAutoresizingMaskIntoConstraints = false
         card.addSubview(bgImg)
 
@@ -514,8 +524,8 @@ final class DictationViewController: UIViewController {
             artView.image = img
             artView.contentMode = .scaleAspectFill
         } else {
-            artView.image = UIImage(named: "onpu_BL")
-            artView.contentMode = .center
+            artView.image = makeDefaultArtwork()
+            artView.contentMode = .scaleAspectFill
         }
         card.addSubview(artView)
         miniPlayerArtView = artView
@@ -538,7 +548,7 @@ final class DictationViewController: UIViewController {
         card.addSubview(artistLbl)
 
         let ppCfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
-        let ppIcon = audioPlayer?.isPlaying == true ? "pause.fill" : "play.fill"
+        let ppIcon = (audioPlayer?.isPlaying ?? (MPMusicPlayerController.applicationQueuePlayer.playbackState == .playing)) ? "pause.fill" : "play.fill"
         playPauseBtn.setImage(UIImage(systemName: ppIcon, withConfiguration: ppCfg), for: .normal)
         playPauseBtn.tintColor = .white
         playPauseBtn.backgroundColor = AppColor.accent
@@ -735,6 +745,7 @@ final class DictationViewController: UIViewController {
 
     @objc private func onPlaybackStateChanged(_ note: Notification) {
         let isPlaying = note.userInfo?["isPlaying"] as? Bool ?? false
+        lastKnownIsPlaying = isPlaying
         let cfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
         playPauseBtn.setImage(UIImage(systemName: isPlaying ? "pause.fill" : "play.fill", withConfiguration: cfg), for: .normal)
     }
@@ -746,12 +757,14 @@ final class DictationViewController: UIViewController {
                       NowPlayingMusicLibraryData.trackData.count - 1)
         let newTrack = NowPlayingMusicLibraryData.trackData[idx]
 
-        // 再生/停止ボタンのアイコンを常に最新状態に同期
+        // トラック切り替え時は旧トラック停止による stale な lastKnownIsPlaying をリセットし、
+        // ライブの再生状態を直接読む
+        lastKnownIsPlaying = nil
         let ppCfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
-        let isPlaying = audioPlayer?.isPlaying ?? false
+        let isPlaying = audioPlayer?.isPlaying ?? (MPMusicPlayerController.applicationQueuePlayer.playbackState == .playing)
         playPauseBtn.setImage(UIImage(systemName: isPlaying ? "pause.fill" : "play.fill", withConfiguration: ppCfg), for: .normal)
 
-        guard newTrack.url != track.url else { return }
+        guard newTrack.selectionKey != track.selectionKey else { return }
 
         // ミニプレイヤーのサムネイル・タイトルを即時更新
         updateMiniPlayerTrack(newTrack)
@@ -786,8 +799,8 @@ final class DictationViewController: UIViewController {
             miniPlayerArtView?.image = img
             miniPlayerArtView?.contentMode = .scaleAspectFill
         } else {
-            miniPlayerArtView?.image = UIImage(named: "onpu_BL")
-            miniPlayerArtView?.contentMode = .center
+            miniPlayerArtView?.image = makeDefaultArtwork()
+            miniPlayerArtView?.contentMode = .scaleAspectFill
         }
         miniPlayerTitleLabel?.text = track.title.isEmpty ? localText(key: "practice_unknown") : track.title
     }
@@ -901,9 +914,12 @@ final class DictationViewController: UIViewController {
         recognitionRequest = request
         isRecording = true
         updateMicBtn(recording: true)
-        // 録音中はオーディオ一時停止
-        pausedForRecording = audioPlayer?.isPlaying ?? false
-        if pausedForRecording { audioPlayer?.pause() }
+        // 録音中はオーディオ一時停止（ローカルファイル・Apple Music 両対応）
+        let amPlayer = MPMusicPlayerController.applicationQueuePlayer
+        pausedForRecording = audioPlayer?.isPlaying ?? (amPlayer.playbackState == .playing)
+        if pausedForRecording {
+            if audioPlayer != nil { audioPlayer.pause() } else { amPlayer.pause() }
+        }
 
         recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
             guard let self else { return }
@@ -943,7 +959,11 @@ final class DictationViewController: UIViewController {
         // オーディオセッションを再生に戻す
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
         try? AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
-        if pausedForRecording { audioPlayer?.play(); pausedForRecording = false }
+        if pausedForRecording {
+            if audioPlayer != nil { audioPlayer.play() }
+            else { MPMusicPlayerController.applicationQueuePlayer.play() }
+            pausedForRecording = false
+        }
     }
 
     private func updateMicBtn(recording: Bool) {

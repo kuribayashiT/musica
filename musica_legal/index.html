@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>利用規約 / プライバシーポリシー | musica</title>
+  <style>
+    :root {
+      --accent: #5B8BF5;
+      --bg: #F5F5F7;
+      --surface: #ffffff;
+      --text: #1d1d1f;
+      --sub: #6e6e73;
+      --border: #d2d2d7;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      padding: 0 0 60px;
+    }
+
+    /* ── ヘッダー ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 24px 20px;
+      text-align: center;
+    }
+    header .logo {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.03em;
+    }
+    header p {
+      font-size: 13px;
+      color: var(--sub);
+      margin-top: 4px;
+    }
+
+    /* ── タブ ── */
+    .tab-bar {
+      display: flex;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .tab-bar button {
+      flex: 1;
+      padding: 14px 0;
+      border: none;
+      background: none;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--sub);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: color .2s, border-color .2s;
+      font-family: inherit;
+    }
+    .tab-bar button.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── コンテンツ ── */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .container { max-width: 700px; margin: 0 auto; padding: 28px 20px; }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .card h2 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--sub);
+      margin: 16px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .card p, .card li {
+      font-size: 14px;
+      color: #3a3a3c;
+      line-height: 1.75;
+    }
+    .card ul {
+      padding-left: 20px;
+      margin-top: 6px;
+    }
+    .card li { margin-bottom: 4px; }
+
+    .badge {
+      display: inline-block;
+      background: #eef2ff;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .label { color: var(--sub); }
+    .info-row .value { color: var(--text); font-weight: 500; }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--sub);
+      margin-top: 32px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">musica</div>
+  <p>英語ディクテーション練習アプリ</p>
+</header>
+
+<div class="tab-bar">
+  <button class="active" onclick="switchTab('terms', this)">利用規約</button>
+  <button onclick="switchTab('privacy', this)">プライバシーポリシー</button>
+  <button onclick="switchTab('subscription', this)">サブスクリプション</button>
+</div>
+
+<!-- ── 利用規約 ── -->
+<div id="terms" class="tab-content active">
+  <div class="container">
+
+    <div class="card">
+      <span class="badge">Terms of Service</span>
+      <h2>利用規約</h2>
+      <p>本利用規約は、開発者（以下「開発者」）が提供するiOSアプリ「musica」（以下「本アプリ」）の利用条件を定めるものです。本アプリをご利用の前に必ずお読みください。</p>
+    </div>
+
+    <div class="card">
+      <h2>第1条（利用条件）</h2>
+      <ul>
+        <li>本アプリは個人の学習・練習目的に限り利用できます。</li>
+        <li>商用利用・転売・再配布は禁止します。</li>
+        <li>本アプリを通じて他者の権利を侵害する行為は禁止します。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>第2条（コンテンツ）</h2>
+      <ul>
+        <li>ユーザーが登録した音楽ファイル・テキストは、ユーザー自身の管理責任のもとで利用してください。</li>
+        <li>YouTube動画の利用はYouTube利用規約に従ってください。</li>
+        <li>著作権を侵害するコンテンツの登録は禁止します。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>第3条（免責事項）</h2>
+      <ul>
+        <li>本アプリの利用により生じた損害について、開発者は責任を負いません。</li>
+        <li>本アプリはYouTube動画内に挿入された広告の削除はできません（プレミアムプランの広告削除対象外）。</li>
+        <li>通信環境・端末環境による動作不具合について開発者は保証しません。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>第4条（規約の変更）</h2>
+      <p>本規約は予告なく変更する場合があります。変更後の規約はアプリ内またはこのページに掲載した時点で効力を生じます。</p>
+    </div>
+
+    <footer>最終更新: 2025年1月</footer>
+  </div>
+</div>
+
+<!-- ── プライバシーポリシー ── -->
+<div id="privacy" class="tab-content">
+  <div class="container">
+
+    <div class="card">
+      <span class="badge">Privacy Policy</span>
+      <h2>プライバシーポリシー</h2>
+      <p>本アプリが取り扱う情報と、その利用目的について説明します。</p>
+    </div>
+
+    <div class="card">
+      <h2>収集する情報</h2>
+      <h3>収集しない情報</h3>
+      <ul>
+        <li>氏名・住所・電話番号などの個人を特定できる情報</li>
+        <li>位置情報</li>
+        <li>カメラ・マイクのデータ（OCR機能を使用する場合、画像は端末内のみで処理）</li>
+      </ul>
+      <h3>自動的に収集する情報</h3>
+      <ul>
+        <li>クラッシュレポート（Firebase Crashlytics）：不具合修正のため</li>
+        <li>匿名の利用統計（Firebase Analytics）：機能改善のため。個人を特定しません。</li>
+        <li>広告配信のための匿名IDおよびデバイス情報（AdMob）</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>第三者への提供</h2>
+      <p>個人を特定できる情報を第三者に提供することはありません。上記の匿名統計データは各サービス（Google）のプライバシーポリシーに従い処理されます。</p>
+    </div>
+
+    <div class="card">
+      <h2>音声・テキストデータ</h2>
+      <ul>
+        <li>音声認識（WhisperKit）は端末上でローカル処理します。音声データをサーバーに送信することはありません。</li>
+        <li>登録した歌詞・スクリプトは端末内にのみ保存されます。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>お問い合わせ</h2>
+      <p>プライバシーに関するご質問は、App Store のサポートページからお問い合わせください。</p>
+    </div>
+
+    <footer>最終更新: 2025年1月</footer>
+  </div>
+</div>
+
+<!-- ── サブスクリプション ── -->
+<div id="subscription" class="tab-content">
+  <div class="container">
+
+    <div class="card">
+      <span class="badge">Premium Plan</span>
+      <h2>プレミアムプラン</h2>
+      <p>musica プレミアムは月額の自動更新サブスクリプションです。</p>
+    </div>
+
+    <div class="card">
+      <h2>プランの内容</h2>
+      <ul>
+        <li>バナー広告・全画面広告・MV広告をすべて非表示</li>
+        <li>快適なディクテーション練習環境</li>
+        <li>※ YouTube動画内に挿入されている広告は対象外です</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>課金・更新について</h2>
+      <div class="info-row">
+        <span class="label">課金タイミング</span>
+        <span class="value">購入確認後にiTunesアカウントへ請求</span>
+      </div>
+      <div class="info-row">
+        <span class="label">自動更新</span>
+        <span class="value">期限切れ24時間前に自動更新</span>
+      </div>
+      <div class="info-row">
+        <span class="label">更新停止の締め切り</span>
+        <span class="value">期限切れの24時間前まで</span>
+      </div>
+      <div class="info-row">
+        <span class="label">当月分キャンセル</span>
+        <span class="value">受け付けておりません</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>解約方法</h2>
+      <p>「設定」アプリ → あなたの名前 → サブスクリプション → musica から解約できます。</p>
+    </div>
+
+    <div class="card">
+      <h2>購入の復元</h2>
+      <p>機種変更などの際は、購入時と同じ Apple ID でログインし、アプリ内の「過去の購入を復元する」ボタンから無料で復元できます。</p>
+    </div>
+
+    <footer>最終更新: 2025年1月</footer>
+  </div>
+</div>
+
+<script>
+  function switchTab(id, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-bar button').forEach(el => el.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+
+</body>
+</html>

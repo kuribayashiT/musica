@@ -405,6 +405,13 @@ struct TrackData {
     var checkedFlg : Bool = false
     var artworkImg : UIImage? = nil
     var isCloudItem : Bool = true
+    var hasProtectedAsset : Bool = false       // Apple Music DRM トラック判定
+    var persistentID : MPMediaEntityPersistentID = 0  // Apple Music 再生キー
+
+    // URL が nil のトラック（DRM・クラウド）は persistentID をキーとして使う
+    var selectionKey: String {
+        url != nil ? "\(url!)" : "am_\(persistentID)"
+    }
 }
 
 //albumデータの構造体を定義する。
@@ -454,8 +461,7 @@ let speedList = [0.5,0.6,0.7,0.8,0.9,1.0,
                 4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.9,5.0,
                 5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.9,6.0,
                 6.1,6.2,6.3,6.4,6.5,6.6,6.7,6.8,6.9,7.0,
-                7.1,7.2,7.3,7.4,7.5,8.0,9.0,10,11,12,
-                13,14,15,16,17,18,19,20,25,30,35,40,45,50
+                7.1,7.2,7.3,7.4,7.5,8.0,10.0,15.0,20.0,30.0,40.0,50.0
 ]
 
 var mvSpeedRow : Int = 5
@@ -562,18 +568,10 @@ let settingSectionApp = [
         localText(key:"recommended_app_todolist"),
         localText(key:"recommended_app_todolist_title"),
         localText(key:"recommended_app_todolist_des")
-    ],[
-        localText(key:"recommended_app_nanopita"),
-        localText(key:"recommended_app_nanopita_title"),
-        localText(key:"recommended_app_nanopita_des")
-    ],[
-        localText(key:"recommended_app_mr_stick"),
-        localText(key:"recommended_app_mr_stick_title"),
-        localText(key:"recommended_app_mr_stick_des")
     ]
 ]
 
-let settingSectionAppIntro = [("scancamera",""),("todolist",""),("nanopita",""),("mr_stick","")]
+let settingSectionAppIntro = [("scancamera",""),("todolist","")]
 var settingSectionAD = [("","")]
 let settingSection4 = [("",""),("","")]
 var settingSectionData = [settingSectionSetting, settingSectionAppIntro, settingSectionAppInfo, settingSectionAD, settingSection4]
@@ -866,6 +864,8 @@ var ADMOB_INTERSTITIAL_RANKING : String = "ca-app-pub-1929244717899448/957271638
 
 var ADMOB_INTERSTITIAL_CUSTUM_LIBRARY : String = "ca-app-pub-1929244717899448/8288065629"
 var ADMOB_INTERSTITIAL_LIBRARY : String = "ca-app-pub-1929244717899448/6339192151"
+// 練習タブ用インタースティシャル（AdMobコンソールで新規作成後に差し替えてください）
+var ADMOB_INTERSTITIAL_PRACTICE : String = "ca-app-pub-1929244717899448/6339192151"
 
 // youtube検索結果の広告表示位置制御
 var SEARCH_RESULT_AD_START = 0
@@ -897,6 +897,8 @@ var AD_DISPLAY_MUSIC_LYRIC_EDIT_BANNER : Bool = true
 var AD_DISPLAY_MUSICLIBRARYLIST_BANNER : Bool = true
 var AD_DISPLAY_MUSIC_REGISTER_ALBUM_BANNER : Bool = true
 var AD_DISPLAY_MUSIC_REGISTER_TRACK_BANNER : Bool = true
+var AD_DISPLAY_PRACTICE_BANNER : Bool = true
+var AD_DISPLAY_SCAN_BANNER : Bool = true
 var AD_DISPLAY_SETTING_CONTENTS : Bool = true
 var AD_DISPLAY_FIVE_TEST_MODE : Bool = DEBUG_FLG
 var AD_DISPLAY_YOUTUBE_CONTENTS : Bool = true

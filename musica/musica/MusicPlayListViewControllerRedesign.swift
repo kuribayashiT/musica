@@ -217,28 +217,21 @@ extension MusicPlayListViewController {
     // MARK: - Sync
 
     func syncMiniPlayerCard(artworkImg: UIImage?, title: String, artist: String, isPlaying: Bool) {
-        // サムネイル
-        if let img = artworkImg {
-            miniPlayerArtView?.image       = img
-            miniPlayerArtView?.contentMode = .scaleAspectFill
-        } else {
-            miniPlayerArtView?.image       = UIImage(named: "onpu_BL")
-            miniPlayerArtView?.contentMode = .center
-        }
+        let artwork = artworkImg ?? makeDefaultArtwork()
+        miniPlayerArtView?.image       = artwork
+        miniPlayerArtView?.contentMode = .scaleAspectFill
         miniPlayerTitleLabel?.text  = title
         miniPlayerArtistLabel?.text = artist
 
-        // 再生/停止アイコン
         let icnCfg = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
         miniPlayerPlayPauseBtn?.setImage(
             UIImage(systemName: isPlaying ? "pause.fill" : "play.fill", withConfiguration: icnCfg),
             for: .normal
         )
 
-        // カード内背景アートをクロスフェード
         guard let bgView = miniPlayerBgImageView else { return }
         UIView.transition(with: bgView, duration: 0.35, options: .transitionCrossDissolve) {
-            bgView.image = artworkImg ?? UIImage(named: "onpu_BL")
+            bgView.image = artwork
         }
     }
 

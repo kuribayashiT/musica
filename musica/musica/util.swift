@@ -266,6 +266,31 @@ func showMusicAlert() {
 // 音楽再生関数
 class MusicController{
     public func playMusic(playData : TrackData,vc : UIViewController) -> String{
+        if playData.url == nil, playData.persistentID != 0 {
+            if audioPlayer != nil {
+                audioPlayer.delegate = nil
+                audioPlayer = nil
+            }
+            let player = MPMusicPlayerController.applicationQueuePlayer
+            player.stop()
+            try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
+            try? AVAudioSession.sharedInstance().setActive(true)
+            let query = MPMediaQuery()
+            query.addFilterPredicate(MPMediaPropertyPredicate(
+                value: playData.persistentID, forProperty: MPMediaItemPropertyPersistentID))
+            player.setQueue(with: query)
+            player.play()
+            player.beginGeneratingPlaybackNotifications()
+            var image: UIImage? = UIImage(named: "homeicon_720")
+            if let artwork = playData.artworkImg { image = artwork }
+            defaultCenter.nowPlayingInfo = [
+                MPMediaItemPropertyTitle: playData.title,
+                MPMediaItemPropertyArtist: playData.artist,
+                MPMediaItemPropertyArtwork: MPMediaItemArtwork(boundsSize: image!.size) { _ in image! },
+                MPNowPlayingInfoPropertyPlaybackRate: 1.0
+            ]
+            return CODE_SUCCESS
+        }
         // auido を再生するプレイヤーを作成する
         let audioUrl = playData.url
         var audioError:NSError?
@@ -273,11 +298,11 @@ class MusicController{
             if audioPlayer != nil{
                 audioPlayer.delegate = nil
             }
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [])
+            try AVAudioSession.sharedInstance().setActive(true)
             audioPlayer = try HighSpeedAudioPlayer(contentsOf: audioUrl!)
             audioPlayer.delegate = vc as? AVAudioPlayerDelegate
             audioPlayer.prepareToPlay()
-            try? AVAudioSession.sharedInstance().setActive(true)
-            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [])
             var image = UIImage(named: "homeicon_720")
             if playData.artworkImg != nil {
                 image = playData.artworkImg
@@ -305,6 +330,9 @@ class MusicController{
     }
     // 指定された音楽が再生可能かを確認するのみのメソット
     public func checkCanPlayMusic(playData : TrackData) -> String{
+        if playData.url == nil, playData.persistentID != 0 {
+            return CODE_SUCCESS
+        }
         // auido を再生するプレイヤーを作成する
         let audioUrl = playData.url
         var audioError:NSError?
@@ -328,11 +356,17 @@ class MusicController{
     }
     // 音楽データの区間リピート状態を設定
     public func setSectionRepeatSettings(playData : TrackData,time: [CGFloat]){
-        if SHUFFLE_FLG {
-            UserDefaults.standard.set([time[0],time[1]], forKey: playData.url!.absoluteString)
-        }else{
-            UserDefaults.standard.set([time[0],time[1]], forKey: playData.url!.absoluteString)
-        }
+        let key = playData.url?.absoluteString ?? "am_\(playData.persistentID)"
+        UserDefaults.standard.set([time[0],time[1]], forKey: key)
+    }
+    private func trackKey(_ data: TrackData) -> String {
+        data.url?.absoluteString ?? "am_\(data.persistentID)"
+    }
+    // 音楽データの区間リピート設定を取得 (TrackData overload)
+    public func getSectionRepeatSetting(trackData: TrackData) -> [CGFloat] {
+        let key = trackKey(trackData)
+        guard UserDefaults.standard.object(forKey: key) != nil else { return [0.0, 1.0] }
+        return UserDefaults.standard.array(forKey: key) as! [CGFloat]
     }
     // 音楽データの区間リピート設定を取得
     public func getSectionRepeatSetting(url:URL) -> [CGFloat]{
@@ -343,6 +377,14 @@ class MusicController{
         }else{
             return [0.0,1.0]
         }
+    }
+    // 区間リピートON/OFFを保存 (TrackData overload)
+    public func setSectionRepeatEnabled(trackData: TrackData, isEnabled: Bool) {
+        UserDefaults.standard.set(isEnabled, forKey: trackKey(trackData) + "_sectionRepeatOn")
+    }
+    // 区間リピートON/OFFを取得 (TrackData overload)
+    public func getSectionRepeatEnabled(trackData: TrackData) -> Bool {
+        return UserDefaults.standard.bool(forKey: trackKey(trackData) + "_sectionRepeatOn")
     }
     // 区間リピートON/OFFを保存
     public func setSectionRepeatEnabled(url: URL, isEnabled: Bool) {
@@ -999,6 +1041,8 @@ func deleteAD(){
     AD_DISPLAY_MUSIC_LYRIC_EDIT_BANNER = false
     AD_DISPLAY_MUSIC_REGISTER_ALBUM_BANNER = false
     AD_DISPLAY_MUSIC_REGISTER_TRACK_BANNER = false
+    AD_DISPLAY_PRACTICE_BANNER = false
+    AD_DISPLAY_SCAN_BANNER = false
     AD_DISPLAY_FIVE_TEST_MODE = false
     AD_DISPLAY_YOUTUBE_CONTENTS_NUM = 5
     AD_DISPLAY_YOUTUBE_CONTENTS = false
@@ -1044,6 +1088,8 @@ func addAD(){
     AD_DISPLAY_MUSIC_LYRIC_EDIT_BANNER = userDefaultBool(key:"ad_display_music_lyric_edit_banner")
     AD_DISPLAY_MUSIC_REGISTER_ALBUM_BANNER = userDefaultBool(key:"ad_display_music_register_album_banner")
     AD_DISPLAY_MUSIC_REGISTER_TRACK_BANNER = userDefaultBool(key:"ad_display_music_register_track_banner")
+    AD_DISPLAY_PRACTICE_BANNER = true
+    AD_DISPLAY_SCAN_BANNER = true
     AD_DISPLAY_FIVE_TEST_MODE = userDefaultBool(key:"ad_display_five_test_mode")
     AD_DISPLAY_YOUTUBE_CONTENTS_NUM = userDefaultInt(key:"ad_display_youtube_contents")
     MUSIC_LIBRARY_AD_INTERVAL = userDefaultInt(key:"music_library_interstitial_interval")
@@ -1640,7 +1686,7 @@ extension UIBarButtonItem {
 
 /// ライブラリ登録フロー用の案内カードを生成して返す。
 /// tableView.tableHeaderView にセットする。
-func makeLibraryGuideCard(step: Int, total: Int, icon: String, title: String, body: String) -> UIView {
+func makeLibraryGuideCard(step: Int, total: Int, icon: String, title: String, body: String, showAmNotice: Bool = false) -> UIView {
     let card = UIView()
     card.backgroundColor = AppColor.accentMuted
     card.layer.cornerRadius = 14
@@ -1688,13 +1734,21 @@ func makeLibraryGuideCard(step: Int, total: Int, icon: String, title: String, bo
         mainStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
     ])
 
+    var cards: [UIView] = [card]
+    if showAmNotice { cards.append(makeAmNoticeCardView()) }
+
+    let cardStack = UIStackView(arrangedSubviews: cards)
+    cardStack.axis = .vertical
+    cardStack.spacing = 8
+    cardStack.translatesAutoresizingMaskIntoConstraints = false
+
     let wrapper = UIView()
-    wrapper.addSubview(card)
+    wrapper.addSubview(cardStack)
     NSLayoutConstraint.activate([
-        card.topAnchor.constraint(equalTo: wrapper.topAnchor, constant: 12),
-        card.bottomAnchor.constraint(equalTo: wrapper.bottomAnchor, constant: -8),
-        card.leadingAnchor.constraint(equalTo: wrapper.leadingAnchor, constant: 16),
-        card.trailingAnchor.constraint(equalTo: wrapper.trailingAnchor, constant: -16),
+        cardStack.topAnchor.constraint(equalTo: wrapper.topAnchor, constant: 12),
+        cardStack.bottomAnchor.constraint(equalTo: wrapper.bottomAnchor, constant: -8),
+        cardStack.leadingAnchor.constraint(equalTo: wrapper.leadingAnchor, constant: 16),
+        cardStack.trailingAnchor.constraint(equalTo: wrapper.trailingAnchor, constant: -16),
     ])
 
     let width = myAppFrameSize.width
@@ -1710,6 +1764,51 @@ func makeLibraryGuideCard(step: Int, total: Int, icon: String, title: String, bo
     return wrapper
 }
 
+func makeAmNoticeCardView() -> UIView {
+    let card = UIView()
+    card.backgroundColor = UIColor.systemOrange.withAlphaComponent(0.12)
+    card.layer.cornerRadius = 14
+    card.translatesAutoresizingMaskIntoConstraints = false
+
+    let imgView = UIImageView(image: UIImage(systemName: "exclamationmark.triangle",
+        withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)))
+    imgView.tintColor = .systemOrange
+    imgView.contentMode = .scaleAspectFit
+    imgView.setContentHuggingPriority(.required, for: .horizontal)
+    imgView.translatesAutoresizingMaskIntoConstraints = false
+
+    let titleLbl = UILabel()
+    titleLbl.text = localText(key: "am_notice_title")
+    titleLbl.font = AppFont.caption
+    titleLbl.textColor = .systemOrange
+
+    let bodyLbl = UILabel()
+    bodyLbl.text = localText(key: "am_notice_body")
+    bodyLbl.font = AppFont.footnote
+    bodyLbl.textColor = AppColor.textSecondary
+    bodyLbl.numberOfLines = 0
+
+    let textStack = UIStackView(arrangedSubviews: [titleLbl, bodyLbl])
+    textStack.axis = .vertical
+    textStack.spacing = 3
+    textStack.translatesAutoresizingMaskIntoConstraints = false
+
+    let mainStack = UIStackView(arrangedSubviews: [imgView, textStack])
+    mainStack.axis = .horizontal
+    mainStack.spacing = 12
+    mainStack.alignment = .top
+    mainStack.translatesAutoresizingMaskIntoConstraints = false
+
+    card.addSubview(mainStack)
+    NSLayoutConstraint.activate([
+        mainStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
+        mainStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12),
+        mainStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+        mainStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+    ])
+    return card
+}
+
 @objcMembers class Utilities: NSObject {
     static let shared = Utilities()
     func displayError(_ error: NSError, originViewController: UIViewController) {
@@ -1720,5 +1819,52 @@ func makeLibraryGuideCard(step: Int, total: Int, icon: String, title: String, bo
                 originViewController.present(alert, animated: true, completion: nil)
             }
         }
+    }
+}
+
+// MARK: - Firebase Analytics Helper
+
+enum FA {
+    // MARK: Screen names
+    enum Screen {
+        static let home           = "home"
+        static let player         = "player"
+        static let practice       = "practice"
+        static let settings       = "settings"
+        static let dictation      = "dictation"
+        static let dictationSetup = "dictation_setup"
+        static let sectionRepeat  = "section_repeat"
+        static let flashCard      = "flash_card"
+        static let weakWords      = "weak_words"
+        static let speedSheet     = "speed_sheet"
+    }
+
+    // MARK: Event names
+    static let playTap              = "play_tap"
+    static let stopTap              = "stop_tap"
+    static let nextTrack            = "next_track"
+    static let prevTrack            = "prev_track"
+    static let speedChange          = "speed_change"
+    static let speedSheetOpen       = "speed_sheet_open"
+    static let sectionRepeatToggle  = "section_repeat_toggle"
+    static let sectionRepeatSave    = "section_repeat_save"
+    static let dictationStart       = "dictation_start"
+    static let flashCardStart       = "flash_card_start"
+    static let shuffleToggle        = "shuffle_toggle"
+    static let repeatToggle         = "repeat_toggle"
+    static let onboardingComplete   = "onboarding_complete"
+    static let adInterstitialShow   = "ad_interstitial_show"
+    static let songAdd              = "song_add"
+
+    // MARK: Helpers
+    static func logScreen(_ name: String, vc: String) {
+        Analytics.logEvent("screen_view", parameters: [
+            "screen_name": name,
+            "screen_class": vc
+        ])
+    }
+
+    static func log(_ event: String, params: [String: Any]? = nil) {
+        Analytics.logEvent(event, parameters: params)
     }
 }

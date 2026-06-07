@@ -3,12 +3,19 @@
 //  musica
 //
 //  AVAudioPlayer の drop-in 置換。
-//  AVAudioEngine + AVAudioUnitTimePitch + AVAudioUnitVarispeed を組み合わせ、
-//  最大 ~256x (実用上 50x) の速度変更をサポート。
 //
-//  速度配分:
-//    speed ≤ 32x → timePitch のみ (ピッチ保持)
-//    speed > 32x → timePitch@32x + varispeed で残りを補う (最大 32×8 = 256x)
+//  ■ エンジン構成
+//    playerNode → timePitch → varispeed → mainMixerNode
+//    ・≤ 8x  : timePitch のみ（ピッチ保持）
+//    ・> 8x  : timePitch 8x 固定 + varispeed で追加倍速（ピッチが varispeed 分だけ上昇）
+//    ・上限  : timePitch 8x × varispeed 6.25x = 50x
+//
+//  ■ 完了通知
+//    _pendingCompletionsToIgnore（カウンター）の代わりに _generation（世代番号）を使用。
+//    stop/seek/rateChange のたびに世代番号をインクリメント。
+//    scheduleSegment のクロージャは生成時の世代番号をキャプチャし、
+//    番号が変わっていたら何もしない。これにより count の過不足による
+//    「次曲完了を無視する」バグを根絶する。
 //
 
 import AVFoundation
@@ -19,32 +26,36 @@ final class HighSpeedAudioPlayer {
 
     private let engine     = AVAudioEngine()
     private let playerNode = AVAudioPlayerNode()
-    private let timePitch  = AVAudioUnitTimePitch()   // ピッチ保持、最大 32x
-    private let varispeed  = AVAudioUnitVarispeed()   // ピッチ変化あり、最大 8x
+    private let timePitch  = AVAudioUnitTimePitch()   // ピッチ保持、最大 8x
+    private let varispeed  = AVAudioUnitVarispeed()   // 8x 超の追加倍速用（最大 6.25x → 合計 50x）
 
     // MARK: - Source
 
     private let fileURL:   URL
     private var audioFile: AVAudioFile
-    // delegate callback 用の AVAudioPlayer ダミー（delegate が player 引数を使わないため）
-    private lazy var _dummyPlayer: AVAudioPlayer? = try? AVAudioPlayer(contentsOf: fileURL)
 
     // MARK: - State
 
     private var _rate: Float = 1.0
-    private var _seekOffset:    TimeInterval = 0   // 現在セグメントを開始した時点のファイル位置
-    private var _playStartDate: Date?              // play 開始時点の壁時計
-    private var _pausePosition: TimeInterval?      // 非 nil = 一時停止中
+    private var _seekOffset:    TimeInterval = 0
+    private var _playStartDate: Date?
+    private var _pausePosition: TimeInterval?
     private var _segmentScheduled = false
     private var _loopsRemaining:  Int = 0
 
-    // MARK: - Public (AVAudioPlayer 互換 API)
+    /// stop / seek / rate変更 のたびにインクリメント。
+    /// scheduleSegment のクロージャが生成時の世代番号と一致しない場合は無視する。
+    private var _generation = 0
 
+    // MARK: - Public API (AVAudioPlayer 互換)
+
+    /// 後方互換のために残す。完了通知は onFinish を使うこと。
     weak var delegate: AVAudioPlayerDelegate?
 
-    /// no-op — HighSpeedAudioPlayer は常に速度変更をサポートする
-    var enableRate: Bool = true
+    /// 自然に再生が終了したときに呼ばれる。
+    var onFinish: (() -> Void)?
 
+    var enableRate: Bool = true
     var numberOfLoops: Int = 0
 
     var volume: Float = 1.0 {
@@ -53,7 +64,27 @@ final class HighSpeedAudioPlayer {
 
     var rate: Float {
         get { _rate }
-        set { _rate = newValue; applyRate(newValue) }
+        set {
+            let wasPlaying = isPlaying
+            let pos        = currentTime   // _rate 変更前に確定
+
+            applyRate(newValue)            // _rate / timePitch / varispeed を更新
+
+            // 世代を進めて旧 completion を無効化し、新レートで再スケジュール
+            _generation += 1
+            playerNode.stop()
+            _seekOffset = pos
+            _segmentScheduled = false
+            scheduleSegment(from: pos)
+
+            if wasPlaying {
+                _pausePosition = nil
+                _playStartDate = Date()
+                playerNode.play()
+            } else {
+                _pausePosition = pos
+            }
+        }
     }
 
     var duration: TimeInterval {
@@ -64,7 +95,6 @@ final class HighSpeedAudioPlayer {
         playerNode.isPlaying && _pausePosition == nil
     }
 
-    /// ファイル内の現在再生位置（秒）
     var currentTime: TimeInterval {
         get {
             if let p = _pausePosition { return p }
@@ -74,8 +104,9 @@ final class HighSpeedAudioPlayer {
         }
         set {
             let wasPlaying = isPlaying
-            _seekOffset = max(0, min(newValue, duration))
+            _seekOffset    = max(0, min(newValue, duration))
             _pausePosition = wasPlaying ? nil : _seekOffset
+            _generation   += 1
             playerNode.stop()
             _segmentScheduled = false
             scheduleSegment(from: _seekOffset)
@@ -89,6 +120,11 @@ final class HighSpeedAudioPlayer {
         self.fileURL   = url
         self.audioFile = try AVAudioFile(forReading: url)
         setupEngine()
+        setupNotifications()
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     // MARK: - Playback
@@ -113,16 +149,18 @@ final class HighSpeedAudioPlayer {
     }
 
     func pause() {
-        let pos = currentTime   // _playStartDate をクリアする前に計算
+        let pos = currentTime
         _pausePosition = pos
-        _seekOffset    = pos    // 再開後の currentTime 計算のために更新
+        _seekOffset    = pos
         _playStartDate = nil
         playerNode.pause()
     }
 
     func stop() {
+        let pos = currentTime
+        _generation += 1
         playerNode.stop()
-        _seekOffset       = 0
+        _seekOffset       = pos
         _pausePosition    = nil
         _playStartDate    = nil
         _segmentScheduled = false
@@ -134,31 +172,93 @@ final class HighSpeedAudioPlayer {
         engine.attach(playerNode)
         engine.attach(timePitch)
         engine.attach(varispeed)
-        let fmt = audioFile.processingFormat
-        engine.connect(playerNode, to: timePitch,          format: fmt)
-        engine.connect(timePitch,  to: varispeed,          format: nil)
-        engine.connect(varispeed,  to: engine.mainMixerNode, format: nil)
+        let sr  = audioFile.processingFormat.sampleRate
+        let fmt = AVAudioFormat(standardFormatWithSampleRate: sr, channels: 2)!
+        // playerNode → timePitch → varispeed → mainMixerNode
+        // timePitch が 8x まではピッチ保持。それを超える分を varispeed が担う。
+        engine.connect(playerNode, to: timePitch,            format: fmt)
+        engine.connect(timePitch,  to: varispeed,            format: fmt)
+        engine.connect(varispeed,  to: engine.mainMixerNode, format: fmt)
         playerNode.volume = volume
         applyRate(1.0)
     }
 
-    // speed ≤ 32x : timePitch のみ（ピッチ保持）
-    // speed > 32x : timePitch を 32x に固定し、varispeed で残りを補う
+    private func setupNotifications() {
+        // スキャン画面等でセッションカテゴリが変わりエンジンが停止した場合に自動復旧する
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleEngineConfigurationChange),
+            name: .AVAudioEngineConfigurationChange,
+            object: engine
+        )
+        // 割り込み（電話等）終了後に再生を自動再開する
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioInterruption(_:)),
+            name: AVAudioSession.interruptionNotification,
+            object: nil
+        )
+    }
+
+    @objc private func handleEngineConfigurationChange() {
+        // エンジンが iOS に停止させられた — 再生中だった場合のみ復旧する
+        guard _pausePosition == nil, _playStartDate != nil else { return }
+        let pos = currentTime
+        _seekOffset       = pos
+        _segmentScheduled = false
+        _generation      += 1
+        guard startEngineIfNeeded() else { return }
+        scheduleSegment(from: pos)
+        _playStartDate = Date()
+        playerNode.play()
+    }
+
+    @objc private func handleAudioInterruption(_ notification: Notification) {
+        guard let info = notification.userInfo,
+              let typeValue = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
+        if type == .ended {
+            // 割り込み前に再生中だった場合のみ再開
+            guard _pausePosition == nil, _playStartDate != nil else { return }
+            let pos = currentTime
+            _seekOffset       = pos
+            _segmentScheduled = false
+            _generation      += 1
+            guard startEngineIfNeeded() else { return }
+            scheduleSegment(from: pos)
+            _playStartDate = Date()
+            playerNode.play()
+        }
+    }
+
+    /// ≤ 8x : timePitch のみ（ピッチ保持）
+    /// > 8x : timePitch = 8x 固定、varispeed = speed/8（最大 6.25x → 合計 50x）
     private func applyRate(_ speed: Float) {
-        if speed <= 32.0 {
-            timePitch.rate = max(1.0 / 32.0, speed)
+        if speed <= 8.0 {
+            let clamped = max(1.0 / 32.0, speed)
+            timePitch.rate = clamped
             varispeed.rate = 1.0
+            _rate = clamped
         } else {
-            timePitch.rate = 32.0
-            varispeed.rate = min(8.0, speed / 32.0)
+            let vs = min(speed / 8.0, 6.25)   // 上限 50x (8 × 6.25)
+            timePitch.rate = 8.0
+            varispeed.rate = vs
+            _rate = 8.0 * vs
         }
     }
 
     @discardableResult
     private func startEngineIfNeeded() -> Bool {
         guard !engine.isRunning else { return true }
-        do { try engine.start(); return true }
-        catch { return false }
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playback, mode: .default)
+            try session.setActive(true)
+            try engine.start()
+            return true
+        } catch {
+            return false
+        }
     }
 
     private func scheduleSegment(from time: TimeInterval) {
@@ -167,12 +267,16 @@ final class HighSpeedAudioPlayer {
         let total      = audioFile.length
         guard startFrame < total else { return }
         let frames     = AVAudioFrameCount(total - startFrame)
+        let gen        = _generation   // このクロージャの世代番号をキャプチャ
         _segmentScheduled = true
         playerNode.scheduleSegment(audioFile,
                                    startingFrame: startFrame,
                                    frameCount: frames,
                                    at: nil) { [weak self] in
-            DispatchQueue.main.async { self?.didFinishSegment() }
+            DispatchQueue.main.async {
+                guard let self, self._generation == gen else { return }
+                self.didFinishSegment()
+            }
         }
     }
 
@@ -185,9 +289,7 @@ final class HighSpeedAudioPlayer {
             scheduleSegment(from: 0)
             _playStartDate = Date()
         } else {
-            if let dummy = _dummyPlayer {
-                delegate?.audioPlayerDidFinishPlaying?(dummy, successfully: true)
-            }
+            onFinish?()
         }
     }
 }

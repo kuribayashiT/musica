@@ -44,13 +44,13 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     // MARK: - 音声文字起こしボタン
     private let micBtn  = UIButton(type: .system)   // WhisperKit（waveform / xmark.circle.fill）
     private let sfBtn   = UIButton(type: .system)   // SFSpeech / ライブマイク（mic.fill）
+    private var micBarBtn: UIBarButtonItem?
+    private var sfBarBtn:  UIBarButtonItem?
     private let transcribeProgressLabel = UILabel() // SFSpeech ライブ録音用
     private var whisperTask: Task<Void, Never>?
     private var whisperIsRunning = false
 
-    // WhisperKit 専用 進捗バナー
-    private let whisperBanner       = UIView()
-    private let whisperBannerLabel  = UILabel()
+    private var whisperOverlay: TranscriptionLoadingOverlay?
     private var cancelSFTranscription: (() -> Void)?
     // ライブマイク録音
     private let audioEngine = AVAudioEngine()
@@ -60,6 +60,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     private var isLiveRecording = false
     private var liveTranscribedText = ""
     private var liveAccumulatedText = ""
+    private var liveRecordingGeneration = 0
 
     // Layout — frame-based keyboard avoidance
     private var keyboardOffset: CGFloat = 0
@@ -71,6 +72,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     private var statusTitleLabel: UILabel?
     private var statusSubtitleLabel: UILabel?
     private var statusCopyBtn: UIButton?
+    private var amLyricNoticeView: UIView?
 
     var ADMOB_REWARD_RECEIVED = false
     var FROM_TRAND_AD = false
@@ -81,6 +83,8 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     let jsonEncoder = JSONEncoder()
     var interstitial: InterstitialAd?
     var interstitial_five : FADInterstitial!
+    private let scanBannerView = BannerView()
+    private var scanBannerVisible = false
     var transSuccessFlg = false
     
     /*
@@ -96,12 +100,15 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     let ALL_HELP = 0
     let SCAN_HELP = 1
     let TRANS_HELP = 2
+    let VOICE_HELP = 3
     var HELPMODE = 0
     
     // 歌詞の登録
     var EDIT_FLG = false
     var editLibraryName = ""
     var editTrackUrl : URL! = nil
+    var editPersistentID: UInt64 = 0
+    var isAppleMusicTrack: Bool = false
     var nowLyricText = ""
     var editPlayNum = 0
     var editShffuleFromTypeFlg = true
@@ -158,6 +165,8 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         applySharedNavBarStyle()
         setupTranscribeButtons()
         redesignLayout()
+        setupScanBanner()
+        NotificationCenter.default.addObserver(self, selector: #selector(onScanTrackChanged), name: .musicaTrackChanged, object: nil)
     }
     /*******************************************************************
      画面描画時の処理
@@ -184,6 +193,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             object: nil
         )
         // 広告の準備
+        loadScanBannerIfNeeded()
         setupFiveSDK()
         InterstitialAd.load(with: ADMOB_INTERSTITIAL_SCAN_OR_TRANS, request: Request()) { [weak self] ad, error in
                 if let error = error { dlog("Error: \(error)"); return }
@@ -202,10 +212,10 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             transSuccessFlg = false
             transSegment.selectedSegmentIndex = AFTER_TRANS
         }
-        // editTrackUrl がなければ確実にスキャンモードに戻す（EDIT_FLG が残留するケース対策）
-        if editTrackUrl == nil { EDIT_FLG = false }
+        // editTrackUrl がなければ確実にスキャンモードに戻す（Apple Music 編集モードは除く）
+        if editTrackUrl == nil && !isAppleMusicTrack { EDIT_FLG = false }
         // タブ切り替えで来た場合でも、再生中 or 選択中の曲があれば micBtn を活性化する
-        if editTrackUrl == nil, NowPlayingMusicLibraryData.nowPlaying != NOW_NOT_PLAYING {
+        if editTrackUrl == nil, !isAppleMusicTrack, NowPlayingMusicLibraryData.nowPlaying != NOW_NOT_PLAYING {
             let tracks = SHUFFLE_FLG
                 ? NowPlayingMusicLibraryData.trackDataShuffled
                 : NowPlayingMusicLibraryData.trackData
@@ -338,6 +348,9 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             self.HELPMODE = self.ALL_HELP
             self.coachMarksController.start(in: .newWindow(over: self, at: nil))
         }))
+        alert.addAction(UIAlertAction(title: localText(key: "text_help_voice_btn"), style: .default) { [weak self] _ in
+            self?.showVoiceButtonsHelp()
+        })
         alert.addAction(UIAlertAction(title: localText(key:"text_help_look_scan"), style: .default, handler: { action in
             self.previewImageView.isHidden = true
             self.resultTextView.endEditing(true)
@@ -350,7 +363,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             self.HELPMODE = self.TRANS_HELP
             self.coachMarksController.start(in: .newWindow(over: self, at: nil))
         }))
-        
+
         self.present(alert, animated: true, completion: nil)
     }
     // クリア/シェアボタンタップ時
@@ -567,18 +580,15 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
                 if(!fetchData.isEmpty){
 //                    var trackTitle = ""
                     for i in 0..<fetchData.count{
-                        if URL(string: fetchData[i].url!) == self.editTrackUrl! {
+                        let storedUrl = fetchData[i].url ?? ""
+                        let matches: Bool
+                        if let url = self.editTrackUrl {
+                            matches = URL(string: storedUrl) == url
+                        } else {
+                            matches = storedUrl == "am://\(self.editPersistentID)"
+                        }
+                        if matches {
                             fetchData[i].lyric = self.resultTextView.text
-//                            if self.editShffuleFromTypeFlg == false {
-//                                trackTitle = displayMusicLibraryData.trackData[self.editPlayNum].title
-//                            } else {
-//                                if SHUFFLE_FLG{
-//                                    trackTitle = NowPlayingMusicLibraryData.trackDataShuffled[self.editPlayNum].title
-//                                }else{
-//                                    dlog(self.editPlayNum)
-//                                    trackTitle = NowPlayingMusicLibraryData.trackData[self.editPlayNum].title
-//                                }
-//                            }
                             break
                         }
                     }
@@ -593,8 +603,9 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
                             if displayMusicLibraryData.musicLibraryCode == NowPlayingMusicLibraryData.musicLibraryCode {
                                 if SHUFFLE_FLG{
                                     var nowPlayS = 0
+                                    let key = NowPlayingMusicLibraryData.trackDataShuffled[self.editPlayNum].selectionKey
                                     for i in 0...NowPlayingMusicLibraryData.trackData.count - 1 {
-                                        if NowPlayingMusicLibraryData.trackDataShuffled[self.editPlayNum].url == displayMusicLibraryData.trackData[i].url{
+                                        if displayMusicLibraryData.trackData[i].selectionKey == key {
                                             nowPlayS = i
                                             break
                                         }
@@ -605,8 +616,9 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
                                     NowPlayingMusicLibraryData.trackDataShuffled[self.editPlayNum].lyric  = self.resultTextView.text
                                 }else{
                                     var nowPlay = 0
+                                    let key = displayMusicLibraryData.trackData[self.editPlayNum].selectionKey
                                     for i in 0...NowPlayingMusicLibraryData.trackDataShuffled.count - 1 {
-                                        if displayMusicLibraryData.trackData[self.editPlayNum].url == NowPlayingMusicLibraryData.trackDataShuffled[i].url{
+                                        if NowPlayingMusicLibraryData.trackDataShuffled[i].selectionKey == key {
                                             nowPlay = i
                                             break
                                         }
@@ -621,8 +633,9 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
                             // 音楽再生画面からの遷移時
                             if SHUFFLE_FLG{
                                 var nowPlayS = 0
+                                let keyS = NowPlayingMusicLibraryData.trackDataShuffled[self.editPlayNum].selectionKey
                                 for i in 0...NowPlayingMusicLibraryData.trackData.count - 1 {
-                                    if NowPlayingMusicLibraryData.trackDataShuffled[self.editPlayNum].url == NowPlayingMusicLibraryData.trackData[i].url{
+                                    if NowPlayingMusicLibraryData.trackData[i].selectionKey == keyS {
                                         nowPlayS = i
                                         break
                                     }
@@ -635,8 +648,9 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
                                 }
                             }else{
                                 var nowPlay = 0
+                                let keyN = NowPlayingMusicLibraryData.trackData[self.editPlayNum].selectionKey
                                 for i in 0...NowPlayingMusicLibraryData.trackDataShuffled.count - 1 {
-                                    if NowPlayingMusicLibraryData.trackData[self.editPlayNum].url == NowPlayingMusicLibraryData.trackDataShuffled[i].url{
+                                    if NowPlayingMusicLibraryData.trackDataShuffled[i].selectionKey == keyN {
                                         nowPlay = i
                                         break
                                     }
@@ -1170,119 +1184,113 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     func numberOfCoachMarks(for coachMarksController: CoachMarksController) -> Int {
         switch HELPMODE {
         case ALL_HELP:
-            return 7
+            return 9
         case SCAN_HELP:
             return 5
         case TRANS_HELP:
             return 3
+        case VOICE_HELP:
+            return 2
         default:
-            return 7
+            return 9
         }
     }
     func coachMarksController(_ coachMarksController: CoachMarksController,
                               coachMarkAt index: Int) -> CoachMark {
-        var help_index = index
-        switch HELPMODE {
-        case ALL_HELP:
-            help_index = index
-        case SCAN_HELP:
-            help_index = index
-        case TRANS_HELP:
-            help_index = index + 4
-        default:
-            help_index = index
+        // 完全な円形カットアウト（フレームの長辺を直径にする）
+        func circleCutout(frame: CGRect) -> UIBezierPath {
+            let r = max(frame.width, frame.height) / 2 + 8
+            return UIBezierPath(ovalIn: CGRect(x: frame.midX - r, y: frame.midY - r, width: r * 2, height: r * 2))
         }
+        func makeVoiceMark(_ barBtn: UIBarButtonItem?, fallback: UIButton) -> CoachMark {
+            let v = (barBtn?.value(forKey: "view") as? UIView) ?? fallback
+            return coachMarksController.helper.makeCoachMark(for: v) { frame in circleCutout(frame: frame) }
+        }
+
+        // VOICE_HELP: micBtn → sfBtn
+        if HELPMODE == VOICE_HELP {
+            return index == 0 ? makeVoiceMark(micBarBtn, fallback: micBtn)
+                              : makeVoiceMark(sfBarBtn,  fallback: sfBtn)
+        }
+
+        // ALL_HELP: 先頭2ステップを音声ボタンに充てる
+        if HELPMODE == ALL_HELP {
+            if index == 0 { return makeVoiceMark(micBarBtn, fallback: micBtn) }
+            if index == 1 { return makeVoiceMark(sfBarBtn,  fallback: sfBtn) }
+        }
+
+        // help_index: ALL_HELP は index-2、TRANS_HELP は index+4、SCAN_HELP はそのまま
+        var help_index = index
+        if      HELPMODE == ALL_HELP   { help_index = index - 2 }
+        else if HELPMODE == TRANS_HELP { help_index = index + 4 }
+
         switch help_index {
         case 0:
-            return coachMarksController.helper.makeCoachMark(for: coachMarkScanView)
+            return coachMarksController.helper.makeCoachMark(for: controlView)
         case 1:
-            let coachMark = coachMarksController.helper.makeCoachMark(for: imageListBtn) {
-                (frame: CGRect) -> UIBezierPath in
-                return UIBezierPath(ovalIn: frame.insetBy(dx: -5,dy: -5))
+            return coachMarksController.helper.makeCoachMark(for: imageListBtn) { frame in
+                UIBezierPath(ovalIn: frame.insetBy(dx: -5, dy: -5))
             }
-            return coachMark
         case 2:
-            let coachMark = coachMarksController.helper.makeCoachMark(for: cameraBtn) {
-                (frame: CGRect) -> UIBezierPath in
-                return UIBezierPath(ovalIn: frame.insetBy(dx: -5,dy: -5))
+            return coachMarksController.helper.makeCoachMark(for: cameraBtn) { frame in
+                UIBezierPath(ovalIn: frame.insetBy(dx: -5, dy: -5))
             }
-            return coachMark
         case 3:
             return coachMarksController.helper.makeCoachMark(for: nowimageBtn)
         case 4:
             return coachMarksController.helper.makeCoachMark(for: resultTextView)
         case 5:
-            return coachMarksController.helper.makeCoachMark(for: coachMarkTransView)
+            return coachMarksController.helper.makeCoachMark(for: transSegment)
         case 6:
-            return coachMarksController.helper.makeCoachMark(for: coachMarkLangView)
-
+            return coachMarksController.helper.makeCoachMark(for: langSelectBtn)
         default:
             return coachMarksController.helper.makeCoachMark(for: langSelectBtn)
         }
     }
         
     func coachMarksController(_ coachMarksController: CoachMarksController, coachMarkViewsAt index: Int, madeFrom coachMark: CoachMark) -> (bodyView: (UIView & CoachMarkBodyView), arrowView: (UIView & CoachMarkArrowView)?) {
-        
+
         let coachViews = coachMarksController.helper.makeDefaultCoachViews(withArrow: true, arrowOrientation: coachMark.arrowOrientation)
 
-        var help_index = index
-        switch HELPMODE {
-        case ALL_HELP:
-            help_index = index
-        case SCAN_HELP:
-            help_index = index
-        case TRANS_HELP:
-            help_index = index + 4
-        default:
-            help_index = index
+        func finish(_ key: String) {
+            coachViews.bodyView.hintLabel.text = localText(key: key)
+            coachViews.bodyView.nextLabel.text  = localText(key: "btn_ok")
         }
+
+        // VOICE_HELP / ALL_HELP 先頭2ステップ: 音声ボタンの説明
+        if HELPMODE == VOICE_HELP || (HELPMODE == ALL_HELP && index < 2) {
+            finish(index == 0 ? "text_help_voice_1" : "text_help_voice_2")
+            coachViews.bodyView.nextLabel.textColor = AppColor.accent
+            return (bodyView: coachViews.bodyView, arrowView: coachViews.arrowView)
+        }
+
+        // help_index: ALL_HELP は先頭2を音声に使ったので -2、TRANS_HELP は +4
+        var help_index = index
+        if      HELPMODE == ALL_HELP   { help_index = index - 2 }
+        else if HELPMODE == TRANS_HELP { help_index = index + 4 }
+
         switch help_index {
-        case 0:
-            coachViews.bodyView.hintLabel.text = localText(key:"text_help_1")
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
-        case 1:
-            coachViews.bodyView.hintLabel.text = localText(key:"text_help_2")
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
-        case 2:
-            coachViews.bodyView.hintLabel.text = localText(key:"text_help_3")
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
-        case 3:
-            coachViews.bodyView.hintLabel.text = localText(key:"text_help_4")
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
+        case 0: finish("text_help_1")
+        case 1: finish("text_help_2")
+        case 2: finish("text_help_3")
+        case 3: finish("text_help_4")
         case 4:
             switch HELPMODE {
-            case ALL_HELP:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_5")
-            case SCAN_HELP:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_6")
-            case TRANS_HELP:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_7")
-            default:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_8")
+            case SCAN_HELP:  finish("text_help_6")
+            case TRANS_HELP: finish("text_help_7")
+            default:         finish("text_help_5")  // ALL_HELP
             }
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
         case 5:
             switch HELPMODE {
-            case ALL_HELP:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_9")
-            case SCAN_HELP:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_10")
-            case TRANS_HELP:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_11")
-            default:
-                coachViews.bodyView.hintLabel.text = localText(key:"text_help_12")
+            case SCAN_HELP:  finish("text_help_10")
+            case TRANS_HELP: finish("text_help_11")
+            default:         finish("text_help_9")  // ALL_HELP
             }
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
-        case 6:
-            coachViews.bodyView.hintLabel.text = localText(key:"text_help_13")
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
-        default:
-            coachViews.bodyView.hintLabel.text = localText(key:"text_help_14")
-            coachViews.bodyView.nextLabel.text = localText(key:"btn_ok")
+        case 6: finish("text_help_13")
+        default: finish("text_help_14")
         }
-        
+
         coachViews.bodyView.nextLabel.textColor = AppColor.accent
-        
         return (bodyView: coachViews.bodyView, arrowView: coachViews.arrowView)
     }
     
@@ -1378,6 +1386,33 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     deinit {
         //イベントリスナーの削除
         NotificationCenter.default.removeObserver(self)
+    }
+
+    // MARK: - Banner Ad
+
+    private func setupScanBanner() {
+        guard AD_DISPLAY_SCAN_BANNER else { return }
+        #if targetEnvironment(simulator)
+        scanBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID_TEST
+        #else
+        scanBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID
+        #endif
+        scanBannerView.rootViewController = self
+        scanBannerView.delegate = self
+        scanBannerView.isHidden = true
+        view.addSubview(scanBannerView)
+    }
+
+    private func loadScanBannerIfNeeded() {
+        guard AD_DISPLAY_SCAN_BANNER else { return }
+        let width = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        scanBannerView.adSize = currentOrientationAnchoredAdaptiveBanner(width: width)
+        BANNERHEIGHT = scanBannerView.adSize.size.height
+        scanBannerView.load(Request())
+    }
+
+    @objc private func onScanTrackChanged() {
+        loadScanBannerIfNeeded()
     }
 
     // MARK: - Redesign
@@ -1506,6 +1541,8 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
 
         // ── ヘッダーカードを構築 ──────────────────────────────────────
         buildStatusCard()
+        // Apple Music 編集モード: 音声認識不可の案内バナー
+        if isAppleMusicTrack && EDIT_FLG { buildAmLyricNoticeBanner() }
 
         // ── ストーリーボード制約を除去 → フレーム管理に切替 ────────────
         for v in [scrollResultView!, controlView!] as [UIView] {
@@ -1541,13 +1578,42 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
                                    width: W - pad * 2,
                                    height: statusH)
 
-        // 2. コントロールパネル（キーボードで上昇）
+        // 2. Apple Music 案内バナー（ステータスカード直下）
+        let noticeH: CGFloat
+        if let notice = amLyricNoticeView {
+            let noticeW = W - pad * 2
+            let iconX: CGFloat = 10, labelX: CGFloat = 34
+            let labelW = noticeW - labelX - 10
+            if let lbl = notice.subviews.compactMap({ $0 as? UILabel }).first {
+                let fittedH = lbl.sizeThatFits(CGSize(width: labelW, height: .greatestFiniteMagnitude)).height
+                lbl.frame = CGRect(x: labelX, y: 8, width: labelW, height: fittedH)
+                if let ico = notice.subviews.compactMap({ $0 as? UIImageView }).first {
+                    ico.frame = CGRect(x: iconX, y: 10, width: 16, height: 16)
+                }
+                let cardH = max(lbl.frame.maxY + 8, 44)
+                let noticeY = safeTop + gap + statusH + gap
+                notice.frame = CGRect(x: pad, y: noticeY, width: noticeW, height: cardH)
+                noticeH = cardH + gap
+            } else {
+                noticeH = 0
+            }
+        } else {
+            noticeH = 0
+        }
+
+        // 3. コントロールパネル（キーボードで上昇）
         let cvY = H - keyboardOffset - cvH
         controlView.frame = CGRect(x: 0, y: cvY, width: W, height: cvH)
 
-        // 3. テキストエリア（ステータスカード下〜コントロール上）
-        let textY = safeTop + gap + statusH + gap
-        let textH = max(cvY - gap - textY, 60)
+        // バナー（コントロールパネル直上）
+        let adH: CGFloat = scanBannerVisible ? BANNERHEIGHT : 0
+        if adH > 0 {
+            scanBannerView.frame = CGRect(x: 0, y: cvY - adH, width: W, height: adH)
+        }
+
+        // 4. テキストエリア（ステータスカード/バナー下〜コントロール上）
+        let textY = safeTop + gap + statusH + gap + noticeH
+        let textH = max(cvY - adH - gap - textY, 60)
         scrollResultView.frame = CGRect(x: pad, y: textY,
                                         width: W - pad * 2, height: textH)
 
@@ -1605,6 +1671,34 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         // リセットの左: クリアボタン
         clearOrShareBtn.frame = CGRect(x: rightEdge - regW - btnGap - smBtnW - btnGap - smBtnW,
                                         y: y2, width: smBtnW, height: row2H)
+    }
+
+    // MARK: Apple Music 歌詞登録案内バナー
+
+    private func buildAmLyricNoticeBanner() {
+        guard amLyricNoticeView == nil else { return }
+        let card = UIView()
+        card.backgroundColor    = UIColor.systemOrange.withAlphaComponent(0.12)
+        card.layer.cornerRadius = 10
+
+        let icon = UIImageView(image: UIImage(systemName: "exclamationmark.triangle"))
+        icon.tintColor   = UIColor.systemOrange
+        icon.contentMode = .scaleAspectFit
+
+        let label = UILabel()
+        label.text          = localText(key: "am_lyric_notice")
+        label.font          = UIFont.systemFont(ofSize: 12)
+        label.textColor     = AppColor.textPrimary
+        label.numberOfLines = 0
+
+        card.addSubview(icon)
+        card.addSubview(label)
+        view.addSubview(card)
+        amLyricNoticeView = card
+
+        // Frame layout happens in layoutViews(); set placeholder frame here
+        icon.frame  = CGRect(x: 10, y: 10, width: 16, height: 16)
+        label.frame = CGRect(x: 34, y: 0, width: 200, height: 100) // sized in layoutViews
     }
 
     // MARK: ステータスカード（練習タブのヘッダーカードと同じ構造）
@@ -1703,8 +1797,12 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             let tracks = displayMusicLibraryData.trackData
             if editPlayNum < tracks.count {
                 let track = tracks[editPlayNum]
-                statusTitleLabel?.text    = track.title.isEmpty ? localText(key: "scan_unknown_title") : track.title
-                statusSubtitleLabel?.text = track.artist.isEmpty ? editLibraryName : "\(track.artist)  —  \(editLibraryName)"
+                statusTitleLabel?.text = track.title.isEmpty ? localText(key: "scan_unknown_title") : track.title
+                var sub = track.artist.isEmpty ? editLibraryName : "\(track.artist)  —  \(editLibraryName)"
+                if isAppleMusicTrack {
+                    sub += "  ·  " + localText(key: "scan_apple_music_no_recognition")
+                }
+                statusSubtitleLabel?.text = sub
             } else {
                 statusTitleLabel?.text    = localText(key: "scan_edit_mode")
                 statusSubtitleLabel?.text = editLibraryName
@@ -1725,10 +1823,10 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         micBtn.addTarget(self, action: #selector(micBtnTapped), for: .touchUpInside)
         sfBtn.addTarget(self, action: #selector(sfBtnTapped), for: .touchUpInside)
 
-        let micBarBtn = UIBarButtonItem(customView: micBtn)
-        let sfBarBtn  = UIBarButtonItem(customView: sfBtn)
+        micBarBtn = UIBarButtonItem(customView: micBtn)
+        sfBarBtn  = UIBarButtonItem(customView: sfBtn)
         // rightBarButtonItems: index 0 = 右端 → helpBtn を右端に保持
-        navigationItem.rightBarButtonItems = [helpBtn, sfBarBtn, micBarBtn]
+        navigationItem.rightBarButtonItems = [helpBtn, sfBarBtn!, micBarBtn!]
 
         updateTranscribeBtnState()
 
@@ -1751,14 +1849,30 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             transcribeProgressLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 36),
         ])
 
-        // ── WhisperKit 専用バナー (画面上部フロート) ──────────────────────
-        setupWhisperBanner()
+        // WhisperKit 文字起こしオーバーレイ
+        let overlay = TranscriptionLoadingOverlay()
+        overlay.translatesAutoresizingMaskIntoConstraints = false
+        overlay.alpha    = 0
+        overlay.isHidden = true
+        overlay.cancelAction = { [weak self] in self?.cancelWhisperTapped() }
+        view.addSubview(overlay)
+        NSLayoutConstraint.activate([
+            overlay.topAnchor.constraint(equalTo: view.topAnchor),
+            overlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            overlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            overlay.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+        whisperOverlay = overlay
     }
 
     private func updateTranscribeBtnState() {
         if isLiveRecording {
             configureTranscribeBtn(sfBtn,  icon: "stop.circle.fill", color: .systemRed,   enabled: true)
             configureTranscribeBtn(micBtn, icon: "waveform",          color: .systemGray,  enabled: false)
+        } else if isAppleMusicTrack && EDIT_FLG {
+            // Apple Music: ファイル音声認識不可（WhisperKit）、マイク入力は使用可
+            configureTranscribeBtn(micBtn, icon: "mic.slash", color: .systemGray,  enabled: false)
+            configureTranscribeBtn(sfBtn,  icon: "mic.fill",  color: .systemGreen, enabled: true)
         } else if editTrackUrl != nil {
             configureTranscribeBtn(micBtn, icon: "waveform",  color: AppColor.accent,  enabled: true)
             configureTranscribeBtn(sfBtn,  icon: "mic.fill",  color: .systemGreen,     enabled: true)
@@ -1778,129 +1892,17 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         btn.alpha = enabled ? 1.0 : 0.35
     }
 
-    // MARK: - WhisperKit バナー
-
-    private func setupWhisperBanner() {
-        // 影ラッパー
-        whisperBanner.backgroundColor = .clear
-        whisperBanner.layer.shadowColor = UIColor.black.cgColor
-        whisperBanner.layer.shadowOpacity = 0.22
-        whisperBanner.layer.shadowRadius  = 14
-        whisperBanner.layer.shadowOffset  = CGSize(width: 0, height: 5)
-        whisperBanner.translatesAutoresizingMaskIntoConstraints = false
-        whisperBanner.isHidden = true
-        whisperBanner.alpha = 0
-
-        // ブラーコンテナ
-        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
-        blur.layer.cornerRadius = 18
-        blur.clipsToBounds = true
-        blur.translatesAutoresizingMaskIntoConstraints = false
-        whisperBanner.addSubview(blur)
-
-        // 半透明オーバーレイ
-        let overlay = UIView()
-        overlay.backgroundColor = UIColor(white: 0, alpha: 0.1)
-        overlay.translatesAutoresizingMaskIntoConstraints = false
-        blur.contentView.addSubview(overlay)
-
-        // waveform アイコン
-        let icon = UIImageView(image: UIImage(systemName: "waveform",
-            withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)))
-        icon.tintColor = AppColor.accent
-        icon.contentMode = .scaleAspectFit
-        icon.translatesAutoresizingMaskIntoConstraints = false
-
-        // 進捗ラベル
-        whisperBannerLabel.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
-        whisperBannerLabel.textColor = .white
-        whisperBannerLabel.numberOfLines = 2
-        whisperBannerLabel.text = localText(key: "scan_analyzing")
-        whisperBannerLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        // キャンセルボタン
-        let cancelBtn = UIButton(type: .system)
-        cancelBtn.setImage(UIImage(systemName: "xmark.circle.fill",
-            withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)), for: .normal)
-        cancelBtn.tintColor = UIColor.white.withAlphaComponent(0.65)
-        cancelBtn.addTarget(self, action: #selector(cancelWhisperTapped), for: .touchUpInside)
-        cancelBtn.translatesAutoresizingMaskIntoConstraints = false
-
-        blur.contentView.addSubview(overlay)
-        blur.contentView.addSubview(icon)
-        blur.contentView.addSubview(whisperBannerLabel)
-        blur.contentView.addSubview(cancelBtn)
-
-        NSLayoutConstraint.activate([
-            blur.topAnchor.constraint(equalTo: whisperBanner.topAnchor),
-            blur.bottomAnchor.constraint(equalTo: whisperBanner.bottomAnchor),
-            blur.leadingAnchor.constraint(equalTo: whisperBanner.leadingAnchor),
-            blur.trailingAnchor.constraint(equalTo: whisperBanner.trailingAnchor),
-
-            overlay.topAnchor.constraint(equalTo: blur.contentView.topAnchor),
-            overlay.bottomAnchor.constraint(equalTo: blur.contentView.bottomAnchor),
-            overlay.leadingAnchor.constraint(equalTo: blur.contentView.leadingAnchor),
-            overlay.trailingAnchor.constraint(equalTo: blur.contentView.trailingAnchor),
-
-            icon.leadingAnchor.constraint(equalTo: blur.contentView.leadingAnchor, constant: 16),
-            icon.centerYAnchor.constraint(equalTo: blur.contentView.centerYAnchor),
-            icon.widthAnchor.constraint(equalToConstant: 22),
-
-            whisperBannerLabel.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 10),
-            whisperBannerLabel.trailingAnchor.constraint(equalTo: cancelBtn.leadingAnchor, constant: -8),
-            whisperBannerLabel.topAnchor.constraint(equalTo: blur.contentView.topAnchor, constant: 12),
-            whisperBannerLabel.bottomAnchor.constraint(equalTo: blur.contentView.bottomAnchor, constant: -12),
-
-            cancelBtn.trailingAnchor.constraint(equalTo: blur.contentView.trailingAnchor, constant: -12),
-            cancelBtn.centerYAnchor.constraint(equalTo: blur.contentView.centerYAnchor),
-            cancelBtn.widthAnchor.constraint(equalToConstant: 28),
-        ])
-
-        view.addSubview(whisperBanner)
-        // statusCard は safeTop+8 に height:66 で表示されるため、その下に配置
-        // gap(8) + statusH(66) + gap(8) = 82
-        NSLayoutConstraint.activate([
-            whisperBanner.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 82),
-            whisperBanner.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            whisperBanner.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-        ])
-
-        // waveform パルスアニメーション（icon を外部参照可能にする）
-        startWaveformPulse(icon)
-    }
-
-    private func startWaveformPulse(_ icon: UIImageView) {
-        let pulse = CABasicAnimation(keyPath: "opacity")
-        pulse.fromValue = 1.0
-        pulse.toValue   = 0.3
-        pulse.duration  = 0.7
-        pulse.autoreverses = true
-        pulse.repeatCount  = .infinity
-        pulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        icon.layer.add(pulse, forKey: "whisperPulse")
-    }
+    // MARK: - WhisperKit オーバーレイ表示制御
 
     private func showWhisperBanner() {
-        view.bringSubviewToFront(whisperBanner)
-        whisperBanner.isHidden = false
-        whisperBanner.transform = CGAffineTransform(scaleX: 0.92, y: 0.92).translatedBy(x: 0, y: -8)
-        UIView.animate(withDuration: 0.42, delay: 0,
-                       usingSpringWithDamping: 0.72, initialSpringVelocity: 0.4) {
-            self.whisperBanner.alpha = 1
-            self.whisperBanner.transform = .identity
-        }
+        if let overlay = whisperOverlay { view.bringSubviewToFront(overlay) }
+        whisperOverlay?.show()
         configureTranscribeBtn(micBtn, icon: "xmark.circle.fill", color: .systemRed, enabled: true)
         sfBtn.isEnabled = false; sfBtn.alpha = 0.35
     }
 
     private func hideWhisperBanner() {
-        UIView.animate(withDuration: 0.25, delay: 0, options: .curveEaseIn) {
-            self.whisperBanner.alpha = 0
-            self.whisperBanner.transform = CGAffineTransform(translationX: 0, y: -12)
-        } completion: { _ in
-            self.whisperBanner.isHidden = true
-            self.whisperBanner.transform = .identity
-        }
+        whisperOverlay?.hide()
         updateTranscribeBtnState()
         sfBtn.isEnabled = true; sfBtn.alpha = 1
     }
@@ -1946,7 +1948,7 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
                 let text = try await WhisperKitService.shared.transcribe(
                     url: url, modelName: modelName, languages: languages,
                     onProgress: { msg in
-                        Task { @MainActor in self.whisperBannerLabel.text = msg }
+                        Task { @MainActor in self.whisperOverlay?.update(step: msg) }
                     }
                 )
                 await MainActor.run {
@@ -2138,16 +2140,26 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
             transcribeProgressLabel.isHidden = false
             view.bringSubviewToFront(transcribeProgressLabel)
 
-            liveRecognitionTasks = pairs.map { (recognizer, req) in
-                recognizer.recognitionTask(with: req) { [weak self] result, _ in
+            liveRecordingGeneration += 1
+            let myGen = liveRecordingGeneration
+            liveRecognitionTasks = pairs.enumerated().map { (index, pair) in
+                let (recognizer, req) = pair
+                return recognizer.recognitionTask(with: req) { [weak self] result, _ in
                     guard let self, let result else { return }
                     let text = result.bestTranscription.formattedString
-                    if text.count > self.liveTranscribedText.count { self.liveTranscribedText = text }
+                    let isFinal = result.isFinal
                     DispatchQueue.main.async {
+                        guard self.liveRecordingGeneration == myGen else { return }
+                        if text.count > self.liveTranscribedText.count { self.liveTranscribedText = text }
                         let full = self.liveAccumulatedText.isEmpty
                             ? self.liveTranscribedText
                             : self.liveAccumulatedText + "\n" + self.liveTranscribedText
                         self.transcribeProgressLabel.text = "🎙 \(full.suffix(50))"
+                        // isFinal fires on silence — restart so instrumental breaks don't stop transcription
+                        if index == 0 && isFinal && self.isLiveRecording {
+                            self.liveRestartTimer?.invalidate()
+                            self.restartLiveRecording(locales: locales)
+                        }
                     }
                 }
             }
@@ -2198,16 +2210,25 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: fmt) { [weak self] buf, _ in
             self?.liveRecognitionRequests.forEach { $0.append(buf) }
         }
-        liveRecognitionTasks = pairs.map { (recognizer, req) in
-            recognizer.recognitionTask(with: req) { [weak self] result, _ in
+        liveRecordingGeneration += 1
+        let myGen = liveRecordingGeneration
+        liveRecognitionTasks = pairs.enumerated().map { (index, pair) in
+            let (recognizer, req) = pair
+            return recognizer.recognitionTask(with: req) { [weak self] result, _ in
                 guard let self, let result else { return }
                 let text = result.bestTranscription.formattedString
-                if text.count > self.liveTranscribedText.count { self.liveTranscribedText = text }
+                let isFinal = result.isFinal
                 DispatchQueue.main.async {
+                    guard self.liveRecordingGeneration == myGen else { return }
+                    if text.count > self.liveTranscribedText.count { self.liveTranscribedText = text }
                     let full = self.liveAccumulatedText.isEmpty
                         ? self.liveTranscribedText
                         : self.liveAccumulatedText + "\n" + self.liveTranscribedText
                     self.transcribeProgressLabel.text = "🎙 \(full.suffix(50))"
+                    if index == 0 && isFinal && self.isLiveRecording {
+                        self.liveRestartTimer?.invalidate()
+                        self.restartLiveRecording(locales: locales)
+                    }
                 }
             }
         }
@@ -2258,17 +2279,14 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     }
 
     private func applyTranscribeResult(_ text: String) {
-        let preview = String(text.prefix(200)) + (text.count > 200 ? "…" : "")
+        resultTextView.text  = text
+        LATEST_RESULT_TEXT   = text
+        LYRIC_RESULT_TEXT    = text
         let alert = UIAlertController(
             title: localText(key: "scan_transcribe_complete_title"),
-            message: String(format: localText(key: "scan_transcribe_apply_body"), preview),
+            message: localText(key: "scan_transcribe_complete_body"),
             preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: localText(key: "scan_transcribe_apply_btn"), style: .default) { [weak self] _ in
-            self?.resultTextView.text = text
-            self?.LATEST_RESULT_TEXT = text
-            LYRIC_RESULT_TEXT = text
-        })
-        alert.addAction(UIAlertAction(title: localText(key: "btn_cancel"), style: .cancel))
+        alert.addAction(UIAlertAction(title: localText(key: "btn_ok"), style: .default))
         present(alert, animated: true)
     }
 
@@ -2276,6 +2294,11 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: localText(key: "btn_ok"), style: .default))
         present(alert, animated: true)
+    }
+
+    private func showVoiceButtonsHelp() {
+        HELPMODE = VOICE_HELP
+        coachMarksController.start(in: .newWindow(over: self, at: nil))
     }
 
     /// アイコン上 ＋ ラベル下 の縦積みボタン（クリア・戻す・登録など用）
@@ -2366,6 +2389,19 @@ class scanViewController: UIViewController ,CoachMarksControllerDataSource, Coac
     }
 
 }
+extension scanViewController: BannerViewDelegate {
+    func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+        scanBannerVisible = true
+        bannerView.isHidden = false
+        view.setNeedsLayout()
+    }
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+        scanBannerVisible = false
+        bannerView.isHidden = true
+        view.setNeedsLayout()
+    }
+}
+
 extension scanViewController : UIViewControllerTransitioningDelegate{
     
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {

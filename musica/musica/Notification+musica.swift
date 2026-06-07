@@ -22,4 +22,7 @@ extension Notification.Name {
 
     /// PlayMusicVC → 練習タブ：再生状態が変化した（userInfo["isPlaying"]: Bool）
     static let musicaPlaybackStateChanged = Notification.Name("musica.playbackStateChanged")
+
+    /// PlayMusicVC が pop されて MusicPlayListVC に戻った後、ローカルファイルが自然終了したとき
+    static let musicaLocalTrackFinished = Notification.Name("musica.localTrackFinished")
 }

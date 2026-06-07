@@ -222,6 +222,7 @@ final class OnboardingViewController: UIViewController {
     private func finish() {
         UserDefaults.standard.set(true, forKey: "onboardingCompleted")
         UserDefaults.standard.set(selectedGoal.rawValue, forKey: "userGoal")
+        FA.log(FA.onboardingComplete, params: ["goal": selectedGoal.rawValue])
         onFinish?()
     }
 

@@ -9,6 +9,7 @@
 //
 
 import UIKit
+import GoogleMobileAds
 
 final class PracticeHistoryViewController: UIViewController {
 
@@ -18,6 +19,7 @@ final class PracticeHistoryViewController: UIViewController {
     private let scrollView = UIScrollView()
     private let stack      = UIStackView()
     private var typeFilter: PracticeType? = nil
+    private let historyBannerView = BannerView()
 
     // MARK: Lifecycle
 
@@ -27,7 +29,13 @@ final class PracticeHistoryViewController: UIViewController {
         title = localText(key: "history_title")
         navigationItem.largeTitleDisplayMode = .never
         setupLayout()
+        setupHistoryBanner()
         buildContent()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        loadHistoryBannerIfNeeded()
     }
 
     // MARK: Layout
@@ -94,8 +102,8 @@ final class PracticeHistoryViewController: UIViewController {
         let headerLbl = UILabel()
         let masteredCount = summaries.filter { ($0.bestScore ?? 0) >= 80 }.count
         headerLbl.text = masteredCount > 0
-            ? "\(summaries.count)曲を練習・うち\(masteredCount)曲をマスター🏆"
-            : "\(summaries.count)曲を練習しました"
+            ? String(format: localText(key: "history_track_count_mastered_fmt"), summaries.count, masteredCount)
+            : String(format: localText(key: "history_track_count_fmt"), summaries.count)
         headerLbl.font      = UIFont.systemFont(ofSize: 13)
         headerLbl.textColor = AppColor.textSecondary
         stack.addArrangedSubview(headerLbl)
@@ -107,9 +115,9 @@ final class PracticeHistoryViewController: UIViewController {
 
     private func buildTypeFilterRow() -> UIView {
         let items: [(String, PracticeType?)] = [
-            ("すべて", nil),
-            ("フラッシュカード", .flashCard),
-            ("ディクテーション", .dictation),
+            (localText(key: "history_filter_all"), nil),
+            (localText(key: "history_type_flash_card"), .flashCard),
+            (localText(key: "history_type_dictation"), .dictation),
         ]
         let scroll = UIScrollView()
         scroll.showsHorizontalScrollIndicator = false
@@ -182,7 +190,7 @@ final class PracticeHistoryViewController: UIViewController {
         // ── サブ: 種別 + 回数 ─────────────────────────────────
         let typeNames = s.usedTypes.map { $0.displayName }.joined(separator: " · ")
         let subLbl = UILabel()
-        subLbl.text      = "\(typeNames)  \(s.sessionCount)回"
+        subLbl.text      = "\(typeNames)  \(String(format: localText(key: "history_session_count_fmt"), s.sessionCount))"
         subLbl.font      = UIFont.systemFont(ofSize: 11)
         subLbl.textColor = AppColor.textSecondary
         subLbl.translatesAutoresizingMaskIntoConstraints = false
@@ -295,8 +303,10 @@ final class PracticeHistoryViewController: UIViewController {
         titleLbl.translatesAutoresizingMaskIntoConstraints = false
         card.addSubview(titleLbl)
 
-        let thisCol = makeStatColumn(value: "\(thisYear)回", label: "\(currentYear)年")
-        let lastCol = makeStatColumn(value: "\(lastYear)回", label: "\(currentYear - 1)年")
+        let thisCol = makeStatColumn(value: String(format: localText(key: "history_session_count_fmt"), thisYear),
+                                     label: String(format: localText(key: "history_year_fmt"), currentYear))
+        let lastCol = makeStatColumn(value: String(format: localText(key: "history_session_count_fmt"), lastYear),
+                                     label: String(format: localText(key: "history_year_fmt"), currentYear - 1))
 
         let deltaLbl = UILabel()
         if lastYear > 0 {
@@ -344,14 +354,14 @@ final class PracticeHistoryViewController: UIViewController {
         let total        = monthly.reduce(0) { $0 + $1.count }
 
         let yearLbl = UILabel()
-        yearLbl.text      = "\(year)年"
+        yearLbl.text      = String(format: localText(key: "history_year_fmt"), year)
         yearLbl.font      = UIFont.systemFont(ofSize: 14, weight: .semibold)
         yearLbl.textColor = year == currentYear ? AppColor.textPrimary : AppColor.textSecondary
         yearLbl.translatesAutoresizingMaskIntoConstraints = false
         card.addSubview(yearLbl)
 
         let totalLbl = UILabel()
-        totalLbl.text      = "計 \(total)回"
+        totalLbl.text      = String(format: localText(key: "history_total_count_fmt"), total)
         totalLbl.font      = UIFont.systemFont(ofSize: 12)
         totalLbl.textColor = AppColor.textSecondary
         totalLbl.translatesAutoresizingMaskIntoConstraints = false
@@ -473,6 +483,50 @@ final class PracticeHistoryViewController: UIViewController {
         card.layer.shadowRadius  = 8
         card.translatesAutoresizingMaskIntoConstraints = false
         return card
+    }
+}
+
+// MARK: - Banner Ad
+
+extension PracticeHistoryViewController: BannerViewDelegate {
+    private func setupHistoryBanner() {
+        guard AD_DISPLAY_PRACTICE_BANNER else { return }
+        #if targetEnvironment(simulator)
+        historyBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID_TEST
+        #else
+        historyBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID
+        #endif
+        historyBannerView.rootViewController = self
+        historyBannerView.delegate = self
+        historyBannerView.isHidden = true
+        historyBannerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(historyBannerView)
+        NSLayoutConstraint.activate([
+            historyBannerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            historyBannerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            historyBannerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+        ])
+    }
+
+    private func loadHistoryBannerIfNeeded() {
+        guard AD_DISPLAY_PRACTICE_BANNER else { return }
+        guard historyBannerView.isHidden else { return }
+        let width = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        historyBannerView.adSize = currentOrientationAnchoredAdaptiveBanner(width: width)
+        historyBannerView.load(Request())
+    }
+
+    func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+        bannerView.isHidden = false
+        let h = bannerView.adSize.size.height
+        scrollView.contentInset.bottom = h
+        scrollView.verticalScrollIndicatorInsets.bottom = h
+    }
+
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+        bannerView.isHidden = true
+        scrollView.contentInset.bottom = 0
+        scrollView.verticalScrollIndicatorInsets.bottom = 0
     }
 }
 

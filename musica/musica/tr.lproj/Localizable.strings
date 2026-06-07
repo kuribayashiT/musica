@@ -236,6 +236,8 @@
 //　音楽ライブラリ登録
 "musiclibrary_select_fromalbum" = "Her albüm için bir şarkı seçin!";
 "musiclibrary_select_library" = "Her kütüphane için bir şarkı seçin!";
+"library_select_album_title" = "Albüm Seç";
+"library_select_playlist_title" = "Çalma Listesi Seç";
 
 // 音楽再生
 "musiclibrary_not_play" = "Not playing";
@@ -371,9 +373,9 @@
 "text_help_title" = "Tarama ve Çeviriyi Kullanma";
 "text_help_body" = "Tarama ve çeviri özelliklerini nasıl kullanacağınız aşağıda açıklanmaktadır.";
 "text_help_nolook" = "Atla";
-"text_help_look" = "Her ikisini göster";
-"text_help_look_scan" = "Yalnızca tarama";
-"text_help_look_trans" = "Yalnızca çeviri";
+"text_help_look" = "📖 Tüm özelliklerin kullanımı";
+"text_help_look_scan" = "📷 Tarama özelliğinin kullanımı";
+"text_help_look_trans" = "🌐 Çeviri özelliğinin kullanımı";
 "text_help_1" = "Tarama özelliğini kullanarak görüntülerden metin okuyun.";
 "text_help_2" = "Cihazınızda kayıtlı görüntülerden taramak için buraya dokunun!";
 "text_help_3" = "Taramak için yeni bir fotoğraf çekmek için buraya dokunun!";
@@ -447,6 +449,9 @@
 "player_state_off" = "Kapalı";
 "player_repeat_all" = "Tümü";
 "player_repeat_one" = "1 Şarkı";
+"player_no_lyrics_title" = "Sözler Kayıtlı Değil";
+"player_no_lyrics_sub" = "Dikte pratiği için Metin\nsekmesinden sözleri ekleyin";
+"player_no_lyrics_btn" = "Sözleri Ekle";
 
 /*******************************************************************
  Oynatma Hızı
@@ -522,6 +527,7 @@
 "dictsetup_manual_btn" = "✏️  Metni manuel girin";
 "dictsetup_analyzing" = "Ses analiz ediliyor...";
 "dictsetup_loading_model" = "Model yükleniyor...";
+"dictsetup_overlay_title" = "Sesden Sözler\nTranskribe Ediliyor";
 "dictsetup_other_methods_close" = "Diğer yöntemleri kapat";
 "dictsetup_other_methods_open" = "Diğer yöntemler";
 "dictsetup_caption_input_btn" = "Altyazı gir";
@@ -535,6 +541,7 @@
 "dictsetup_text_registered_sub" = "Bu ses için metin kayıtlı. Pratiğe başlayabilirsiniz.";
 "dictsetup_text_empty" = "Metin hazırlayın";
 "dictsetup_text_empty_sub" = "Sesten otomatik al (önerilen) veya fotoğraftan metin oku.";
+"dictsetup_text_empty_sub_drm" = "Apple Music parçaları, iOS kısıtlamaları nedeniyle otomatik olarak yazıya çevrilemez. Fotoğraf OCR veya manuel giriş ile şarkı sözü ekleyebilirsiniz. Diğer parçalarda sesten otomatik yazıya çevirme de kullanılabilir.";
 "dictsetup_transcribing_fmt" = "Yazıya çevriliyor... (toplam %d parça)";
 "dictsetup_transcribing" = "Yazıya çevriliyor...";
 "dictsetup_reading_image" = "Görsel okunuyor...";
@@ -659,6 +666,13 @@
 "region_sheet_title" = "Bölüm Tekrar";
 "section_repeat_range" = "Döngü Aralığı";
 "section_repeat_loop" = "Bölüm Döngüsü";
+"section_repeat_set_start" = "Başlangıç Yap";
+"section_repeat_set_end" = "Bitiş Yap";
+"section_repeat_loop_on" = " Döngü Açık";
+"section_repeat_loop_off" = " Döngü Kapalı";
+"section_repeat_tips" = "Müziği çalın, doğru anda \"Başlangıç Yap\" / \"Bitiş Yap\" düğmelerine dokunarak döngü bölgesini işaretleyin. Tutamaçları doğrudan sürükleyerek de ayarlayabilirsiniz.";
+"section_repeat_close" = "Tamam";
+"section_repeat_turn_off" = "Döngü bölümünü kapat";
 
 /* ── Premium Plan ekranı ─────────────────── */
 "premium_title" = "Premium Plan";
@@ -714,9 +728,15 @@
 "scan_no_engine_body" = "Kullanılabilir konuşma tanıma motoru yok.";
 "scan_recording_label" = "🎙 Kaydediliyor... Durdurmak için dokun";
 "scan_transcribing" = "Transkripsiyon yapılıyor...";
-"scan_transcribe_complete_title" = "Transkripsiyon tamamlandı";
+"scan_transcribe_complete_title" = "Transkripsiyon Tamamlandı";
+"scan_transcribe_complete_body" = "Metni sesten çıkardık.\nMetin alanında inceleyip düzenleyebilirsiniz.";
 "scan_transcribe_apply_body" = "Metin alanına uygulansın mı?\n\n%@";
 "scan_transcribe_apply_btn" = "Uygula";
+"text_help_voice_btn" = "🎤 Ses düğmelerinin kullanımı";
+"scan_voice_help_title" = "Ses Düğmeleri Hakkında";
+"scan_voice_help_body" = "【🎵 Sesten transkribe (dalga formu düğmesi)】\nYalnızca Ana sekmedeki kütüphaneden bir parça seçildiğinde kullanılabilir.\nYapay zeka (WhisperKit) seçili parçayı otomatik transkribe eder.\n\n【🎤 Mikrofon girişi (yeşil mikrofon düğmesi)】\nMikrofon sesini gerçek zamanlı olarak tanır ve metne dönüştürür.";
+"text_help_voice_1" = "🎵 Dalga formu düğmesi: Yalnızca Ana sekmede parça seçildiğinde kullanılabilir. Yapay zeka sesi otomatik transkribe eder ve metin alanını doldurur.";
+"text_help_voice_2" = "🎤 Mikrofon düğmesi: Mikrofon sesini gerçek zamanlı olarak tanır. Okunan sözleri veya yakında çalınan sesi tanıyabilir.";
 
 /* ── Zayıf Kelimeler ─────────────────────────── */
 "weak_word_title" = "Zayıf Kelimeler";
@@ -740,3 +760,54 @@
 "history_no_score" = "Puan yok";
 "history_best_badge" = "En İyi 🏆";
 "history_year_comparison" = "Yıl Karşılaştırması";
+"player_segment_lyrics" = "Şarkı Sözleri";
+"history_detail_btn" = "Ayrıntılı geçmişe bak →";
+"history_streak_active_fmt" = "%d günlük seri!";
+"history_streak_inactive" = "Bugün pratik yapmaya başla!";
+"history_stats_fmt" = "Bu ay: %d  Bu yıl: %d";
+"history_year_fmt" = "%d";
+"history_total_count_fmt" = "Toplam: %d";
+"history_recent_header" = "Son Pratikler";
+"history_track_count_mastered_fmt" = "%d şarkı çalışıldı · %d ustalaşıldı 🏆";
+"history_track_count_fmt" = "%d şarkı çalışıldı";
+"history_filter_all" = "Tümü";
+"history_type_dictation" = "Dikte";
+"history_type_section_repeat" = "Bölüm Döngüsü";
+"history_type_flash_card" = "Flash Kartlar";
+"history_session_count_fmt" = "×%d";
+"practice_flash_card_sub" = "Sözlerden kelime öğren";
+"apple_music_no_lyric_edit_title" = "Apple Music Parçası";
+"apple_music_no_lyric_edit_body" = "Apple Music parçalarına doğrudan sözler eklenemez.";
+"apple_music_speed_limit" = "Maks 2×";
+"scan_apple_music_no_recognition" = "Ses tanıma yok";
+
+/* ── Müzik Erişim İzni Hatası ────────────────────── */
+"permission_err_body" = "Müzik kütüphanesine erişime izin verilmiyor.\nAyarı değiştirmek için lütfen aşağıdaki adımları izleyin.";
+"permission_step1" = "\"Ayarlar\" uygulamasını açın";
+"permission_step2" = "\"musica\" seçeneğini seçin";
+"permission_step3" = "\"Medya ve Apple Music\"i açın";
+
+/* ── Apple Music Kısıtlama Bildirimi ─────────────── */
+"am_notice_title" = "Apple Music parçaları içeriyor";
+"am_notice_body" = "iOS kısıtlamaları nedeniyle oynatma hızı en fazla 2× ile sınırlıdır. Ses tanıma ile şarkı sözü çıkarma kullanılamaz.";
+"practice_speed_am_notice" = "Apple Music, iOS kısıtlamaları nedeniyle en fazla 2× hızda oynatılabilir. Cihaza kaydedilen ses dosyaları (CD içe aktarma, indirilen satın almalar vb.) en fazla 50× hızı destekler.";
+"am_lyric_notice" = "iOS kısıtlamaları nedeniyle Apple Music parçaları için ses dosyasından otomatik çıkarma kullanılamaz. Mikrofona okuyarak veya doğrudan metin girerek şarkı sözlerini kaydedebilirsiniz.";
+
+/* ── Flash Kart Ekranı ─────────────────────────────── */
+"flash_card_hint" = "Anlamı görmek için dokun";
+"flash_card_review_btn" = "Tekrar";
+"flash_card_known_btn" = "Öğrendim";
+"flash_card_empty" = "Sözlerden öğrenilecek kelime çıkarılamadı.\nLütfen sözleri kaydedip tekrar deneyin.";
+"flash_card_score_fmt" = "%1$d kelimeden %2$d'ini hatırladın";
+
+/* ── WhisperKit İlerleme ───────────────────────────── */
+"whisper_preparing_model_fmt" = "Model hazırlanıyor... (ilk çalıştırmada %@ indirilecek)";
+"whisper_redownloading_fmt" = "Model yeniden indiriliyor... (%@)";
+"whisper_detecting_silence" = "Sessizlik sınırları algılanıyor...";
+"whisper_transcribing_auto_fmt" = "[%d/%d] Yazıya dökülüyor...";
+"whisper_transcribing_fmt" = "(%d/%d) Yazıya dökülüyor...";
+"whisper_transcribing_preview_fmt" = "(%d/%d) [%@] %@";
+"whisper_detecting_lang_fmt" = "(%d/%d) Dil algılanıyor...";
+"whisper_preparing_audio" = "Ses dosyası hazırlanıyor...";
+"whisper_export_session_error" = "Dışa aktarma oturumu oluşturulamadı";
+"whisper_export_fail_fmt" = "Ses dışa aktarma başarısız (durum: %d)";

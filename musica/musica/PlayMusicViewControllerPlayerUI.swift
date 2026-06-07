@@ -11,6 +11,7 @@
 //
 
 import UIKit
+import MediaPlayer
 
 // MARK: - PlayerUI Setup
 
@@ -33,8 +34,13 @@ extension PlayMusicViewController {
     }
 
     @objc func showSpeedSheet() {
+        FA.log(FA.speedSheetOpen)
         let currentSpeed = speedList[speedRow]
-        let sheet = SpeedSheetViewController(currentSpeed: currentSpeed)
+        let nowIdx = NowPlayingMusicLibraryData.nowPlaying
+        let tracks = SHUFFLE_FLG ? NowPlayingMusicLibraryData.trackDataShuffled : NowPlayingMusicLibraryData.trackData
+        let isAppleMusic = nowIdx != NOW_NOT_PLAYING && nowIdx < tracks.count
+            && tracks[nowIdx].url == nil && tracks[nowIdx].persistentID != 0
+        let sheet = SpeedSheetViewController(currentSpeed: currentSpeed, isAppleMusic: isAppleMusic)
         sheet.delegate = self
         present(sheet, animated: false)
     }
@@ -43,12 +49,12 @@ extension PlayMusicViewController {
         // speedList で最近傍のインデックスを探してグローバル変数を更新
         let nearest = speedList.enumerated().min { abs($0.element - speed) < abs($1.element - speed) }
         speedRow = nearest?.offset ?? 5
+        let rate = Float((speed * 10).rounded() / 10)
         if audioPlayer != nil {
-            // AVAudioPlayer.rate の有効範囲は 0.5〜2.0
-            // それを超える場合は 2.0 にクランプして再生速度を最大にする
-            let clamped = max(0.5, min(2.0, speed))
-            let rate = Float((clamped * 10).rounded() / 10)
             audioPlayer.rate = rate
+        } else {
+            let amRate = min(rate, 2.0)
+            MPMusicPlayerController.applicationQueuePlayer.currentPlaybackRate = amRate
         }
     }
 

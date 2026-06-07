@@ -192,6 +192,9 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
+        // ナビゲーションバー高さ変化などレイアウト系のtrait変化でも発火するため
+        // ダーク/ライトモード切替時のみ reloadData() する（二重アニメ防止）
+        guard traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) else { return }
         musictableview.reloadData()
     }
     /*******************************************************************
@@ -246,11 +249,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
         }else{
             KAKIN_FLG = UserDefaults.standard.bool(forKey: "kakin")
         }
-        RewardedAd.load(with: ADMOB_REWARD_AD, request: Request()) { [weak self] ad, error in
-            if let error = error { dlog("RewardedAd failed to load: \(error)"); return }
-            self?.rewardedAd = ad
-            self?.rewardedAd?.fullScreenContentDelegate = self
-        }
+        loadRewardedAd()
         
         //timer処理
         if ADtimer == nil || ADtimer.isValid == false {
@@ -346,7 +345,7 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     // 画面描画後
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        // 初回起動: オンボーディング表示
+        FA.logScreen(FA.Screen.home, vc: "HomeAreaViewController")
         OnboardingViewController.presentIfNeeded(from: self)
     }
     
@@ -544,7 +543,8 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
 
             cell.accessoryType = UITableViewCell.AccessoryType.disclosureIndicator
             // イコライザー: ネイティブアニメーションバー
-            if NowPlayingMusicLibraryData.nowPlayingLibrary == myMusicLibraryData.musicLibraryName && audioPlayer != nil && audioPlayer.isPlaying {
+            let amIsPlaying = MPMusicPlayerController.applicationQueuePlayer.playbackState == .playing
+            if NowPlayingMusicLibraryData.nowPlayingLibrary == myMusicLibraryData.musicLibraryName && (audioPlayer?.isPlaying == true || amIsPlaying) {
                 cell.startEqualizer()
             } else {
                 cell.stopEqualizer()
@@ -898,12 +898,22 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
     /*---------------------
      ADMOB Reward delegate
      --------------------*/
-    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
-        RewardedAd.load(with: DEBUG_FLG ? ADMOB_REWARD_TRANS_test : ADMOB_REWARD_AD, request: Request()) { [weak self] ad, error in
-            if let error = error { dlog("RewardedAd reload failed: \(error)"); return }
+    private func loadRewardedAd() {
+        RewardedAd.load(with: ADMOB_REWARD_AD, request: Request()) { [weak self] ad, error in
+            if let error = error {
+                dlog("RewardedAd load failed: \(error)")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 60) { [weak self] in
+                    self?.loadRewardedAd()
+                }
+                return
+            }
             self?.rewardedAd = ad
             self?.rewardedAd?.fullScreenContentDelegate = self
         }
+    }
+
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        loadRewardedAd()
     }
     func adViewDidFail(toLoad view: AmazonAdView!, withError: AmazonAdError!) -> Void {
         dlog("Ad Failed to load. Error code \(withError.errorCode): \(String(describing: withError.errorDescription))")

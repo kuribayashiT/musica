@@ -69,8 +69,8 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
-        susumuBtn.tintColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
-        modoruBtn.tintColor = UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        susumuBtn.tintColor = AppColor.textPrimary
+        modoruBtn.tintColor = AppColor.textPrimary
         let volume = MPVolumeView(frame: .zero)
         volume.setVolumeThumbImage(UIImage(), for: UIControl.State())
         volume.isUserInteractionEnabled = false
@@ -108,21 +108,18 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
         speedPicker.selectRow(mvSpeedRow, inComponent: 0, animated: true)
 
         //youtubeWK.configuration = viewConfiguration
-        modoruBtn.setImage(playBackLBtnImage, for: .normal)
-        modoruBtn.tintColor = darkModeIconBlackUIcolor()
-        susumuBtn.setImage(playNextLBtnImage, for: .normal)
-        susumuBtn.tintColor = darkModeIconBlackUIcolor()
+        let btnCfg = UIImage.SymbolConfiguration(pointSize: 22, weight: .semibold)
+        modoruBtn.setImage(UIImage(systemName: "backward.end.fill", withConfiguration: btnCfg), for: .normal)
+        modoruBtn.tintColor = AppColor.textPrimary
+        susumuBtn.setImage(UIImage(systemName: "forward.end.fill", withConfiguration: btnCfg), for: .normal)
+        susumuBtn.tintColor = AppColor.textPrimary
         let manager = ASIdentifierManager.shared()
-        if manager.isAdvertisingTrackingEnabled { // 広告トラッキングを許可しているのか？
-            let idfaString = manager.advertisingIdentifier.uuidString
-            dlog(idfaString)
-            if idfaString == "1E79435D-5FF2-489C-9C9C-FA3EDA0254CA" {
-                quoSwitch.isHidden = false
-            }else{
-                quoSwitch.isHidden = true
-            }
-        }else{
-            quoSwitch.isHidden = true
+        let isDebugDevice = manager.isAdvertisingTrackingEnabled &&
+            manager.advertisingIdentifier.uuidString == "1E79435D-5FF2-489C-9C9C-FA3EDA0254CA"
+        if !isDebugDevice {
+            // quoSwitch is the customView of rightBarButtonItem; nil-ing the item
+            // releases it — subsequent accesses use optional chaining (quoSwitch is weak)
+            navigationItem.rightBarButtonItem = nil
         }
         NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidFinishPlaying), name: .AVPlayerItemDidPlayToEndTime, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.playerDidJumped), name: .AVPlayerItemTimeJumped, object: nil)
@@ -137,14 +134,14 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
         if #available(iOS 15.0, *) {
             let appearance = UINavigationBarAppearance()
             appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
+            appearance.backgroundColor = AppColor.background
+            appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: AppColor.textPrimary]
             self.navigationController!.navigationBar.standardAppearance = appearance
             self.navigationController!.navigationBar.scrollEdgeAppearance = self.navigationController!.navigationBar.standardAppearance
             self.navigationController!.navigationBar.tintColor = AppColor.accent
         } else {
-            self.navigationController?.navigationBar.barTintColor = NAVIGATION_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]
-            self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: NAVIGATION_TEXT_COLOR[NOW_COLOR_THEMA][COLOR_THEMA.HOME.rawValue]]
+            self.navigationController?.navigationBar.barTintColor = AppColor.background
+            self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: AppColor.textPrimary]
             self.navigationController!.navigationBar.tintColor = AppColor.accent
         }
         
@@ -162,37 +159,14 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
             self.navigationController?.popViewController(animated: true)
             return
         }
-        if quoSwitch.selectedSegmentIndex == 0 {
-            quoFlg = true
-        }else{
-            quoFlg = false
-        }
+        quoFlg = (quoSwitch?.selectedSegmentIndex ?? 0) == 0
         // オフラインチェック
         checkOffline()
         // 広告の準備
         loadInterstitial()
         // 設定状態反映
-        switch repeatMVState {
-        case REPEAT_STATE_NONE:
-            repeatBtn.setImage(UIImage(named: "repeat")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            repeatBtn.tintColor = UIColor(red: 0.3, green: 0.3, blue: 0.3, alpha: 0.5)
-        case REPEAT_STATE_ALL:
-            repeatBtn.setImage(UIImage(named: "repeat")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            repeatBtn.tintColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
-        case REPEAT_STATE_ONE:
-            repeatBtn.setImage(UIImage(named: "repeat1")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            repeatBtn.tintColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
-        default:
-            repeatBtn.setImage(UIImage(named: "repeat")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            repeatBtn.tintColor = UIColor(red: 0.3, green: 0.3, blue: 0.3, alpha: 0.5)
-        }
-        if SHUFFLE_MV_FLG {
-            shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            shuffleBtn.tintColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
-        }else{
-            shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            shuffleBtn.tintColor = UIColor(red: 0.3, green: 0.3, blue: 0.3, alpha: 0.5)
-        }
+        updateRepeatButton()
+        updateShuffleButton()
         
         if !FROM_AD_FLG {
             // お気に入り情報を初期化
@@ -401,11 +375,7 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
      ビデオクオリティースイッチャー
      *******************************************************************/
     @IBAction func quoSwitch(_ sender: Any) {
-        if quoSwitch.selectedSegmentIndex == 0 {
-            quoFlg = true
-        }else{
-            quoFlg = false
-        }
+        quoFlg = (quoSwitch?.selectedSegmentIndex ?? 0) == 0
     }
     /*******************************************************************
      タイムアウト処理
@@ -627,18 +597,9 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
     }
     
     @IBAction func shuffleBtnTapped(_ sender: Any) {
-        if SHUFFLE_MV_FLG {
-            SHUFFLE_MV_FLG = false
-            shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            shuffleBtn.tintColor = UIColor(red: 0.3, green: 0.3, blue: 0.3, alpha: 0.5)
-        }else{
-            SHUFFLE_MV_FLG = true
-            shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            shuffleBtn.tintColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
-        }
-        if YOUTUBE_PLAYER_FLG {
-            // 特にやることない？
-        }else{
+        SHUFFLE_MV_FLG.toggle()
+        updateShuffleButton()
+        if !YOUTUBE_PLAYER_FLG {
             youtubeVideoView.setShuffle(SHUFFLE_MV_FLG)
         }
     }
@@ -647,23 +608,37 @@ class YoutubePlayViewController: UIViewController,UIPickerViewDelegate, UIPicker
         case REPEAT_STATE_NONE:
             youtubeVideoView.setLoop(true)
             repeatMVState = REPEAT_STATE_ALL
-            repeatBtn.setImage(UIImage(named: "repeat")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            repeatBtn.tintColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
         case REPEAT_STATE_ALL:
             youtubeVideoView.setLoop(true)
             repeatMVState = REPEAT_STATE_ONE
-            repeatBtn.setImage(UIImage(named: "repeat1")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            repeatBtn.tintColor = UIColor(red: 0, green: 122 / 255, blue: 1,alpha: 1)
         case REPEAT_STATE_ONE:
             youtubeVideoView.setLoop(false)
             repeatMVState = REPEAT_STATE_NONE
-            repeatBtn.setImage(UIImage(named: "repeat")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            repeatBtn.tintColor = UIColor(red: 0.3, green: 0.3, blue: 0.3, alpha: 0.5)
         default:
             repeatMVState = REPEAT_STATE_NONE
-            repeatBtn.setImage(UIImage(named: "repeat")?.withRenderingMode(.alwaysTemplate), for: .normal)
-            repeatBtn.tintColor = UIColor(red: 0.3, green: 0.3, blue: 0.3, alpha: 0.5)
         }
+        updateRepeatButton()
+    }
+
+    private func updateRepeatButton() {
+        let cfg = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
+        switch repeatMVState {
+        case REPEAT_STATE_ALL:
+            repeatBtn.setImage(UIImage(systemName: "repeat", withConfiguration: cfg), for: .normal)
+            repeatBtn.tintColor = AppColor.accent
+        case REPEAT_STATE_ONE:
+            repeatBtn.setImage(UIImage(systemName: "repeat.1", withConfiguration: cfg), for: .normal)
+            repeatBtn.tintColor = AppColor.accent
+        default:
+            repeatBtn.setImage(UIImage(systemName: "repeat", withConfiguration: cfg), for: .normal)
+            repeatBtn.tintColor = AppColor.textSecondary.withAlphaComponent(0.5)
+        }
+    }
+
+    private func updateShuffleButton() {
+        let cfg = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
+        shuffleBtn.setImage(UIImage(systemName: "shuffle", withConfiguration: cfg), for: .normal)
+        shuffleBtn.tintColor = SHUFFLE_MV_FLG ? AppColor.accent : AppColor.textSecondary.withAlphaComponent(0.5)
     }
     @IBAction func reloadBtnTapped(_ sender: Any) {
         checkOffline()

@@ -10,6 +10,7 @@
 import UIKit
 import NaturalLanguage
 import AVFoundation
+import GoogleMobileAds
 
 #if canImport(Translation)
 import SwiftUI
@@ -89,6 +90,8 @@ final class FlashCardViewController: UIViewController {
     private let speakBtn           = UIButton(type: .system)
     private let synthesizer        = AVSpeechSynthesizer()
     private var detectedLanguage: NLLanguage = .english
+    private let flashBannerView    = BannerView()
+    private var btnStackBottomConstraint: NSLayoutConstraint?
 
     #if canImport(Translation)
     private var translationHost: UIViewController?
@@ -96,9 +99,14 @@ final class FlashCardViewController: UIViewController {
 
     // MARK: Lifecycle
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        FA.logScreen(FA.Screen.flashCard, vc: "FlashCardViewController")
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = weakWordMode ? localText(key: "flash_weak_mode_title") : "フラッシュカード"
+        title = weakWordMode ? localText(key: "flash_weak_mode_title") : localText(key: "history_type_flash_card")
         view.backgroundColor = AppColor.background
         navigationItem.largeTitleDisplayMode = .never
         navigationItem.leftBarButtonItem = UIBarButtonItem(
@@ -108,6 +116,7 @@ final class FlashCardViewController: UIViewController {
             action: #selector(closeTapped)
         )
         setupUI()
+        setupFlashBanner()
         extractAndPrepare()
     }
 
@@ -291,7 +300,7 @@ final class FlashCardViewController: UIViewController {
         frontWordLabel.minimumScaleFactor = 0.5
         frontWordLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        frontHintLabel.text          = "タップして意味を確認"
+        frontHintLabel.text          = localText(key: "flash_card_hint")
         frontHintLabel.font          = UIFont.systemFont(ofSize: 13)
         frontHintLabel.textColor     = AppColor.textSecondary
         frontHintLabel.textAlignment = .center
@@ -368,7 +377,7 @@ final class FlashCardViewController: UIViewController {
         // ── Buttons ────────────────────────────────────────────────────
         reviewBtn.setImage(UIImage(systemName: "arrow.counterclockwise",
                                    withConfiguration: UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)), for: .normal)
-        reviewBtn.setTitle("  もう一度", for: .normal)
+        reviewBtn.setTitle("  " + localText(key: "flash_card_review_btn"), for: .normal)
         reviewBtn.tintColor        = .systemRed
         reviewBtn.setTitleColor(.systemRed, for: .normal)
         reviewBtn.titleLabel?.font  = UIFont.systemFont(ofSize: 15, weight: .semibold)
@@ -381,7 +390,7 @@ final class FlashCardViewController: UIViewController {
 
         knownBtn.setImage(UIImage(systemName: "checkmark",
                                   withConfiguration: UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)), for: .normal)
-        knownBtn.setTitle("  覚えた", for: .normal)
+        knownBtn.setTitle("  " + localText(key: "flash_card_known_btn"), for: .normal)
         knownBtn.tintColor        = AppColor.accent
         knownBtn.setTitleColor(AppColor.accent, for: .normal)
         knownBtn.titleLabel?.font  = UIFont.systemFont(ofSize: 15, weight: .semibold)
@@ -400,7 +409,7 @@ final class FlashCardViewController: UIViewController {
         view.addSubview(btnStack)
 
         // ── Empty state ────────────────────────────────────────────────
-        emptyLabel.text          = "歌詞から学習できる単語を\n抽出できませんでした。\n歌詞を登録してから再試行してください。"
+        emptyLabel.text          = localText(key: "flash_card_empty")
         emptyLabel.font          = UIFont.systemFont(ofSize: 15)
         emptyLabel.textColor     = AppColor.textSecondary
         emptyLabel.textAlignment = .center
@@ -420,6 +429,8 @@ final class FlashCardViewController: UIViewController {
 
         // ── Constraints ────────────────────────────────────────────────
         let safe = view.safeAreaLayoutGuide
+        let btnBottom = btnStack.bottomAnchor.constraint(equalTo: safe.bottomAnchor, constant: -20)
+        btnStackBottomConstraint = btnBottom
         NSLayoutConstraint.activate([
             progressCountLabel.topAnchor.constraint(equalTo: safe.topAnchor, constant: 16),
             progressCountLabel.trailingAnchor.constraint(equalTo: safe.trailingAnchor, constant: -20),
@@ -429,7 +440,7 @@ final class FlashCardViewController: UIViewController {
             progressBar.trailingAnchor.constraint(equalTo: progressCountLabel.leadingAnchor, constant: -12),
             progressBar.heightAnchor.constraint(equalToConstant: 4),
 
-            btnStack.bottomAnchor.constraint(equalTo: safe.bottomAnchor, constant: -20),
+            btnBottom,
             btnStack.leadingAnchor.constraint(equalTo: safe.leadingAnchor, constant: 24),
             btnStack.trailingAnchor.constraint(equalTo: safe.trailingAnchor, constant: -24),
             btnStack.heightAnchor.constraint(equalToConstant: 52),
@@ -560,6 +571,11 @@ final class FlashCardViewController: UIViewController {
         dismiss(animated: true) { [weak self] in self?.onDismiss?() }
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        loadFlashBannerIfNeeded()
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         synthesizer.stopSpeaking(at: .immediate)
@@ -641,7 +657,7 @@ final class FlashCardViewController: UIViewController {
         pctLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let scoreLabel = UILabel()
-        scoreLabel.text          = "\(words.count)単語中 \(knownCount)単語を覚えました"
+        scoreLabel.text          = String(format: localText(key: "flash_card_score_fmt"), words.count, knownCount)
         scoreLabel.font          = UIFont.systemFont(ofSize: 18, weight: .semibold)
         scoreLabel.textColor     = AppColor.textPrimary
         scoreLabel.textAlignment = .center
@@ -649,7 +665,7 @@ final class FlashCardViewController: UIViewController {
         scoreLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let doneBtn = UIButton(type: .system)
-        doneBtn.setTitle("完了", for: .normal)
+        doneBtn.setTitle(localText(key: "btn_done"), for: .normal)
         doneBtn.titleLabel?.font  = UIFont.systemFont(ofSize: 17, weight: .semibold)
         doneBtn.backgroundColor   = AppColor.accent
         doneBtn.setTitleColor(.white, for: .normal)
@@ -687,6 +703,50 @@ final class FlashCardViewController: UIViewController {
 
         summaryView.alpha = 0
         UIView.animate(withDuration: 0.35) { summaryView.alpha = 1 }
+    }
+}
+
+// MARK: - Banner Ad
+
+extension FlashCardViewController: BannerViewDelegate {
+    fileprivate func setupFlashBanner() {
+        guard AD_DISPLAY_PRACTICE_BANNER else { return }
+        #if targetEnvironment(simulator)
+        flashBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID_TEST
+        #else
+        flashBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID
+        #endif
+        flashBannerView.rootViewController = self
+        flashBannerView.delegate = self
+        flashBannerView.isHidden = true
+        flashBannerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(flashBannerView)
+        NSLayoutConstraint.activate([
+            flashBannerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            flashBannerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            flashBannerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+        ])
+    }
+
+    fileprivate func loadFlashBannerIfNeeded() {
+        guard AD_DISPLAY_PRACTICE_BANNER else { return }
+        guard flashBannerView.isHidden else { return }
+        let width = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        flashBannerView.adSize = currentOrientationAnchoredAdaptiveBanner(width: width)
+        flashBannerView.load(Request())
+    }
+
+    func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+        bannerView.isHidden = false
+        let h = bannerView.adSize.size.height
+        btnStackBottomConstraint?.constant = -(20 + h)
+        UIView.animate(withDuration: 0.25) { self.view.layoutIfNeeded() }
+    }
+
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+        bannerView.isHidden = true
+        btnStackBottomConstraint?.constant = -20
+        UIView.animate(withDuration: 0.25) { self.view.layoutIfNeeded() }
     }
 }
 

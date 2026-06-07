@@ -136,6 +136,7 @@ class SettingViewController: UIViewController , UITableViewDataSource, UITableVi
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        FA.logScreen(FA.Screen.settings, vc: "SettingViewController")
         if !isReturningFromPush {
             resetScrollForLargeTitle()
         }

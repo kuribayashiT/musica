@@ -31,6 +31,8 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
     @IBOutlet weak var musicControllerView: UIView!
     @IBOutlet weak var musicTitleBar: UINavigationItem!
     var interstitial: InterstitialAd?
+    private var tracksSinceLastAd = 0
+    private var lastAdShownDate: Date?
     /* レイアウト関連 */
     @IBOutlet weak var banner: BannerView!
     @IBOutlet weak var bannerHeight: NSLayoutConstraint!
@@ -64,6 +66,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
     var newContentContainer: UIView?
     var newArtworkView: UIImageView?
     var newLyricsView: UITextView?
+    var noLyricsEmptyView: UIView?
     var newTitleLabel: UILabel?
     var newArtistLabel: UILabel?
     var newProgressSlider: UISlider?
@@ -77,12 +80,13 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
     var newSpeedPill: UIButton?
     var newRegionPill: UIButton?
     var newModeSegment: UISegmentedControl?
-    var adRemoveBarItem: UIBarButtonItem?
-    var adRemoveSpaceItem: UIBarButtonItem?
+    var adRemoveFloatBtn: UIButton?
     var newScrubTimeLabel: UILabel?
     var isShowingLyrics: Bool = false
     /// 再生開始前にスクラブされた位置 [0, 1]。再生開始時にシークして消費する
     var pendingSeekRatio: Float?
+    /// Apple Music の再生状態変化検知用（タイマー内でのみ使用）
+    var lastAmIsPlaying: Bool = false
 
     // 再生時間
     @IBOutlet weak var musicTotalTime: UILabel!
@@ -101,7 +105,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
 
     override func awakeFromNib() {
         super.awakeFromNib()
-        navigationItem.largeTitleDisplayMode = .always
+        navigationItem.largeTitleDisplayMode = .never
     }
 
     override func viewDidLoad() {
@@ -111,13 +115,6 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         let backButton = UIBarButtonItem()
         backButton.title = " "
         self.navigationItem.backBarButtonItem = backButton
-        let textTabBtn = UIBarButtonItem(
-            image: UIImage(systemName: "doc.text.fill"),
-            style: .plain,
-            target: self,
-            action: #selector(musicSettingBtnTapped(_:))
-        )
-        self.navigationItem.rightBarButtonItem = textTabBtn
         MusicArtWorkView.isHidden = false
         LyricTextView.font = AppFont.lyric(sizeIndex: SETTING_LYRIC_SIZE_NUM)
         mojiSizeBtn.setTitle(SETTING_LYRIC_SIZE_NAME_ARRAY[SETTING_LYRIC_SIZE_NUM], for: .normal)
@@ -161,6 +158,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         NotificationCenter.default.addObserver(self, selector: #selector(handleRemoteNext), name: .musicaRemoteNext, object: nil)
     }
     override func viewDidAppear(_ animated: Bool) {
+        FA.logScreen(FA.Screen.player, vc: "PlayMusicViewController")
         if topViewController(controller: getForegroundViewController()) is PlayMusicViewController {
             // 特に何もしない
         }else{
@@ -222,7 +220,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             }
             // 新UI: カードは常に画面最上部、広告有無でコンテンツ上余白を切り替える
             newCardTopConstraint?.constant = 0
-            newContentContainerTopConstraint?.constant = showAd ? 60 : 16
+            newContentContainerTopConstraint?.constant = showAd ? 60 : 24
             newSecondaryStackBottomConstraint?.constant = showAd ? -68 : -16
             
             // musicArt/歌詞エリア のレイアウト
@@ -310,62 +308,49 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         syncNewUISpeedState()
         syncNewUIRegionState()
         // 音楽再生
+        // ── 共通ヘルパー: ローカル/Apple Music 両対応で「同じ曲が再生中か」を判定し
+        //    一致すれば UI のみ更新して return。異なれば nowPlaying を更新して playMusicWrapper へ。
+        func resumeIfSameSong(tracks: [TrackData]) -> Bool {
+            // 再生ボタン表示
+            if audioPlayer != nil {
+                PlayBtn.setImage(audioPlayer.isPlaying ? stopBtnLImage : playBtnLImage, for: .normal)
+            } else {
+                let amState = MPMusicPlayerController.applicationQueuePlayer.playbackState
+                PlayBtn.setImage(amState == .playing ? stopBtnLImage : playBtnLImage, for: .normal)
+            }
+            // 同じ曲なら再生継続（ローカル・Apple Music 共通）
+            let nowPlaying = NowPlayingMusicLibraryData.nowPlaying
+            if nowPlaying != NOW_NOT_PLAYING,
+               nowPlaying < tracks.count, newSelectPlayNum < tracks.count,
+               tracks[nowPlaying].selectionKey == tracks[newSelectPlayNum].selectionKey {
+                updateTrackData(playData: tracks[newSelectPlayNum], beginningFlg: false)
+                if audioPlayer != nil {
+                    audioPlayer.delegate = nil
+                    audioPlayer.delegate = self
+                    audioPlayer.onFinish = { [weak self] in self?.playerDidFinish() }
+                }
+                setSectionRepeatStatus()
+                if timer == nil || timer.isValid == false {
+                    timer = Timer.scheduledTimer(timeInterval: 0.02, target: self, selector: #selector(self.updateNowTime), userInfo: nil, repeats: true)
+                    timer.fire()
+                }
+                return true
+            }
+            // 別の曲 → ライブラリ情報を更新してから再生
+            NowPlayingMusicLibraryData.nowPlayingLibrary = musicLibraryName
+            NowPlayingMusicLibraryData.nowPlaying = newSelectPlayNum
+            return false
+        }
+
         if SHUFFLE_FLG == false {
             shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
             shuffleBtn.tintColor = AppColor.inactive
-            if audioPlayer == nil {
-/*!DEBUG!*/     playMusicWrapper(playData: NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum])
-            }else{
-                if audioPlayer.isPlaying{
-                    self.PlayBtn.setImage(stopBtnLImage, for: .normal)
-                }else{
-                    self.PlayBtn.setImage(playBtnLImage, for: .normal)
-                }
-                if NowPlayingMusicLibraryData.nowPlaying != NOW_NOT_PLAYING && NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying].url == NowPlayingMusicLibraryData.trackData[newSelectPlayNum].url {
-                    updateTrackData(playData: NowPlayingMusicLibraryData.trackData[newSelectPlayNum],beginningFlg:false)
-                    audioPlayer.delegate = nil
-                    audioPlayer.delegate = self  
-                    setSectionRepeatStatus()
-                    
-                    if timer == nil || timer.isValid == false {
-                        timer = Timer.scheduledTimer(timeInterval: 0.02, target: self, selector: #selector(self.updateNowTime), userInfo: nil, repeats: true)
-                        timer.fire()
-                    }
-                    return
-                }else{
-                    // 再生中の曲とライアブラリを更新
-                    NowPlayingMusicLibraryData.nowPlayingLibrary = musicLibraryName
-                    NowPlayingMusicLibraryData.nowPlaying = newSelectPlayNum
-                }
-            }
-/*!DEBUG!*/ playMusicWrapper(playData: NowPlayingMusicLibraryData.trackData[newSelectPlayNum])
+            if resumeIfSameSong(tracks: NowPlayingMusicLibraryData.trackData) { return }
+            playMusicWrapper(playData: NowPlayingMusicLibraryData.trackData[newSelectPlayNum])
         }else{
             shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
             shuffleBtn.tintColor = AppColor.accent
-            if audioPlayer == nil {
-                playMusicWrapper(playData: NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum])
-            }else{
-                if audioPlayer.isPlaying{
-                    self.PlayBtn.setImage(stopBtnLImage, for: .normal)
-                }else{
-                    self.PlayBtn.setImage(playBtnLImage, for: .normal)
-                }
-                if NowPlayingMusicLibraryData.nowPlaying != NOW_NOT_PLAYING && NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying].url == NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum].url {
-                    updateTrackData(playData: NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum],beginningFlg:false)
-                    audioPlayer.delegate = nil
-                    audioPlayer.delegate = self
-                    setSectionRepeatStatus()
-                    if timer == nil || timer.isValid == false {
-                        timer = Timer.scheduledTimer(timeInterval: 0.02, target: self, selector: #selector(self.updateNowTime), userInfo: nil, repeats: true)
-                        timer.fire()
-                    }
-                    return
-                }else{
-                    // 再生中の曲とライアブラリを更新
-                    NowPlayingMusicLibraryData.nowPlayingLibrary = musicLibraryName
-                    NowPlayingMusicLibraryData.nowPlaying = newSelectPlayNum
-                }
-            }
+            if resumeIfSameSong(tracks: NowPlayingMusicLibraryData.trackDataShuffled) { return }
             playMusicWrapper(playData: NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum])
         }
         if timer == nil || timer.isValid == false {
@@ -375,7 +360,11 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         setSectionRepeatStatus()
         // 遷移前が一時停止状態だった場合、再生を開始せずに停止状態を維持
         if preservePlayState {
-            audioPlayer?.stop()
+            if audioPlayer != nil {
+                audioPlayer.stop()
+            } else {
+                MPMusicPlayerController.applicationQueuePlayer.pause()
+            }
             preservePlayState = false
         }
 
@@ -400,8 +389,12 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
 //     }
      func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
          speedRow = row
-         let speed = speedList[speedRow] * 10
-         audioPlayer.rate = Float(round(speed) / 10)
+         let rate = Float((speedList[speedRow] * 10).rounded() / 10)
+         if audioPlayer != nil {
+             audioPlayer.rate = rate
+         } else {
+             MPMusicPlayerController.applicationQueuePlayer.currentPlaybackRate = min(rate, 2.0)
+         }
      }
     func pickerView(_ pickerView: UIPickerView, viewForRow row: Int,
             forComponent component: Int, reusing view: UIView?) -> UIView
@@ -421,6 +414,19 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             self?.interstitial = ad
             self?.interstitial?.fullScreenContentDelegate = self
         }
+    }
+
+    /// 3〜5曲ごと・前回表示から3分以上経過していれば広告を表示。表示したら true を返す。
+    @discardableResult
+    private func tryShowInterstitialIfNeeded() -> Bool {
+        guard ADApearFlg(), let ad = interstitial else { return false }
+        guard tracksSinceLastAd >= 4 else { return false }
+        if let last = lastAdShownDate, Date().timeIntervalSince(last) < 180 { return false }
+        FA.log(FA.adInterstitialShow, params: ["tracks_since_last": tracksSinceLastAd])
+        tracksSinceLastAd = 0
+        lastAdShownDate = Date()
+        ad.present(from: self)
+        return true
     }
     func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         loadInterstitial()
@@ -485,20 +491,40 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
     }
     // 「再生▶︎/停止■」ボタン
     @IBAction func PlayBtnTapped(_ sender: Any) {
-        // audioPlayer が nil だったら最初の曲を再生
         if audioPlayer == nil {
-            if SHUFFLE_FLG == false {
-                playMusicWrapper(playData: NowPlayingMusicLibraryData.trackData[newSelectPlayNum])
-            }else{
-                playMusicWrapper(playData: NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum])
+            let amPlayer = MPMusicPlayerController.applicationQueuePlayer
+            let nowIdx = NowPlayingMusicLibraryData.nowPlaying
+            let trackList = SHUFFLE_FLG ? NowPlayingMusicLibraryData.trackDataShuffled : NowPlayingMusicLibraryData.trackData
+            let isAppleMusic = nowIdx != NOW_NOT_PLAYING && nowIdx < trackList.count
+                && trackList[nowIdx].url == nil && trackList[nowIdx].persistentID != 0
+            if isAppleMusic && (amPlayer.playbackState == .playing || amPlayer.playbackState == .paused) {
+                if amPlayer.playbackState == .playing {
+                    amPlayer.pause()
+                    FA.log(FA.stopTap)
+                    tapBtnAnimesion(btn: PlayBtn, image: playBtnLImage)
+                    musicImageTrans(v1: self.musicArtWorkImgView, v2: self.shadowView, type: 0)
+                } else {
+                    amPlayer.play()
+                    FA.log(FA.playTap)
+                    tapBtnAnimesion(btn: PlayBtn, image: stopBtnLImage)
+                    musicImageTrans(v1: self.musicArtWorkImgView, v2: self.shadowView, type: 1)
+                }
+            } else {
+                if SHUFFLE_FLG == false {
+                    playMusicWrapper(playData: NowPlayingMusicLibraryData.trackData[newSelectPlayNum])
+                } else {
+                    playMusicWrapper(playData: NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum])
+                }
             }
-        }else{
+        } else {
             if audioPlayer.isPlaying {
                 audioPlayer.stop()
+                FA.log(FA.stopTap)
                 tapBtnAnimesion(btn: PlayBtn ,image: playBtnLImage)
                 musicImageTrans(v1 : self.musicArtWorkImgView, v2 : self.shadowView, type:0)
-            }else{
+            } else {
                 audioPlayer.play()
+                FA.log(FA.playTap)
                 tapBtnAnimesion(btn: PlayBtn ,image: stopBtnLImage)
                 musicImageTrans(v1 : self.musicArtWorkImgView, v2 : self.shadowView, type:1)
             }
@@ -528,7 +554,12 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
 
     /// 現在の再生状態を通知
     func postPlaybackState() {
-        let isPlaying = audioPlayer?.isPlaying ?? false
+        let isPlaying: Bool
+        if let player = audioPlayer {
+            isPlaying = player.isPlaying
+        } else {
+            isPlaying = MPMusicPlayerController.applicationQueuePlayer.playbackState == .playing
+        }
         NotificationCenter.default.post(
             name: .musicaPlaybackStateChanged,
             object: nil,
@@ -538,14 +569,15 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
 
     // 「◀︎◀︎」タップ時
     @IBAction func BeforeBtnTapped(_ sender: Any) {
+        FA.log(FA.prevTrack)
         tapBtnAnimesion(btn: BeforeBtn ,image: nil)
         if audioPlayer != nil {
             if sectionRepeatStatus == SECTION_REPEAT_ON{
                 var nowPoint : Float = 0.0
                 if SHUFFLE_FLG == false {
-                    nowPoint = Float(audioPlayer.currentTime - TimeInterval( mMusicController.getSectionRepeatSetting(url:NowPlayingMusicLibraryData.trackData[newSelectPlayNum].url!)[0]) * audioPlayer.duration)
+                    nowPoint = Float(audioPlayer.currentTime - TimeInterval( mMusicController.getSectionRepeatSetting(trackData:NowPlayingMusicLibraryData.trackData[newSelectPlayNum])[0]) * audioPlayer.duration)
                 }else{
-                    nowPoint = Float(audioPlayer.currentTime - TimeInterval( mMusicController.getSectionRepeatSetting(url:NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum].url!)[0]) * audioPlayer.duration)
+                    nowPoint = Float(audioPlayer.currentTime - TimeInterval( mMusicController.getSectionRepeatSetting(trackData:NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum])[0]) * audioPlayer.duration)
                 }
                 if nowPoint > 3 {
                     audioPlayer.currentTime = TimeInterval(Float(multiRepeatSlider.value[0]) * Float(audioPlayer.duration))
@@ -564,6 +596,7 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
     
     // 「▶︎▶︎」タップ時
     @IBAction func AfterBtnTapped(_ sender: Any) {
+        FA.log(FA.nextTrack)
         tapBtnAnimesion(btn: AfterBtn ,image: nil)
         NEXT_TAP_FLG = true
         nextMusicPlay()
@@ -576,10 +609,12 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
     }
     // 「リピートボタン」タップ時
     @IBAction func repeatBtnTapped(_ sender: Any) {
+        FA.log(FA.repeatToggle)
         repeatImgStateSegment(nowSegment : repeatState, tap:true)
     }
     // 「シャッフルボタン」タップ時
     @IBAction func shuffleBtnTapped(_ sender: Any) {
+        FA.log(FA.shuffleToggle, params: ["enabled": !SHUFFLE_FLG])
         if SHUFFLE_FLG {
             SHUFFLE_FLG = false
             shuffleBtn.setImage(UIImage(named: "shuffle")?.withRenderingMode(.alwaysTemplate), for: .normal)
@@ -618,7 +653,15 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
     }
     // 再生開始時間の変更
     @IBAction func musicProgressChanged(_ sender: Any) {
-        audioPlayer.currentTime = TimeInterval(musicProgressSlider.value * Float(audioPlayer.duration))
+        if audioPlayer != nil {
+            audioPlayer.currentTime = TimeInterval(musicProgressSlider.value * Float(audioPlayer.duration))
+        } else {
+            let am = MPMusicPlayerController.applicationQueuePlayer
+            let dur = am.nowPlayingItem?.playbackDuration ?? 0
+            if dur > 0 {
+                am.currentPlaybackTime = TimeInterval(musicProgressSlider.value) * dur
+            }
+        }
     }
     
     /*******************************************************************
@@ -626,6 +669,11 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
      *******************************************************************/
     //再生終了時の呼び出しメソッド
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        playerDidFinish()
+    }
+
+    func playerDidFinish() {
+        guard audioPlayer != nil else { return }
         if sectionRepeatStatus == SECTION_REPEAT_ON {
             audioPlayer.currentTime = TimeInterval(Float(multiRepeatSlider.value[0]) * Float(audioPlayer.duration))
             audioPlayer.play()
@@ -635,6 +683,9 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             return
         }
         nextMusicPlay()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            NotificationCenter.default.post(name: .musicaTrackChanged, object: nil)
+        }
     }
     func endTruckCheckRepeat() -> Bool {
         if NowPlayingMusicLibraryData.nowPlaying == NowPlayingMusicLibraryData.trackData.count - 1{
@@ -644,13 +695,8 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
                 NowPlayingMusicLibraryData.nowPlaying = 0
                 PlayBtn.setImage(playBtnLImage, for: .normal)
                 musicImageTrans(v1 : self.musicArtWorkImgView, v2 : self.shadowView, type:0)
-                if ADApearFlg() {
-                    if interstitial != nil {
-                        if interstitial != nil {
-                            interstitial?.present(from: self)
-                        }
-                    }
-                }
+                tracksSinceLastAd += 1
+                tryShowInterstitialIfNeeded()
                 return true
             case REPEAT_STATE_ALL:
                 break
@@ -670,15 +716,28 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             PlayBtn.setImage(playBtnLImage, for: .normal)
             return
         }
-        audioPlayer.delegate = nil
-        audioPlayer.delegate = self
+        if audioPlayer != nil {
+            audioPlayer.delegate = nil
+            audioPlayer.delegate = self
+            audioPlayer.onFinish = { [weak self] in self?.playerDidFinish() }
+        } else {
+            sectionRepeatStatus = SECTION_REPEAT_OFF
+        }
         setSectionRepeatStatus()
         updateTrackData(playData: playData ,beginningFlg:true)
     }
     // 音楽情報の更新
     func updateTrackData(playData: TrackData ,beginningFlg: Bool){
+        // メインスレッド（viewWillAppear等）から呼ばれた場合は title を同期的にセットし
+        // layoutIfNeeded() でナビゲーションバーのレイアウトを確定させる。
+        // こうすることで CATransition の "after" 状態にタイトルが含まれ、
+        // バックボタンの幅とタイトルの切り捨て量がアニメーション前に決まる。
+        if Thread.isMainThread {
+            self.title = playData.title
+            navigationController?.navigationBar.layoutIfNeeded()
+        }
         DispatchQueue.main.async {
-            // 曲名をセット
+            // 曲名をセット（バックグラウンドスレッドからの呼び出しにも対応）
             self.title = playData.title
             // 歌詞をセット
             self.LyricTextView.text = playData.lyric
@@ -693,41 +752,61 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             
             // 再生中の曲を更新
             NowPlayingMusicLibraryData.nowPlaying = newSelectPlayNum
-            self.musicTotalTime.text = formatTimeString(d: audioPlayer.duration)
-            self.repeatMinTime.text = "00:00"
-            self.repeatMaxTime.text = self.musicTotalTime.text
-            self.multiRepeatSlider.value = self.mMusicController.getSectionRepeatSetting(url:playData.url!)
-            self.repeatMinTime.text = formatTimeString(d: TimeInterval(self.multiRepeatSlider.value[0]) * audioPlayer.duration)
-            self.repeatMaxTime.text = formatTimeString(d: TimeInterval(self.multiRepeatSlider.value[1]) * audioPlayer.duration)
-            // 曲ごとの区間リピートON/OFFを復元
-            let savedOn = self.mMusicController.getSectionRepeatEnabled(url: playData.url!)
-            sectionRepeatStatus = savedOn ? SECTION_REPEAT_ON : SECTION_REPEAT_OFF
-            self.syncNewUIRegionState()
-            if beginningFlg {
-                if sectionRepeatStatus == SECTION_REPEAT_ON {
-                    audioPlayer.currentTime = TimeInterval(self.multiRepeatSlider.value[0]) * audioPlayer.duration
-                } else if let ratio = self.pendingSeekRatio {
-                    audioPlayer.currentTime = TimeInterval(ratio) * audioPlayer.duration
-                    self.newProgressSlider?.value = ratio
-                    self.pendingSeekRatio = nil
+            if audioPlayer != nil {
+                let dur = audioPlayer.duration
+                self.musicTotalTime.text = formatTimeString(d: dur)
+                let repeatSetting = self.mMusicController.getSectionRepeatSetting(trackData: playData)
+                self.multiRepeatSlider.value = repeatSetting
+                self.repeatMinTime.text = formatTimeString(d: TimeInterval(repeatSetting[0]) * dur)
+                self.repeatMaxTime.text = formatTimeString(d: TimeInterval(repeatSetting[1]) * dur)
+                let savedOn = self.mMusicController.getSectionRepeatEnabled(trackData: playData)
+                sectionRepeatStatus = savedOn ? SECTION_REPEAT_ON : SECTION_REPEAT_OFF
+                self.syncNewUIRegionState()
+                if beginningFlg {
+                    if sectionRepeatStatus == SECTION_REPEAT_ON {
+                        audioPlayer.currentTime = TimeInterval(repeatSetting[0]) * dur
+                    } else if let ratio = self.pendingSeekRatio {
+                        audioPlayer.currentTime = TimeInterval(ratio) * dur
+                        self.newProgressSlider?.value = ratio
+                        self.pendingSeekRatio = nil
+                    } else {
+                        audioPlayer.currentTime = 0
+                    }
+                } else {
+                    if sectionRepeatStatus == SECTION_REPEAT_ON && audioPlayer.currentTime < TimeInterval(repeatSetting[0]) * dur {
+                        audioPlayer.currentTime = TimeInterval(repeatSetting[0]) * dur
+                    }
                 }
-            }else{
-                if sectionRepeatStatus == SECTION_REPEAT_ON && audioPlayer.currentTime <  TimeInterval(self.multiRepeatSlider.value[0]) * audioPlayer.duration{
-                    audioPlayer.currentTime = TimeInterval(self.multiRepeatSlider.value[0]) * audioPlayer.duration
+                let speed = speedList[speedRow] * 10
+                audioPlayer.rate = Float(round(speed) / 10)
+                if audioPlayer.isPlaying {
+                    self.PlayBtn.setImage(stopBtnLImage, for: .normal)
+                    musicImageTrans(v1: self.musicArtWorkImgView, v2: self.shadowView, type: 2)
+                    musicImageTrans(v1: self.musicArtWorkImgView, v2: self.shadowView, type: 1)
+                } else {
+                    self.PlayBtn.setImage(playBtnLImage, for: .normal)
+                    musicImageTrans(v1: self.musicArtWorkImgView, v2: self.shadowView, type: 0)
                 }
-            }
-
-            let speed = speedList[speedRow] * 10
-            audioPlayer.rate = Float(round(speed) / 10)
-            //audioPlayer.rate = Float(round(speedList[speedRow]))
-            if audioPlayer.isPlaying{
-                self.PlayBtn.setImage(stopBtnLImage, for: .normal)
-                //拡大縮小の処理
-                musicImageTrans(v1 : self.musicArtWorkImgView, v2 : self.shadowView, type:2)
-                musicImageTrans(v1 : self.musicArtWorkImgView, v2 : self.shadowView, type:1)
-            }else{
-                self.PlayBtn.setImage(playBtnLImage, for: .normal)
-                musicImageTrans(v1 : self.musicArtWorkImgView, v2 : self.shadowView, type:0)
+            } else {
+                // Apple Music via MPMusicPlayerController
+                let player = MPMusicPlayerController.applicationQueuePlayer
+                let dur = player.nowPlayingItem?.playbackDuration ?? 0
+                self.musicTotalTime.text = dur > 0 ? formatTimeString(d: dur) : "--:--"
+                self.repeatMinTime.text = "00:00"
+                self.repeatMaxTime.text = self.musicTotalTime.text
+                self.multiRepeatSlider.value = [0.0, 1.0]
+                self.pendingSeekRatio = nil
+                self.syncNewUIRegionState()
+                // beginningFlg=true は play() 直後で MPMusicPlayerController がまだ .playing に遷移していない可能性があるため再生中とみなす
+                let isPlaying = beginningFlg ? true : player.playbackState == .playing
+                if isPlaying {
+                    self.PlayBtn.setImage(stopBtnLImage, for: .normal)
+                    musicImageTrans(v1: self.musicArtWorkImgView, v2: self.shadowView, type: 2)
+                    musicImageTrans(v1: self.musicArtWorkImgView, v2: self.shadowView, type: 1)
+                } else {
+                    self.PlayBtn.setImage(playBtnLImage, for: .normal)
+                    musicImageTrans(v1: self.musicArtWorkImgView, v2: self.shadowView, type: 0)
+                }
             }
             self.syncNewUITrack(playData: playData)
             self.syncNewUIPlayState()
@@ -773,6 +852,32 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
     // 再生時間更新処理
     @objc func updateNowTime(tm: Timer) {
         if audioPlayer == nil {
+            let player = MPMusicPlayerController.applicationQueuePlayer
+            guard player.playbackState == .playing || player.playbackState == .paused else { return }
+            let cur = player.currentPlaybackTime
+            let dur = player.nowPlayingItem?.playbackDuration ?? 0
+            if cur >= 0 {
+                musicNowTime.text = formatTimeString(d: cur)
+                if dur > 0 {
+                    musicProgressSlider.value = Float(cur / dur)
+                    musicTotalTime.text = formatTimeString(d: dur)
+                    if sectionRepeatStatus == SECTION_REPEAT_ON {
+                        let endRatio = Double(multiRepeatSlider.value[1])
+                        let startRatio = Double(multiRepeatSlider.value[0])
+                        if (cur / dur) >= endRatio {
+                            player.currentPlaybackTime = dur * startRatio
+                        }
+                    }
+                }
+            }
+            let isPlaying = player.playbackState == .playing
+            PlayBtn.setImage(isPlaying ? stopBtnLImage : playBtnLImage, for: .normal)
+            syncNewUIProgress()
+            syncNewUIPlayState()
+            if isPlaying != lastAmIsPlaying {
+                lastAmIsPlaying = isPlaying
+                postPlaybackState()
+            }
             return
         }
         if ADApearFlg() && AD_DISPLAY_MUSICLIBRARYLIST_BANNER {
@@ -795,15 +900,24 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         }
     }
     @objc func sliderChanged(_ slider: MultiSlider) {
-        repeatMinTime.text = formatTimeString(d: Double(slider.value[0]) * audioPlayer.duration)
-        repeatMaxTime.text = formatTimeString(d: Double(slider.value[1]) * audioPlayer.duration)
-        musicProgressSlider.value = Float(Double(slider.value[0]))
-        audioPlayer.currentTime = TimeInterval(musicProgressSlider.value * Float(audioPlayer.duration))
-        // ここでUSERDEFAULTに設定
-        if SHUFFLE_FLG {
-            mMusicController.setSectionRepeatSettings(playData : NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum],time: multiRepeatSlider.value)
-        }else{
-            mMusicController.setSectionRepeatSettings(playData : NowPlayingMusicLibraryData.trackData[newSelectPlayNum],time: multiRepeatSlider.value)
+        if audioPlayer != nil {
+            repeatMinTime.text = formatTimeString(d: Double(slider.value[0]) * audioPlayer.duration)
+            repeatMaxTime.text = formatTimeString(d: Double(slider.value[1]) * audioPlayer.duration)
+            musicProgressSlider.value = Float(Double(slider.value[0]))
+            audioPlayer.currentTime = TimeInterval(musicProgressSlider.value * Float(audioPlayer.duration))
+        } else {
+            let am = MPMusicPlayerController.applicationQueuePlayer
+            let dur = am.nowPlayingItem?.playbackDuration ?? 0
+            if dur > 0 {
+                repeatMinTime.text = formatTimeString(d: Double(slider.value[0]) * dur)
+                repeatMaxTime.text = formatTimeString(d: Double(slider.value[1]) * dur)
+                musicProgressSlider.value = Float(Double(slider.value[0]))
+                am.currentPlaybackTime = Double(slider.value[0]) * dur
+            }
+        }
+        let trackData = SHUFFLE_FLG ? NowPlayingMusicLibraryData.trackDataShuffled : NowPlayingMusicLibraryData.trackData
+        if newSelectPlayNum < trackData.count {
+            mMusicController.setSectionRepeatSettings(playData: trackData[newSelectPlayNum], time: multiRepeatSlider.value)
         }
     }
     func nextMusicPlay(){
@@ -819,6 +933,8 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             }
         }
         NEXT_TAP_FLG = false
+        tracksSinceLastAd += 1
+        if tryShowInterstitialIfNeeded() { return }  // 広告表示時は adDidDismissFullScreenContent が再生を引き継ぐ
         if SHUFFLE_FLG {
             playMusicWrapper(playData: NowPlayingMusicLibraryData.trackDataShuffled[newSelectPlayNum])
         }else{
@@ -850,8 +966,18 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
                  sectionRepeatEditFlg = false
                  repeatSettingBtn.setTitle(localText(key:"musiclibrary_play_section_repeat_setting"), for: .normal)
                  setSectionRepeatEditStatus()
-                 musicProgressSlider.value = Float(Double(multiRepeatSlider.value[0]))
-                 audioPlayer.currentTime = TimeInterval(musicProgressSlider.value * Float(audioPlayer.duration))
+                 if audioPlayer != nil {
+                     musicProgressSlider.value = Float(Double(multiRepeatSlider.value[0]))
+                     audioPlayer.currentTime = TimeInterval(musicProgressSlider.value * Float(audioPlayer.duration))
+                 } else {
+                     let am = MPMusicPlayerController.applicationQueuePlayer
+                     let dur = am.nowPlayingItem?.playbackDuration ?? 0
+                     if dur > 0 {
+                         let startRatio = Double(multiRepeatSlider.value[0])
+                         am.currentPlaybackTime = dur * startRatio
+                         musicProgressSlider.value = Float(startRatio)
+                     }
+                 }
 
              default:break
         }
@@ -871,13 +997,8 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
          }
     }
     func setBGPlayCommand(){
-        let session = AVAudioSession.sharedInstance()
-        do {
-            try session.setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [])
-            try session.setActive(true)
-        } catch {
-            //fatalError("session有効化失敗")
-        }
+        // セッション設定は再生開始時（playMusic）に行うため、ここでは行わない。
+        // viewWillAppear で setActive を呼ぶと AVAudioEngine が一瞬リセットされて音が途切れる。
         mMusicController.commandAllRemove()
         commandCenter.nextTrackCommand.addTarget { (commandEvent) -> MPRemoteCommandHandlerStatus in
             self.nextMusicPlayCMTapped()
@@ -957,14 +1078,15 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
             let secondVc = segue.destination as! scanViewController
             secondVc.editLibraryName = NowPlayingMusicLibraryData.nowPlayingLibrary
             secondVc.EDIT_FLG = true
-            if SHUFFLE_FLG {
-                secondVc.title = NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying].title
-                secondVc.editTrackUrl = NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying].url!
-                secondVc.nowLyricText = NowPlayingMusicLibraryData.trackDataShuffled[NowPlayingMusicLibraryData.nowPlaying].lyric
-            }else{
-                secondVc.title = NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying].title
-                secondVc.editTrackUrl = NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying].url!
-                secondVc.nowLyricText = NowPlayingMusicLibraryData.trackData[NowPlayingMusicLibraryData.nowPlaying].lyric
+            let tracks = SHUFFLE_FLG ? NowPlayingMusicLibraryData.trackDataShuffled : NowPlayingMusicLibraryData.trackData
+            let idx = NowPlayingMusicLibraryData.nowPlaying
+            if idx >= 0, idx < tracks.count {
+                let track = tracks[idx]
+                secondVc.title = track.title
+                secondVc.editTrackUrl = track.url
+                secondVc.editPersistentID = track.persistentID
+                secondVc.isAppleMusicTrack = track.url == nil && track.persistentID != 0
+                secondVc.nowLyricText = track.lyric
             }
             secondVc.editShffuleFromTypeFlg = true
             secondVc.editPlayNum = NowPlayingMusicLibraryData.nowPlaying
@@ -980,6 +1102,15 @@ class PlayMusicViewController: UIViewController, AVAudioPlayerDelegate , UIPicke
         super.viewWillDisappear(animated)
         sectionRepeatEditFlg = false
         timer.invalidate()
+        // pop して MusicPlayListVC へ戻る場合は onFinish を通知に切り替え、
+        // MusicPlayListVC が次曲を引き継げるようにする。
+        if isMovingFromParent, audioPlayer != nil {
+            audioPlayer.onFinish = {
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .musicaLocalTrackFinished, object: nil)
+                }
+            }
+        }
     }
 }
 

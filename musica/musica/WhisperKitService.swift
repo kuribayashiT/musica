@@ -89,7 +89,7 @@ final class WhisperKitService {
         if pipe == nil || loadedModelName != modelName {
             let sizeNote = WhisperKitService.models.first { $0.name == modelName }?.sizeNote ?? ""
             await MainActor.run {
-                onProgress("モデルを準備中... (初回は \(sizeNote) のダウンロードが発生します)")
+                onProgress(String(format: localText(key: "whisper_preparing_model_fmt"), sizeNote))
             }
 
             // キャッシュ済みモデルのパスを確認
@@ -101,8 +101,21 @@ final class WhisperKitService {
                 .path
 
             if FileManager.default.fileExists(atPath: cachedPath) {
-                // キャッシュあり: ダウンロードせず直接ロード
-                pipe = try await WhisperKit(modelFolder: cachedPath, verbose: false)
+                // キャッシュあり: ダウンロードせず直接ロード（ファイルが壊れていたら削除して再DL）
+                do {
+                    pipe = try await WhisperKit(modelFolder: cachedPath, verbose: false)
+                } catch {
+                    dlog("[WhisperKit] キャッシュが壊れています。削除して再ダウンロードします: \(error)")
+                    try? FileManager.default.removeItem(atPath: cachedPath)
+                    await MainActor.run {
+                        onProgress(String(format: localText(key: "whisper_redownloading_fmt"), sizeNote))
+                    }
+                    pipe = try await WhisperKit(
+                        model: modelName,
+                        modelRepo: "argmaxinc/whisperkit-coreml",
+                        verbose: false
+                    )
+                }
             } else {
                 // 初回: HuggingFace からダウンロード
                 pipe = try await WhisperKit(
@@ -155,7 +168,7 @@ final class WhisperKitService {
         onProgress: @escaping @Sendable (String) -> Void
     ) async throws -> String {
 
-        await MainActor.run { onProgress("無音区間を検出中...") }
+        await MainActor.run { onProgress(localText(key: "whisper_detecting_silence")) }
 
         // 語学CDの1文は2〜3秒。文間ポーズは200ms程度なので minSilenceWindow:2(200ms) で分割。
         // targetDuration:2.0 + minSilenceWindow:2 により 1チャンク≒1文(1言語)になる。
@@ -181,7 +194,7 @@ final class WhisperKitService {
         #endif
 
         for (i, chunkURL) in chunkURLs.enumerated() {
-            await MainActor.run { onProgress("[\(i + 1)/\(total)] 文字起こし中...") }
+            await MainActor.run { onProgress(String(format: localText(key: "whisper_transcribing_auto_fmt"), i + 1, total)) }
 
             let sec: Double
             if let af = try? AVAudioFile(forReading: chunkURL) {
@@ -283,7 +296,7 @@ final class WhisperKitService {
         onProgress: @escaping @Sendable (String) -> Void
     ) async throws -> String {
 
-        await MainActor.run { onProgress("無音区間を検出中...") }
+        await MainActor.run { onProgress(localText(key: "whisper_detecting_silence")) }
 
         // 無音境界でチャンク分割（話者の切れ目で切るので文の途中で切れない）
         // 5秒チャンク: 1文≒1チャンクになるため言語検出が安定する
@@ -312,7 +325,7 @@ final class WhisperKitService {
                 options.promptTokens = pipe?.tokenizer?.encode(text: prompt)
             }
 
-            await MainActor.run { onProgress("(\(i + 1)/\(total)) 文字起こし中...") }
+            await MainActor.run { onProgress(String(format: localText(key: "whisper_transcribing_fmt"), i + 1, total)) }
             let results = try await pipe?.transcribe(audioPath: chunkURL.path,
                                                       decodeOptions: options) ?? []
             let text = results.map { $0.text }.joined(separator: " ")
@@ -326,7 +339,7 @@ final class WhisperKitService {
             #endif
             await MainActor.run {
                 let p = text.isEmpty ? "⚠️空" : String(text.suffix(25))
-                onProgress("(\(i + 1)/\(total)) [\(lang)] \(p)")
+                onProgress(String(format: localText(key: "whisper_transcribing_preview_fmt"), i + 1, total, lang, p))
             }
             if !text.isEmpty { assembled.append(text) }
         }
@@ -349,7 +362,7 @@ final class WhisperKitService {
         onProgress: @escaping @Sendable (String) -> Void
     ) async throws -> String {
 
-        await MainActor.run { onProgress("無音区間を検出中...") }
+        await MainActor.run { onProgress(localText(key: "whisper_detecting_silence")) }
         let chunkURLs = try splitAtSilenceBoundaries(url: fileURL,
                                                       targetDuration: 5,
                                                       silenceThreshold: 0.025,
@@ -361,7 +374,7 @@ final class WhisperKitService {
 
         for (i, chunkURL) in chunkURLs.enumerated() {
             await MainActor.run {
-                onProgress("(\(i + 1)/\(total)) 言語判定中...")
+                onProgress(String(format: localText(key: "whisper_detecting_lang_fmt"), i + 1, total))
             }
             // 直前チャンクの末尾をプロンプトとして渡すことで文脈を引き継ぐ
             let prompt = assembled.suffix(2).joined(separator: " ")
@@ -679,7 +692,7 @@ final class WhisperKitService {
     ) async throws -> URL {
         if url.isFileURL { return url }
 
-        await MainActor.run { onProgress("音声ファイルを準備中...") }
+        await MainActor.run { onProgress(localText(key: "whisper_preparing_audio")) }
 
         let asset = AVURLAsset(url: url)
         let tempURL = FileManager.default.temporaryDirectory
@@ -689,7 +702,7 @@ final class WhisperKitService {
         guard let session = AVAssetExportSession(asset: asset,
                                                   presetName: AVAssetExportPresetAppleM4A) else {
             throw NSError(domain: "WhisperKitService", code: -1,
-                          userInfo: [NSLocalizedDescriptionKey: "エクスポートセッションを作成できませんでした"])
+                          userInfo: [NSLocalizedDescriptionKey: localText(key: "whisper_export_session_error")])
         }
         session.outputURL = tempURL
         session.outputFileType = .m4a
@@ -701,7 +714,7 @@ final class WhisperKitService {
         }
         guard session.status == .completed else {
             throw NSError(domain: "WhisperKitService", code: -2,
-                          userInfo: [NSLocalizedDescriptionKey: "音声ファイルのエクスポートに失敗しました (status: \(session.status.rawValue))"])
+                          userInfo: [NSLocalizedDescriptionKey: String(format: localText(key: "whisper_export_fail_fmt"), session.status.rawValue)])
         }
         return tempURL
     }

@@ -69,16 +69,16 @@ final class DictationSetupViewController: UIViewController {
     private let loadingIndicator  = UIActivityIndicatorView(style: .medium) // 後方互換・非表示
     private let progressLabel     = UILabel()                               // 後方互換・非表示
 
-    // ── 新ローディングカード ───────────────────────────────────────────
-    private let loadingCard        = UIView()
-    private let loadingSpinner     = UIActivityIndicatorView(style: .large)
-    private let loadingTitleLabel  = UILabel()
-    private let loadingStepLabel   = UILabel()
-    private let cancelWhisperBtn   = UIButton(type: .system)
+    private var transcriptionOverlay: TranscriptionLoadingOverlay?
     private var cancelTranscription: (() -> Void)?
     private var whisperTask: Task<Void, Never>?
 
     // MARK: Lifecycle
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        FA.logScreen(FA.Screen.dictationSetup, vc: "DictationSetupViewController")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -142,10 +142,6 @@ final class DictationSetupViewController: UIViewController {
         setupWhisperButton()
         stack.addArrangedSubview(whisperBtn)
 
-        // ローディングカード（文字起こし中に表示）
-        setupLoadingCard()
-        stack.addArrangedSubview(loadingCard)
-
         // OCRセクション見出し（非表示・後方互換のため残す）
         ocrSectionLabel.isHidden = true
         stack.addArrangedSubview(ocrSectionLabel)
@@ -178,7 +174,7 @@ final class DictationSetupViewController: UIViewController {
         progressLabel.isHidden      = true
         stack.addArrangedSubview(progressLabel)
 
-        // ローディング
+        // ローディング（TranscriptionService 用・従来のスピナー）
         loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
         loadingIndicator.hidesWhenStopped = true
         view.addSubview(loadingIndicator)
@@ -186,6 +182,21 @@ final class DictationSetupViewController: UIViewController {
             loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
         ])
+
+        // WhisperKit 文字起こしオーバーレイ（全画面）
+        let overlay = TranscriptionLoadingOverlay()
+        overlay.translatesAutoresizingMaskIntoConstraints = false
+        overlay.alpha    = 0
+        overlay.isHidden = true
+        overlay.cancelAction = { [weak self] in self?.cancelWhisperTapped() }
+        view.addSubview(overlay)
+        NSLayoutConstraint.activate([
+            overlay.topAnchor.constraint(equalTo: view.topAnchor),
+            overlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            overlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            overlay.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+        transcriptionOverlay = overlay
     }
 
     // MARK: Song Card
@@ -373,53 +384,6 @@ final class DictationSetupViewController: UIViewController {
         manualInputBtn.setTitleColor(AppColor.textSecondary, for: .normal)
         manualInputBtn.addTarget(self, action: #selector(manualInputTapped), for: .touchUpInside)
         manualInputBtn.isHidden = true
-    }
-
-    private func setupLoadingCard() {
-        loadingCard.backgroundColor   = AppColor.surface
-        loadingCard.layer.cornerRadius = 20
-        loadingCard.isHidden           = true
-
-        loadingSpinner.color           = AppColor.accent
-        loadingSpinner.hidesWhenStopped = true
-        loadingSpinner.translatesAutoresizingMaskIntoConstraints = false
-
-        loadingTitleLabel.text          = localText(key: "dictsetup_analyzing")
-        loadingTitleLabel.font          = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        loadingTitleLabel.textColor     = AppColor.textPrimary
-        loadingTitleLabel.textAlignment = .center
-
-        loadingStepLabel.text          = localText(key: "dictsetup_loading_model")
-        loadingStepLabel.font          = UIFont.systemFont(ofSize: 13)
-        loadingStepLabel.textColor     = AppColor.textSecondary
-        loadingStepLabel.textAlignment = .center
-        loadingStepLabel.numberOfLines = 2
-
-        cancelWhisperBtn.setTitle(localText(key: "btn_cancel"), for: .normal)
-        cancelWhisperBtn.titleLabel?.font = UIFont.systemFont(ofSize: 14)
-        cancelWhisperBtn.setTitleColor(AppColor.textSecondary, for: .normal)
-        cancelWhisperBtn.addTarget(self, action: #selector(cancelWhisperTapped), for: .touchUpInside)
-
-        let textStack = UIStackView(arrangedSubviews: [loadingTitleLabel, loadingStepLabel])
-        textStack.axis    = .vertical
-        textStack.spacing = 6
-        textStack.translatesAutoresizingMaskIntoConstraints = false
-
-        let contentStack = UIStackView(arrangedSubviews: [loadingSpinner, textStack, cancelWhisperBtn])
-        contentStack.axis      = .vertical
-        contentStack.spacing   = 16
-        contentStack.alignment = .center
-        contentStack.translatesAutoresizingMaskIntoConstraints = false
-
-        loadingCard.addSubview(contentStack)
-        NSLayoutConstraint.activate([
-            contentStack.topAnchor.constraint(equalTo: loadingCard.topAnchor, constant: 28),
-            contentStack.leadingAnchor.constraint(equalTo: loadingCard.leadingAnchor, constant: 20),
-            contentStack.trailingAnchor.constraint(equalTo: loadingCard.trailingAnchor, constant: -20),
-            contentStack.bottomAnchor.constraint(equalTo: loadingCard.bottomAnchor, constant: -24),
-            loadingSpinner.widthAnchor.constraint(equalToConstant: 44),
-            loadingSpinner.heightAnchor.constraint(equalToConstant: 44),
-        ])
     }
 
     @objc private func cancelWhisperTapped() {
@@ -739,21 +703,34 @@ final class DictationSetupViewController: UIViewController {
             let iconCfg = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
             statusIcon.image     = UIImage(systemName: "text.badge.plus", withConfiguration: iconCfg)
             statusIcon.tintColor = AppColor.accent
-            statusLabel.text     = localText(key: "dictsetup_text_empty")
-            statusSub.text       = localText(key: "dictsetup_text_empty_sub")
+            let isProtected = track.hasProtectedAsset || track.url == nil && track.persistentID != 0
+            statusLabel.text = localText(key: "dictsetup_text_empty")
+            statusSub.text   = isProtected
+                ? localText(key: "dictsetup_text_empty_sub_drm")
+                : localText(key: "dictsetup_text_empty_sub")
             fetchBtn.isHidden      = true
             transcribeBtn.isHidden = true
+            let canWhisper = !isProtected
             let whisperAvailable: Bool
-            if #available(iOS 16, *) { whisperAvailable = true } else { whisperAvailable = false }
+            if #available(iOS 16, *) { whisperAvailable = canWhisper } else { whisperAvailable = false }
             whisperBtn.isHidden      = !whisperAvailable
-            ocrSectionLabel.isHidden = true  // 常に非表示（トグルに置き換え）
-            // OCR系は折りたたみ状態でリセット
-            isOtherMethodsExpanded   = false
-            updateOtherMethodsToggleTitle()
-            otherMethodsToggle.isHidden = false
-            imageOCRBtn.isHidden     = true
-            cameraOCRBtn.isHidden    = true
-            manualInputBtn.isHidden  = true
+            ocrSectionLabel.isHidden = true
+            if isProtected {
+                // DRM トラック: トグルを省略してすべての代替手段を直接表示
+                isOtherMethodsExpanded   = true
+                otherMethodsToggle.isHidden = true
+                imageOCRBtn.isHidden     = false
+                cameraOCRBtn.isHidden    = !UIImagePickerController.isSourceTypeAvailable(.camera)
+                manualInputBtn.isHidden  = false
+            } else {
+                // 通常トラック: OCR系は折りたたみ状態でリセット
+                isOtherMethodsExpanded   = false
+                updateOtherMethodsToggleTitle()
+                otherMethodsToggle.isHidden = false
+                imageOCRBtn.isHidden     = true
+                cameraOCRBtn.isHidden    = true
+                manualInputBtn.isHidden  = true
+            }
             startBtn.isHidden        = true
         }
     }
@@ -811,7 +788,7 @@ final class DictationSetupViewController: UIViewController {
                     languages: languages,
                     onProgress: { msg in
                         Task { @MainActor in
-                            self.loadingStepLabel.text = msg
+                            self.transcriptionOverlay?.update(step: msg)
                         }
                     }
                 )
@@ -837,18 +814,15 @@ final class DictationSetupViewController: UIViewController {
 
     private func setWhisperLoading(_ loading: Bool) {
         if loading {
-            loadingSpinner.startAnimating()
-            loadingCard.isHidden  = false
-            whisperBtn.isHidden   = true
+            transcriptionOverlay?.show()
+            whisperBtn.isHidden         = true
             otherMethodsToggle.isHidden = true
-            imageOCRBtn.isHidden  = true
-            cameraOCRBtn.isHidden = true
-            manualInputBtn.isHidden = true
-            progressLabel.isHidden = true
+            imageOCRBtn.isHidden        = true
+            cameraOCRBtn.isHidden       = true
+            manualInputBtn.isHidden     = true
+            progressLabel.isHidden      = true
         } else {
-            loadingSpinner.stopAnimating()
-            loadingCard.isHidden = true
-            loadingStepLabel.text = localText(key: "dictsetup_loading_model")
+            transcriptionOverlay?.hide()
             // refresh() が表示状態を再構築するので個別復元は不要
         }
     }
@@ -1041,14 +1015,14 @@ final class DictationSetupViewController: UIViewController {
 
     private func confirmAndSaveTranscription(_ text: String) {
         // エディタでユーザーがすでに確認・保存を選んでいるので、ここでは直接保存する
-        if let url = track.url {
-            LyricsService.saveFetchedLyrics(
-                text,
-                trackURL: url,
-                libraryName: libraryName,
-                trackIndex: trackIndex
-            )
-        }
+        // DRM トラック（url == nil）も persistentID 経由で保存するためガードを除去
+        LyricsService.saveFetchedLyrics(
+            text,
+            trackURL: track.url,
+            persistentID: track.persistentID,
+            libraryName: libraryName,
+            trackIndex: trackIndex
+        )
         refresh(with: text)
         showToastMsg(messege: localText(key: "dictsetup_lyrics_saved"), time: 2, tab: 0)
     }
@@ -1084,8 +1058,7 @@ final class DictationSetupViewController: UIViewController {
     // MARK: Rewarded Ad
 
     private func preloadRewardedAd() {
-        let adUnitID = DEBUG_FLG ? ADMOB_REWARD_AD : ADMOB_REWARD_AD
-        RewardedAd.load(with: adUnitID, request: Request()) { [weak self] ad, error in
+        RewardedAd.load(with: ADMOB_REWARD_AD, request: Request()) { [weak self] ad, error in
             if let error {
                 dlog("[DictationSetup] RewardedAd load failed: \(error)")
                 return
@@ -1104,15 +1077,14 @@ final class DictationSetupViewController: UIViewController {
             self.setLoading(false)
 
             if let lyrics {
-                // 保存して UI を更新
-                if let url = self.track.url {
-                    LyricsService.saveFetchedLyrics(
-                        lyrics,
-                        trackURL: url,
-                        libraryName: self.libraryName,
-                        trackIndex: self.trackIndex
-                    )
-                }
+                // 保存して UI を更新（DRM トラックも persistentID 経由で保存）
+                LyricsService.saveFetchedLyrics(
+                    lyrics,
+                    trackURL: self.track.url,
+                    persistentID: self.track.persistentID,
+                    libraryName: self.libraryName,
+                    trackIndex: self.trackIndex
+                )
                 self.refresh(with: lyrics)
             } else {
                 self.showAlert(
@@ -1145,6 +1117,233 @@ final class DictationSetupViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "OK", style: copyable ? .cancel : .default))
         present(alert, animated: true)
     }
+}
+
+// MARK: - WaveformBarsView
+
+final class WaveformBarsView: UIView {
+    private var bars: [UIView] = []
+    private var isCurrentlyAnimating = false
+    private let barWidth: CGFloat
+    private let barGap: CGFloat
+    private let barHeightValues: [CGFloat]
+    private let durations: [Double]
+    private let offsets: [Double]
+    private let minScales: [CGFloat]
+
+    init(compact: Bool = false) {
+        if compact {
+            barWidth       = 3
+            barGap         = 3
+            barHeightValues = [10, 18, 13, 20]
+            durations      = [0.55, 0.38, 0.48, 0.33]
+            offsets        = [0.00, 0.20, 0.10, 0.35]
+            minScales      = [0.22, 0.18, 0.28, 0.14]
+        } else {
+            barWidth       = 5
+            barGap         = 5
+            barHeightValues = [18, 32, 24, 36, 20]
+            durations      = [0.55, 0.38, 0.48, 0.33, 0.52]
+            offsets        = [0.00, 0.20, 0.10, 0.35, 0.15]
+            minScales      = [0.22, 0.18, 0.28, 0.14, 0.30]
+        }
+        super.init(frame: .zero)
+        setupBars()
+    }
+    override init(frame: CGRect) {
+        barWidth = 5; barGap = 5
+        barHeightValues = [18, 32, 24, 36, 20]
+        durations  = [0.55, 0.38, 0.48, 0.33, 0.52]
+        offsets    = [0.00, 0.20, 0.10, 0.35, 0.15]
+        minScales  = [0.22, 0.18, 0.28, 0.14, 0.30]
+        super.init(frame: frame)
+        setupBars()
+    }
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window != nil && isCurrentlyAnimating {
+            addAnimations()
+        }
+    }
+
+    private func setupBars() {
+        for h in barHeightValues {
+            let bar = UIView()
+            bar.backgroundColor    = AppColor.accent
+            bar.layer.cornerRadius = barWidth / 2
+            bar.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(bar)
+            bars.append(bar)
+            bar.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+            bar.widthAnchor.constraint(equalToConstant: barWidth).isActive = true
+            bar.heightAnchor.constraint(equalToConstant: h).isActive = true
+        }
+        for (i, bar) in bars.enumerated() {
+            if i == 0 {
+                bar.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
+            } else {
+                bar.leadingAnchor.constraint(equalTo: bars[i - 1].trailingAnchor, constant: barGap).isActive = true
+            }
+        }
+    }
+
+    func startAnimating() {
+        isCurrentlyAnimating = true
+        addAnimations()
+    }
+
+    func stopAnimating() {
+        isCurrentlyAnimating = false
+        bars.forEach { $0.layer.removeAllAnimations() }
+    }
+
+    private func addAnimations() {
+        for (i, bar) in bars.enumerated() {
+            bar.layer.removeAnimation(forKey: "wave")
+            let anim            = CABasicAnimation(keyPath: "transform.scale.y")
+            anim.fromValue      = 1.0
+            anim.toValue        = minScales[i]
+            anim.duration       = durations[i]
+            anim.timeOffset     = offsets[i]
+            anim.repeatCount    = .infinity
+            anim.autoreverses   = true
+            anim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            bar.layer.add(anim, forKey: "wave")
+        }
+    }
+}
+
+// MARK: - TranscriptionLoadingOverlay
+
+final class TranscriptionLoadingOverlay: UIView {
+    var cancelAction: (() -> Void)?
+
+    private let blurView    = UIVisualEffectView(effect: UIBlurEffect(style: .systemMaterial))
+    private let card        = UIView()
+    private let waveform    = WaveformBarsView()
+    private let titleLabel  = UILabel()
+    private let stepLabel   = UILabel()
+    private let progressBar = UIProgressView(progressViewStyle: .default)
+    private let chunkLabel  = UILabel()
+    private let cancelBtn   = UIButton(type: .system)
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupUI()
+    }
+    required init?(coder: NSCoder) { fatalError() }
+
+    private func setupUI() {
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(blurView)
+        NSLayoutConstraint.activate([
+            blurView.topAnchor.constraint(equalTo: topAnchor),
+            blurView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            blurView.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+
+        card.backgroundColor     = AppColor.surface
+        card.layer.cornerRadius  = 28
+        card.layer.shadowColor   = UIColor.black.cgColor
+        card.layer.shadowOpacity = 0.14
+        card.layer.shadowOffset  = CGSize(width: 0, height: 8)
+        card.layer.shadowRadius  = 24
+        card.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(card)
+        NSLayoutConstraint.activate([
+            card.centerXAnchor.constraint(equalTo: centerXAnchor),
+            card.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -16),
+            card.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 0.84),
+        ])
+
+        waveform.translatesAutoresizingMaskIntoConstraints = false
+
+        titleLabel.text          = localText(key: "dictsetup_overlay_title")
+        titleLabel.font          = UIFont.systemFont(ofSize: 18, weight: .bold)
+        titleLabel.textColor     = AppColor.textPrimary
+        titleLabel.textAlignment = .center
+        titleLabel.numberOfLines = 2
+
+        stepLabel.text           = localText(key: "dictsetup_loading_model")
+        stepLabel.font           = UIFont.systemFont(ofSize: 14)
+        stepLabel.textColor      = AppColor.textSecondary
+        stepLabel.textAlignment  = .center
+        stepLabel.numberOfLines  = 2
+
+        progressBar.progressTintColor  = AppColor.accent
+        progressBar.trackTintColor     = AppColor.surfaceSecondary
+        progressBar.layer.cornerRadius = 3
+        progressBar.clipsToBounds      = true
+        progressBar.isHidden           = true
+        progressBar.setProgress(0, animated: false)
+
+        chunkLabel.font          = UIFont.monospacedDigitSystemFont(ofSize: 13, weight: .medium)
+        chunkLabel.textColor     = AppColor.accent
+        chunkLabel.textAlignment = .center
+        chunkLabel.isHidden      = true
+
+        cancelBtn.setTitle(localText(key: "btn_cancel"), for: .normal)
+        cancelBtn.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        cancelBtn.setTitleColor(AppColor.textSecondary, for: .normal)
+        cancelBtn.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
+
+        let contentStack = UIStackView(arrangedSubviews: [
+            waveform, titleLabel, stepLabel, progressBar, chunkLabel, cancelBtn
+        ])
+        contentStack.axis      = .vertical
+        contentStack.spacing   = 16
+        contentStack.alignment = .center
+        contentStack.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(contentStack)
+
+        NSLayoutConstraint.activate([
+            waveform.widthAnchor.constraint(equalToConstant: 45),
+            waveform.heightAnchor.constraint(equalToConstant: 44),
+            progressBar.widthAnchor.constraint(equalTo: contentStack.widthAnchor),
+            contentStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 36),
+            contentStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 24),
+            contentStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -24),
+            contentStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -28),
+        ])
+    }
+
+    func show() {
+        isHidden = false
+        waveform.startAnimating()
+        UIView.animate(withDuration: 0.28) { self.alpha = 1 }
+    }
+
+    func hide() {
+        waveform.stopAnimating()
+        UIView.animate(withDuration: 0.22, animations: { self.alpha = 0 }) { _ in
+            self.isHidden = true
+            self.progressBar.isHidden = true
+            self.chunkLabel.isHidden  = true
+            self.progressBar.setProgress(0, animated: false)
+            self.stepLabel.text = localText(key: "dictsetup_loading_model")
+        }
+    }
+
+    func update(step msg: String) {
+        stepLabel.text = msg
+        let pattern = #"[\[\(](\d+)/(\d+)[\]\)]"#
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              let match = regex.firstMatch(in: msg, range: NSRange(msg.startIndex..., in: msg)),
+              let curRange = Range(match.range(at: 1), in: msg),
+              let totRange = Range(match.range(at: 2), in: msg),
+              let current  = Int(msg[curRange]),
+              let total    = Int(msg[totRange]),
+              total > 0 else { return }
+        progressBar.isHidden = false
+        chunkLabel.isHidden  = false
+        chunkLabel.text      = "\(current) / \(total)"
+        progressBar.setProgress(Float(current) / Float(total), animated: true)
+    }
+
+    @objc private func cancelTapped() { cancelAction?() }
 }
 
 // MARK: - PHPickerViewControllerDelegate

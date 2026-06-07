@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import MediaPlayer
 
 // MARK: - Spring Animation + Haptics Helper
 
@@ -43,38 +44,32 @@ extension PlayMusicViewController {
         addBackgroundLayer()
         addPlayerCard()
         view.bringSubviewToFront(banner)
-        // storyboard の adRemoveBtn は非表示にし nav bar で代替
         adRemoveBtn.isHidden = true
-        setupAdRemoveBarItem()
+        setupAdRemoveFloatBtn()
     }
 
-    private func setupAdRemoveBarItem() {
+    private func setupAdRemoveFloatBtn() {
+        guard let container = newContentContainer, let card = newPlayerCard else { return }
         let btn = UIButton(type: .system)
         btn.setTitle(localText(key: "ad_reward_title"), for: .normal)
-        btn.titleLabel?.font = UIFont.systemFont(ofSize: 12)
-        btn.setTitleColor(AppColor.accent, for: .normal)
-        btn.contentEdgeInsets = UIEdgeInsets(top: 4, left: 10, bottom: 4, right: 10)
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 11, weight: .semibold)
+        btn.setTitleColor(.white, for: .normal)
+        btn.backgroundColor = AppColor.accent.withAlphaComponent(0.82)
+        btn.layer.cornerRadius = 12
+        btn.contentEdgeInsets = UIEdgeInsets(top: 5, left: 10, bottom: 5, right: 10)
         btn.addTarget(self, action: #selector(adRemoveBtnTapped(_:)), for: .touchUpInside)
-        btn.sizeToFit()
-        adRemoveBarItem = UIBarButtonItem(customView: btn)
-        let space = UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
-        space.width = 16
-        adRemoveSpaceItem = space
-        // 初期状態では追加しない — setAdRemoveBarItemVisible で動的に追加/削除する
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        btn.isHidden = true
+        card.addSubview(btn)
+        adRemoveFloatBtn = btn
+        NSLayoutConstraint.activate([
+            btn.bottomAnchor.constraint(equalTo: container.topAnchor, constant: -8),
+            btn.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+        ])
     }
 
     func setAdRemoveBarItemVisible(_ visible: Bool) {
-        guard let item = adRemoveBarItem, let space = adRemoveSpaceItem else { return }
-        var items = navigationItem.rightBarButtonItems ?? []
-        let alreadyShown = items.contains(item)
-        if visible && !alreadyShown {
-            items.append(space)
-            items.append(item)
-            navigationItem.rightBarButtonItems = items
-        } else if !visible && alreadyShown {
-            items.removeAll { $0 === item || $0 === space }
-            navigationItem.rightBarButtonItems = items
-        }
+        adRemoveFloatBtn?.isHidden = !visible
     }
 
     func hideOldUI() {
@@ -140,7 +135,7 @@ extension PlayMusicViewController {
             contentTop,
             contentContainer.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 28),
             contentContainer.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -28),
-            contentContainer.heightAnchor.constraint(equalTo: contentContainer.widthAnchor, multiplier: 1.15),
+            contentContainer.heightAnchor.constraint(equalTo: contentContainer.widthAnchor),
         ])
 
         // アートワーク（影あり）
@@ -192,6 +187,18 @@ extension PlayMusicViewController {
             lyricsView.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
         ])
 
+        // 歌詞未登録エンプティビュー
+        let emptyView = buildNoLyricsEmptyView()
+        emptyView.isHidden = true
+        contentContainer.addSubview(emptyView)
+        noLyricsEmptyView = emptyView
+        NSLayoutConstraint.activate([
+            emptyView.topAnchor.constraint(equalTo: contentContainer.topAnchor),
+            emptyView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor),
+            emptyView.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
+            emptyView.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
+        ])
+
         // ── 曲名/アーティスト + モードセグメント ─────────────────
         let titleLabel = UILabel()
         titleLabel.font          = .systemFont(ofSize: 22, weight: .bold)
@@ -209,7 +216,7 @@ extension PlayMusicViewController {
         card.addSubview(artistLabel)
         newArtistLabel = artistLabel
 
-        let modeSegment = UISegmentedControl(items: ["♩", "歌詞"])
+        let modeSegment = UISegmentedControl(items: ["♩", localText(key: "player_segment_lyrics")])
         modeSegment.selectedSegmentIndex = 0
         modeSegment.selectedSegmentTintColor = AppColor.accent
         modeSegment.setTitleTextAttributes([.foregroundColor: AppColor.textPrimary], for: .normal)
@@ -490,46 +497,6 @@ final class AMProgressSlider: UISlider {
     }
 }
 
-// MARK: - Default Artwork
-
-extension PlayMusicViewController {
-
-    /// サムネイルが未設定の場合に使うグラデーション＋音符アイコン画像を生成する
-    func makeDefaultArtwork(size: CGSize = CGSize(width: 600, height: 600)) -> UIImage {
-        let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { ctx in
-            let rect = CGRect(origin: .zero, size: size)
-
-            // グレー系グラデーション背景
-            let gradient = CGGradient(
-                colorsSpace: CGColorSpaceCreateDeviceRGB(),
-                colors: [
-                    UIColor(white: 0.20, alpha: 1).cgColor,
-                    UIColor(white: 0.32, alpha: 1).cgColor,
-                ] as CFArray,
-                locations: [0, 1]
-            )!
-            ctx.cgContext.drawLinearGradient(
-                gradient,
-                start: CGPoint(x: 0, y: 0),
-                end:   CGPoint(x: size.width, y: size.height),
-                options: []
-            )
-
-            // 音符アイコン（SF Symbol）を中央に描画
-            let symbolSize = size.width * 0.38
-            let cfg = UIImage.SymbolConfiguration(pointSize: symbolSize, weight: .thin)
-            if let symbol = UIImage(systemName: "music.note", withConfiguration: cfg)?
-                .withTintColor(UIColor(white: 1.0, alpha: 0.18), renderingMode: .alwaysOriginal) {
-                let origin = CGPoint(
-                    x: (size.width  - symbol.size.width)  / 2,
-                    y: (size.height - symbol.size.height) / 2
-                )
-                symbol.draw(at: origin)
-            }
-        }
-    }
-}
 
 // MARK: - New Player UI Sync
 
@@ -540,6 +507,7 @@ extension PlayMusicViewController {
         newArtistLabel?.text = playData.artist
         newLyricsView?.text  = playData.lyric
         newLyricsView?.setContentOffset(.zero, animated: false)
+        updateNoLyricsState()
         let img = playData.artworkImg ?? makeDefaultArtwork()
         newArtworkView?.image  = img
         newBgImageView?.image  = img
@@ -550,15 +518,31 @@ extension PlayMusicViewController {
     }
 
     func syncNewUIProgress() {
-        guard let player = audioPlayer, player.duration > 0 else { return }
-        newProgressSlider?.value = Float(player.currentTime / player.duration)
-        newNowTimeLabel?.text    = formatTimeString(d: player.currentTime)
-        newTotalTimeLabel?.text  = formatTimeString(d: player.duration)
-        newScrubTimeLabel?.text  = formatTimeString(d: player.currentTime)
+        if let player = audioPlayer, player.duration > 0 {
+            newProgressSlider?.value = Float(player.currentTime / player.duration)
+            newNowTimeLabel?.text    = formatTimeString(d: player.currentTime)
+            newTotalTimeLabel?.text  = formatTimeString(d: player.duration)
+            newScrubTimeLabel?.text  = formatTimeString(d: player.currentTime)
+        } else {
+            let am = MPMusicPlayerController.applicationQueuePlayer
+            let cur = am.currentPlaybackTime
+            let dur = am.nowPlayingItem?.playbackDuration ?? 0
+            if dur > 0, cur >= 0 {
+                newProgressSlider?.value = Float(cur / dur)
+                newNowTimeLabel?.text    = formatTimeString(d: cur)
+                newTotalTimeLabel?.text  = formatTimeString(d: dur)
+                newScrubTimeLabel?.text  = formatTimeString(d: cur)
+            }
+        }
     }
 
     func syncNewUIPlayState() {
-        let isPlaying = audioPlayer?.isPlaying ?? false
+        let isPlaying: Bool
+        if let player = audioPlayer {
+            isPlaying = player.isPlaying
+        } else {
+            isPlaying = MPMusicPlayerController.applicationQueuePlayer.playbackState == .playing
+        }
         let cfg = UIImage.SymbolConfiguration(pointSize: 32, weight: .bold)
         let name = isPlaying ? "pause.fill" : "play.fill"
         newPlayPauseBtn?.setImage(UIImage(systemName: name, withConfiguration: cfg), for: .normal)
@@ -670,8 +654,8 @@ extension PlayMusicViewController {
     @objc func newModeSwitched(_ sender: UISegmentedControl) {
         isShowingLyrics = sender.selectedSegmentIndex == 1
         UIView.transition(with: newContentContainer ?? UIView(), duration: 0.28, options: .transitionCrossDissolve) {
-            self.newArtworkView?.isHidden  = self.isShowingLyrics
-            self.newLyricsView?.isHidden   = !self.isShowingLyrics
+            self.newArtworkView?.isHidden = self.isShowingLyrics
+            self.updateNoLyricsState()
         }
     }
 
@@ -682,8 +666,14 @@ extension PlayMusicViewController {
             syncNewUIProgress()
             newScrubTimeLabel?.text = formatTimeString(d: player.currentTime)
         } else {
-            // 再生前のシーク: 位置を記憶して再生開始時に適用
-            pendingSeekRatio = sender.value
+            let am = MPMusicPlayerController.applicationQueuePlayer
+            let dur = am.nowPlayingItem?.playbackDuration ?? 0
+            if dur > 0 {
+                let seekTime = TimeInterval(sender.value) * dur
+                am.currentPlaybackTime = seekTime
+                musicProgressSlider.value = sender.value
+                newScrubTimeLabel?.text = formatTimeString(d: seekTime)
+            }
         }
     }
 
@@ -699,14 +689,32 @@ extension PlayMusicViewController {
         let rawValues: [CGFloat] = multiRepeatSlider?.value ?? [0, 1]
         let start   = rawValues.count >= 2 ? rawValues[0] : 0
         let end     = rawValues.count >= 2 ? rawValues[1] : 1
-        let dur     = audioPlayer?.duration ?? 0
-        let curTime = audioPlayer?.currentTime ?? 0
+        let dur: TimeInterval
+        let curTime: TimeInterval
+        if let player = audioPlayer {
+            dur     = player.duration
+            curTime = player.currentTime
+        } else {
+            let am  = MPMusicPlayerController.applicationQueuePlayer
+            dur     = am.nowPlayingItem?.playbackDuration ?? 0
+            curTime = max(am.currentPlaybackTime, 0)
+        }
         let enabled = sectionRepeatStatus == SECTION_REPEAT_ON
 
         let sheet = RegionRepeatSheetViewController(
             isEnabled: enabled, start: start, end: end,
             duration: dur, currentTime: curTime
         )
+        sheet.onDisable = { [weak self] in
+            guard let self else { return }
+            sectionRepeatStatus = SECTION_REPEAT_OFF
+            self.setSectionRepeatStatus()
+            self.syncNewUIRegionState()
+        }
+        sheet.getPlaybackTime = {
+            if let player = audioPlayer { return player.currentTime }
+            return max(MPMusicPlayerController.applicationQueuePlayer.currentPlaybackTime, 0)
+        }
         sheet.onConfirm = { [weak self] (isOn: Bool, newStart: CGFloat, newEnd: CGFloat) in
             guard let self else { return }
             self.multiRepeatSlider?.value = [newStart, newEnd]
@@ -715,16 +723,86 @@ extension PlayMusicViewController {
             sectionRepeatStatus = isOn ? SECTION_REPEAT_ON : SECTION_REPEAT_OFF
             self.setSectionRepeatStatus()
             self.syncNewUIRegionState()
-            // 設定をUserDefaultsに保存（区間・ON/OFF）
             let trackData = SHUFFLE_FLG
                 ? NowPlayingMusicLibraryData.trackDataShuffled
                 : NowPlayingMusicLibraryData.trackData
             if newSelectPlayNum < trackData.count {
                 let playData = trackData[newSelectPlayNum]
                 self.mMusicController.setSectionRepeatSettings(playData: playData, time: [newStart, newEnd])
-                self.mMusicController.setSectionRepeatEnabled(url: playData.url!, isEnabled: isOn)
+                self.mMusicController.setSectionRepeatEnabled(trackData: playData, isEnabled: isOn)
             }
         }
         present(sheet, animated: false)
+    }
+}
+
+// MARK: - No Lyrics Empty State
+
+extension PlayMusicViewController {
+
+    func buildNoLyricsEmptyView() -> UIView {
+        let container = UIView()
+        container.backgroundColor   = AppColor.surfaceSecondary
+        container.layer.cornerRadius = 18
+        container.translatesAutoresizingMaskIntoConstraints = false
+
+        let iconCfg = UIImage.SymbolConfiguration(pointSize: 40, weight: .thin)
+        let iconView = UIImageView(image: UIImage(systemName: "music.note.list", withConfiguration: iconCfg))
+        iconView.tintColor   = AppColor.accent
+        iconView.contentMode = .scaleAspectFit
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+
+        let titleLabel = UILabel()
+        titleLabel.text          = localText(key: "player_no_lyrics_title")
+        titleLabel.font          = .systemFont(ofSize: 16, weight: .semibold)
+        titleLabel.textColor     = AppColor.textPrimary
+        titleLabel.textAlignment = .center
+        titleLabel.numberOfLines = 2
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let subLabel = UILabel()
+        subLabel.text          = localText(key: "player_no_lyrics_sub")
+        subLabel.font          = .systemFont(ofSize: 13)
+        subLabel.textColor     = AppColor.textSecondary
+        subLabel.textAlignment = .center
+        subLabel.numberOfLines = 3
+        subLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let registerBtn = UIButton(type: .system)
+        registerBtn.setTitle(localText(key: "player_no_lyrics_btn"), for: .normal)
+        registerBtn.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
+        registerBtn.setTitleColor(.white, for: .normal)
+        registerBtn.backgroundColor   = AppColor.accent
+        registerBtn.layer.cornerRadius = 14
+        registerBtn.contentEdgeInsets = UIEdgeInsets(top: 10, left: 24, bottom: 10, right: 24)
+        registerBtn.translatesAutoresizingMaskIntoConstraints = false
+        registerBtn.addTarget(self, action: #selector(noLyricsRegisterTapped), for: .touchUpInside)
+
+        let stack = UIStackView(arrangedSubviews: [iconView, titleLabel, subLabel, registerBtn])
+        stack.axis      = .vertical
+        stack.spacing   = 12
+        stack.alignment = .center
+        stack.translatesAutoresizingMaskIntoConstraints = false
+
+        container.addSubview(stack)
+        NSLayoutConstraint.activate([
+            iconView.heightAnchor.constraint(equalToConstant: 52),
+            stack.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            stack.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
+            stack.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -20),
+            stack.topAnchor.constraint(greaterThanOrEqualTo: container.topAnchor, constant: 16),
+            stack.bottomAnchor.constraint(lessThanOrEqualTo: container.bottomAnchor, constant: -16),
+        ])
+        return container
+    }
+
+    @objc func noLyricsRegisterTapped() {
+        performSegue(withIdentifier: "toMusicSetting", sender: nil)
+    }
+
+    func updateNoLyricsState() {
+        let hasLyrics = !(newLyricsView?.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        newLyricsView?.isHidden   = !isShowingLyrics || !hasLyrics
+        noLyricsEmptyView?.isHidden = !isShowingLyrics || hasLyrics
     }
 }

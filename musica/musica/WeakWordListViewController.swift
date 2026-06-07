@@ -9,6 +9,9 @@
 //
 
 import UIKit
+import AVFoundation
+import NaturalLanguage
+import GoogleMobileAds
 
 final class WeakWordListViewController: UIViewController {
 
@@ -16,11 +19,22 @@ final class WeakWordListViewController: UIViewController {
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
     private let practiceBtn = UIButton(type: .system)
     private let emptyView = UIView()
+    private let weakBannerView = BannerView()
 
     // MARK: State
     private var words: [WeakWord] = []
+    private var practiceBtnBottomConstraint: NSLayoutConstraint?
+
+    // MARK: TTS
+    private let synthesizer = AVSpeechSynthesizer()
+    private weak var activeSpeakBtn: UIButton?
 
     // MARK: Lifecycle
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        FA.logScreen(FA.Screen.weakWords, vc: "WeakWordListViewController")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,12 +53,14 @@ final class WeakWordListViewController: UIViewController {
         setupTableView()
         setupPracticeButton()
         setupEmptyView()
+        setupWeakBanner()
         reload()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         reload()
+        loadWeakBannerIfNeeded()
     }
 
     // MARK: Setup
@@ -68,8 +84,10 @@ final class WeakWordListViewController: UIViewController {
         view.addSubview(practiceBtn)
 
         let safe = view.safeAreaLayoutGuide
+        let btnBottom = practiceBtn.bottomAnchor.constraint(equalTo: safe.bottomAnchor, constant: -16)
+        practiceBtnBottomConstraint = btnBottom
         NSLayoutConstraint.activate([
-            practiceBtn.bottomAnchor.constraint(equalTo: safe.bottomAnchor, constant: -16),
+            btnBottom,
             practiceBtn.leadingAnchor.constraint(equalTo: safe.leadingAnchor, constant: 24),
             practiceBtn.trailingAnchor.constraint(equalTo: safe.trailingAnchor, constant: -24),
             practiceBtn.heightAnchor.constraint(equalToConstant: 52),
@@ -167,6 +185,51 @@ final class WeakWordListViewController: UIViewController {
         present(nav, animated: true)
     }
 
+    // MARK: TTS
+
+    private func speakWord(_ text: String, from btn: UIButton) {
+        // 同じボタンを再タップ → 停止
+        if btn === activeSpeakBtn && synthesizer.isSpeaking {
+            synthesizer.stopSpeaking(at: .immediate)
+            setSpeakBtn(activeSpeakBtn, speaking: false)
+            activeSpeakBtn = nil
+            return
+        }
+        // 前のボタンをリセット
+        setSpeakBtn(activeSpeakBtn, speaking: false)
+
+        let langMap: [NLLanguage: String] = [
+            .japanese: "ja-JP", .english: "en-US",
+            .simplifiedChinese: "zh-CN", .traditionalChinese: "zh-TW",
+            .korean: "ko-KR", .spanish: "es-ES", .french: "fr-FR",
+            .german: "de-DE", .italian: "it-IT", .portuguese: "pt-BR",
+            .russian: "ru-RU", .arabic: "ar-SA", .hindi: "hi-IN",
+            .thai: "th-TH", .turkish: "tr-TR",
+        ]
+        let rec = NLLanguageRecognizer()
+        rec.processString(text)
+        let langCode = langMap[rec.dominantLanguage ?? .undetermined] ?? "en-US"
+        guard let voice = AVSpeechSynthesisVoice(language: langCode) else { return }
+
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.voice = voice
+        utterance.rate  = AVSpeechUtteranceDefaultSpeechRate * 0.85
+        synthesizer.stopSpeaking(at: .immediate)
+        synthesizer.delegate = self
+        synthesizer.speak(utterance)
+
+        activeSpeakBtn = btn
+        setSpeakBtn(btn, speaking: true)
+    }
+
+    private func setSpeakBtn(_ btn: UIButton?, speaking: Bool) {
+        guard let btn else { return }
+        let cfg  = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+        let icon = speaking ? "speaker.wave.3.fill" : "speaker.wave.2"
+        btn.setImage(UIImage(systemName: icon, withConfiguration: cfg), for: .normal)
+        btn.tintColor = speaking ? AppColor.accent : AppColor.textSecondary
+    }
+
     @objc private func clearAllTapped() {
         let alert = UIAlertController(
             title: localText(key: "weak_word_clear_all_title"),
@@ -193,6 +256,9 @@ extension WeakWordListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: WeakWordCell.reuseID, for: indexPath) as! WeakWordCell
         cell.configure(word: words[indexPath.row])
+        cell.onSpeak = { [weak self] btn in
+            self?.speakWord(self?.words[indexPath.row].displayWord ?? "", from: btn)
+        }
         return cell
     }
 
@@ -220,15 +286,75 @@ extension WeakWordListViewController: UITableViewDelegate {
     }
 }
 
+// MARK: - Banner Ad
+
+extension WeakWordListViewController: BannerViewDelegate {
+    fileprivate func setupWeakBanner() {
+        guard AD_DISPLAY_PRACTICE_BANNER else { return }
+        #if targetEnvironment(simulator)
+        weakBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID_TEST
+        #else
+        weakBannerView.adUnitID = ADMOB_BANNER_ADUNIT_ID
+        #endif
+        weakBannerView.rootViewController = self
+        weakBannerView.delegate = self
+        weakBannerView.isHidden = true
+        weakBannerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(weakBannerView)
+        NSLayoutConstraint.activate([
+            weakBannerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            weakBannerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            weakBannerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+        ])
+    }
+
+    fileprivate func loadWeakBannerIfNeeded() {
+        guard AD_DISPLAY_PRACTICE_BANNER else { return }
+        guard weakBannerView.isHidden else { return }
+        let width = view.bounds.width > 0 ? view.bounds.width : UIScreen.main.bounds.width
+        weakBannerView.adSize = currentOrientationAnchoredAdaptiveBanner(width: width)
+        weakBannerView.load(Request())
+    }
+
+    func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+        bannerView.isHidden = false
+        let h = bannerView.adSize.size.height
+        practiceBtnBottomConstraint?.constant = -(16 + h)
+        UIView.animate(withDuration: 0.25) { self.view.layoutIfNeeded() }
+    }
+
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+        bannerView.isHidden = true
+        practiceBtnBottomConstraint?.constant = -16
+        UIView.animate(withDuration: 0.25) { self.view.layoutIfNeeded() }
+    }
+}
+
+// MARK: - AVSpeechSynthesizerDelegate
+
+extension WeakWordListViewController: AVSpeechSynthesizerDelegate {
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        setSpeakBtn(activeSpeakBtn, speaking: false)
+        activeSpeakBtn = nil
+    }
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        setSpeakBtn(activeSpeakBtn, speaking: false)
+        activeSpeakBtn = nil
+    }
+}
+
 // MARK: - WeakWordCell
 
 private final class WeakWordCell: UITableViewCell {
     static let reuseID = "WeakWordCell"
 
-    private let wordLabel       = UILabel()
-    private let translLabel     = UILabel()
-    private let sourceLabel     = UILabel()
-    private let bookmarkIcon    = UIImageView()
+    var onSpeak: ((UIButton) -> Void)?
+
+    private let wordLabel    = UILabel()
+    private let translLabel  = UILabel()
+    private let sourceLabel  = UILabel()
+    private let bookmarkIcon = UIImageView()
+    let speakBtn             = UIButton(type: .system)
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -263,9 +389,15 @@ private final class WeakWordCell: UITableViewCell {
         let textStack = UIStackView(arrangedSubviews: [wordLabel, translLabel, sourceLabel])
         textStack.axis    = .vertical
         textStack.spacing = 2
-        textStack.translatesAutoresizingMaskIntoConstraints = false
 
-        let row = UIStackView(arrangedSubviews: [bookmarkIcon, textStack])
+        let speakCfg = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+        speakBtn.setImage(UIImage(systemName: "speaker.wave.2", withConfiguration: speakCfg), for: .normal)
+        speakBtn.tintColor = AppColor.textSecondary
+        speakBtn.addTarget(self, action: #selector(speakTapped), for: .touchUpInside)
+        speakBtn.translatesAutoresizingMaskIntoConstraints = false
+        speakBtn.widthAnchor.constraint(equalToConstant: 36).isActive = true
+
+        let row = UIStackView(arrangedSubviews: [bookmarkIcon, textStack, speakBtn])
         row.axis      = .horizontal
         row.spacing   = 10
         row.alignment = .center
@@ -280,13 +412,22 @@ private final class WeakWordCell: UITableViewCell {
         ])
     }
 
+    @objc private func speakTapped() {
+        onSpeak?(speakBtn)
+    }
+
     func configure(word: WeakWord) {
         wordLabel.text   = word.displayWord
         translLabel.text = word.translation ?? word.contextLine
         translLabel.textColor = word.translation != nil ? AppColor.accent : AppColor.textSecondary
 
         let source = [word.trackTitle, word.trackArtist].filter { !$0.isEmpty }.joined(separator: " · ")
-        sourceLabel.text    = source.isEmpty ? nil : source
+        sourceLabel.text     = source.isEmpty ? nil : source
         sourceLabel.isHidden = source.isEmpty
+
+        // セル再利用時にボタンアイコンをリセット
+        let cfg = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+        speakBtn.setImage(UIImage(systemName: "speaker.wave.2", withConfiguration: cfg), for: .normal)
+        speakBtn.tintColor = AppColor.textSecondary
     }
 }

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>musica 使い方ガイド</title>
+<style>
+  :root {
+    --accent:   #5B8BF5;
+    --accent-m: rgba(91,139,245,.12);
+    --bg:       #F5F5F7;
+    --surface:  #FFFFFF;
+    --border:   #E5E5EA;
+    --text:     #1D1D1F;
+    --sub:      #6E6E73;
+    --radius:   14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:      #1C1C1E;
+      --surface: #2C2C2E;
+      --border:  #38383A;
+      --text:    #F5F5F7;
+      --sub:     #8E8E93;
+      --accent-m: rgba(91,139,245,.18);
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html {
+    scroll-behavior: smooth;
+    background-color: #F5F5F7 !important;
+  }
+  body {
+    font-family: -apple-system, "Hiragino Sans", sans-serif;
+    background: var(--bg) !important;
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+    -webkit-text-size-adjust: 100%;
+  }
+  @media (prefers-color-scheme: dark) {
+    html { background-color: #1C1C1E !important; }
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    padding: 40px 24px 32px;
+  }
+  .app-icon {
+    width: 80px; height: 80px;
+    border-radius: 20px;
+    display: block;
+    margin: 0 auto 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.18);
+    object-fit: cover;
+  }
+  .hero h1 { font-size: 24px; font-weight: 800; }
+  .hero p  { color: var(--sub); margin-top: 8px; font-size: 14px; }
+  .badge-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .badge {
+    background: var(--accent-m);
+    border-radius: 99px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    display: flex; gap: 4px;
+    padding: 8px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  nav a {
+    color: var(--sub);
+    text-decoration: none;
+    font-size: 13px; font-weight: 600;
+    white-space: nowrap;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: .15s;
+  }
+  nav a:active { background: var(--accent-m); color: var(--accent); }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 700px; margin: auto; padding: 0 16px; }
+  section { padding: 36px 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+  .section-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    color: var(--accent); text-transform: uppercase; margin-bottom: 6px;
+  }
+  .section-title  { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+  .section-desc   { color: var(--sub); font-size: 14px; margin-bottom: 24px; }
+
+  /* ── TAB HEADER ── */
+  .tab-header {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .tab-icon {
+    width: 48px; height: 48px; flex-shrink: 0;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    background: var(--accent-m);
+  }
+  .tab-header h2 { font-size: 16px; font-weight: 700; }
+  .tab-header p  { color: var(--sub); font-size: 13px; margin-top: 2px; }
+
+  /* ── CARDS ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+  .card-icon { font-size: 24px; margin-bottom: 10px; }
+  .card h3   { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .card p    { color: var(--sub); font-size: 13px; line-height: 1.6; }
+
+  /* ── STEPS ── */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: flex; gap: 16px;
+    position: relative;
+    padding-bottom: 24px;
+  }
+  .step:last-child { padding-bottom: 0; }
+  .step-num {
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 13px; color: #fff;
+    position: relative; z-index: 1;
+  }
+  .step::before {
+    content: "";
+    position: absolute;
+    left: 15px; top: 32px; bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .step:last-child::before { display: none; }
+  .step-body { padding-top: 4px; }
+  .step-body h4 { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
+  .step-body p  { color: var(--sub); font-size: 13px; }
+
+  /* ── TIP ── */
+  .tip {
+    background: var(--accent-m);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--text);
+    margin-top: 16px;
+  }
+  .tip strong { color: var(--accent); }
+
+  /* ── TABLE ── */
+  .info-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .info-table td {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .info-table tr:last-child td { border-bottom: none; }
+  .info-table td:first-child {
+    font-weight: 600;
+    white-space: nowrap;
+    width: 36%;
+    color: var(--sub);
+  }
+  .tbl-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  /* ── FAQ ── */
+  details {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  summary {
+    padding: 14px 16px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "›"; font-size: 18px; color: var(--sub); transition: .2s; }
+  details[open] summary::after { transform: rotate(90deg); }
+  .faq-body {
+    padding: 0 16px 14px;
+    font-size: 13px;
+    color: var(--sub);
+    line-height: 1.7;
+  }
+
+  footer {
+    text-align: center;
+    padding: 32px 16px 48px;
+    font-size: 12px;
+    color: var(--sub);
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <img class="app-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAYAAAA5ZDbSAAAaRElEQVR4nNWde6xlV13HP7+19j7n3Ne82hnaaaeU1j6YUawCJm0Ij5YimJCgkqiRYIwJijERMAaNYkATxWhMjcYHkRgpBSWAIhKBKuILLfRBy6OlrbQdhr7m1Tsz955z9t5rLf9Ye++zzz3Pfc5e0/bXnO475577W3uv7/q9f2sdcc45GiMHTnA0yHLnCM4hBBjDAeL5hyKXzw9L3LuIoJRCROb7fJMAh5wcHGEWjnMgkt/7cpM/eYzm711E0FrP/Fy07EADTJ+H4AIMaYMwY4S4d2stzjm01lOlWS07kOf9fAW3qjaDMA+m1STXOlmWTR1jYYBd/r+gNsu5QGp5xzWY5IalQnKzLMNaO/Yzi0twaMkqbWIAkmLxBCLHQAJCsHduh3AJxpixINcG2A3/Lwy5QDbRFezD29yQi78Yo/ovAGPMiEatB3C+MkPcvKtMvgslueU4Yfi7UnLDUCG502inTa4FsKv8v2kSAkqW2/mPUCiEk9w68b8xA1U9E2A3otbCkJfbkJIbYPLLuSGo5OKoldxxzpb2eCbAw1FQoKcoJiqkxxyCyvUY1uYuYtPnBjios+DCSlbhL4RUm0FpiTDUOYe1dgrAFbUTEuQgajmcph+h4LnrJWg8wBVQgwFb8cbDeOSFOxg2Dg1GbuBULcXGuTEAB8q3D0YtLoGdtpDqU8JWzAbxyvJjjBQbmlg5Eyk0uLNi9AL0OUtt41kE1Aoi+T02J2UDCa7wC57cP9+8c5UqUQSRBlv/HhxhtYIgSIBopQTY4cI9gCvmONTqnz62RBESabKnT2LPbiFxzSqpmzXIclREEiHmxz9peG8/RA/G0Ahj5985RGuyE6fZvO3TpI8+Dlqx+sqXseuNr8EZM1Ndu0B591IRh+pQyUkFK8mRS22e5ml8hLkybN6mbX74H+nd/U1smmLObrN52z9x7vYvoaIIZ8aX2UYGapikEuMGywMAKohDFTrzBbP7p5xDIo3ZPEvy7WPQaeOSFLEWtbrC5sc+S/LUCVQcDdlkN/jzkFo5eGq2CEVVkDiUsJNTJ8PjrMNlBvoppAabpDjAPHOGzVs/PRLySJngCZhgPg+hYmHTl27ZGWI6VA16lkKhcX+SGZzxL6z1ktzpsPUfd7L1pXvQcex/R/j4PLBagB0mt1GABQmbYFjIE3dgDM5Y/yrAzjJQitN//fdk57YQrXH2PGTAgrubw9QMwEMqJ2AD2yIT48BldkiKXWZwSQZxRPLIMZ657Z9QWoOb5XAtQa5eya8W6ynO2vIAjyReAq3+JfgOAVsAbQ0uSVCrK5z55L/Q/eb/oVotmNC8thQFrmoNN0sM0/IAlw1sYVz9pYvpzg3ALexwVrwsGIvrJ5z80494tS0NWq1KUSUIuaHLWFqqq9JfA918g8V0ZwyYHaAW9jjNkE6H7le+zubHP4+OI5gZG9cYO7SnPGP+l1quwVpPizCoKeaZxZXAemkmq9rjFFnpcPIvP07/6ONIK14oX129f38J6azNR4sB3ODcjyUphllScsFrmFyCvQ22Ozxqi0szEMGc2uT4H/zN3Bu7Zg8eiuaPVuoD7MDJsoZxCm/XbNHDwTCYWcXZKrzrzGL7KWptlbOf/x+e+cTt6NYgNp5/MBe0cDDwR0JJcKGSw2DbaIRVvcUquFRALqXaWMh8lkvaLY7//l/TP/YkKo5retUSNv1Ifa02P8ClvQ3lETas9ytO4EBSTQXs6isrY2NRiuz4aZ5871/4DV5zjhVScv1jLKY1ZwM8hyveFAWbHGPGq+g0gyzLHS4LzmEzg+ze4Mzn/5eTH/o0UavlpX0s42qC4bm5Q3EOCQ7XCHBemurLTFZFNacVwK3D5srDIlgRrHOoPRs8+YcfYuvrD6E77Qn2uOrsBPJJluQ7vW2WsJIrgY9MKGgEWOuB9aCCQ7CicCI4pTzQkSZLM77za3+CObed56qH7fFzMjW7g8YDXKTWQkluMcZ5AHcoTLJ2AKp4aXWi8quUVyeCtQ7ZWGPrgUc4+t6/QEXR8D0/h1OzVRoB2Hf3NcJ7PIVO3zG6cAo1bEWweFBdFVwlWPG/N/nVKcEag9q3m5P/8G888YFPELVb3gsPkeCpavoGmY+R4HAlPzfmp8YH2GETHQVgKgfWg2tVbm/Ll8KpigTnC8BZh9q7m2O3fIRTX/gyUaedpzIbfoZKcqfJ5TPoqgysckJK7kBrjt9bXIIqglNUQCWX3hxUKlKNqrwn0Gnz7ff8OduPHEO3W8ulMsc+Q5j0oAfYTS85NUEhY+hZOyCHJXXY1rodKru8FsArwQLSaZGe3eLh3/gzTC9BlFSlohEKsfgVgJPAknUe9hZPI1u1qwWwSuG0HnawChW98yqCMRbZWGfznm/x2B9/xLf5LPtcrpp+DEPKBWwffK7sLS6BghJckxhMN4E4yu2zlLbZycAhM1RUuLXoC3bz3Y9+juNfvJO43Z6j7XYKSXHn4RAO0zab03Nhb7EXkKojpTFJRufqy1i97hqSk2ewxkIc5bZXyoSHE4Ehafb8pB3z7T+8lf7pM6hILyQg52tvcZC22aqrH3LX/ryLs+o9O60wSUrnew5x+G/exwt/8+dQu9foP3POS3JFml3hiFVttQNZ7bB99Cke+8tPoqOobNar/Rghtwrlk9RoV2WVefg2lTnHqDpUxSsHWbTm4M+8ke/9yO9y4MdvJNvuYbIMF0deWiuOl62GUMah92zw+N9/kdP3PUjUaY1kuSbevpuwzaYpyue/WPzNAnwe1I6/1BunVLFF7Iu3wzhIt7u0XnABV//OL3LtLb9CtH8f6eYWRNFALVfCJifKS7NSZMbyyAf+wUtwrSaBkIu/WgBpGOCg8C6h8j2ovpjgGEgjAqI1Nk3J+n0ufM3Lue5Dv80Fr/0hkmfO4ZQGpSvhU75AlGAc6F3rnPjyNzn+pfuIW62ZDtf52L25c4TmAA5pcynM+gLODAwcrKHQp/IhEVCKtNcnvmAXR/7oXbzw7W8m3er5SpNSJQ+fAVPle05rHvu72/2pNmq8FDfdpTL6jJOPjlsaYOeVflCbu+wWzoE9HbzGJdxFK0ySYZKEK9/+Zq55z8+RpRkGV8bMJbh5/lrWVzl578Ocuu8hXzuu2OJibkLSrB2Kyx8nHOqE9yGNsBz/QmLtCMijJMqDn/T6XPqmV/Pi972NLDWltA7AVZj8vSyzHPvsHTvifsKnZsvjHibTcqfNhtxbzHI+29A8V9KPVUdpIomX5qTb45Ifvp5rfvUtJNs9rB6Aa1UeUwOytsLTdz5A9/QmqhUFj3HrHPu4RNts2DCIBiS35FTYXxSOQf13FkmkSXp9Lv/R13DZT72O/tkuLo5zcJVX1wjSarF1/BlO3PswWvnGgOfK3uKFAA69O67pyRlKXIxzsqaQKCFNU679hR9j15ErSLsJaF06bVYprPYpzeNffbgy7c9earZK9c+LDnmMkP+J5ibHDXnRZQ04rw3PRSI4Y4naLV789h8b/L3KwVWCdYK0Yk4/dIw0852ZIWiRua/dFx2K/N7iMLwHBX5V2k+bq+h5hhStSPt9Drz0Wvbf8H30t/vYshLleUk7ZuvEJr1TRX664WdY8LCWOY4TduU1yPwHjp+BUmKd8mnKQr3Wovz2XvgjN1SctopW0BHb5/p0T55FKd3c8+QKbdG9xXMcJyzhYrnCyw9RUixYFZ2SpQRXMll1xlT+exEufMmVrF56gCwzWKUwKDKnMRKRptA7szUaLi39KItHK1MBdpX/glDgvcUFFXZz8PLxbB0SEWyW0V5fZddVh+j3DZlEHlwUBk3qhLSXMr/yn/EMDUQrU/uiJeD3CTXqS+2kym07GAK3WjqsS0XD6a4XXUJqPagGTSaaTBQZen7nbZ7xGpig0TP9HPnuwbAUNLW5g3cBKoXd1IsBXND6JfuxKiJDYcVHpQ6FVRHRSjsffUH+DfskYw9tDJ9+DMC3mM8xB7UW0itFeJNXhWpT7o6s7N+Fa7UwTrD4nRDOCTZu0dpYGb2BBR6nKRoGOGSGqhwiAP8c1Em8fcwqec1Wytac+sP4hd9aX4V2m9RQhknWOvRqm5Xda1hn6wtwoLkfe5xwEAp6JqabOqEGhS0K9kVbzoTS3tQxAOcsUTvGRi1SFJnSGNEkVmjt2WBlzyo2s7X3CYfa56SqRYNwdjG0XhiX5SnKaJVujjx/7L3eOlujK7wdiFJY7W2wQWGUpp86Ng7uo73S9k18c2I1OLB1cM9NUgThDugqFmXYzPWUmSxsvghGFOTFhgyNdWouDEYWjoB1jtQJmWhAIWgSqzhw1cXlaX+zJNg5l58FErQqQRRWtsI1mDk3z/ZT/7sMTYYFNLgc4Hng3bmJDQ9KlmQkGVgp2nk0dNocOnJp+ZlZdL6OfVz6C6InMQ8quSW4892KQWOcAXy4lInKJXrM53PJmjT5gtA7l9BLQbVinCjSxLL74D4OXn2ALM2mA1zOzUgarzmqOGzh2mYD71Cswz9D5ckI7xAZNJO+MkqmrZw8J3zm1Bb9DIyKMEqz3bdc9UNXsLK6gsnMZKsRMjU7NMyAb6MSXNqVkLlr6ocTRjRGLIIubXDhZO204oM2mNExCtxPPHGGxApaNJl1ROsrXHfjNVhrpkuvVPk3SIVWGGP7G5bgwHYFmHf1DPxSGeSK0d4eix5OdIykTieMkf/JE4+dxqgIqyPObRsOv+JKLnnRhSRJmvd0jb+ZaYtnKRp6lGHejUjwIAw9f+nHOuSdLOdTleLVdRkm1UjNai30e32OPXoaOi16RmjtWuOmN1/ndx9OkcyQX507rYWnEQmWQNtPC1qGs4NBMSAHNqsZB4MHKIoinjr2DE8+uYVa6bB5LuPmn/wBLrp0H+k46Q2f0p957OPSEhzyiCWp2JVFRimmuwAVfMEhI8LWrPo4CyKKb933FL0EssRw3Suu4MY3Hqbf76MmlB/DbzAL1TbLfGHKolQtmi+nHaSUXm9/ozK9WIeUEozJ+MZXn+Bsz3Ho6gO85Zeu91mrcfPsAgtw5bjlabQwwIserTcf7wLUZfl7Lt6L9iHNQFXP78k664hbEcceO809dz3F5YdfwNt/7ZWsrsVkxg5Uc+lMFXY9YO59TtYLqejQGZjCz2xqlEwiMiEvxueZrBoq2psLxT9/6kEOXXUhv/Le17C+EZP0DUqPWygeAOdcvvNw+LeT1Hkdmler1QY46CYqB3VhHTqYLJ/IaizqKBIdCtAgilR0nsmaPZZz0Gprjn3nNJ21Fr/xezfRamuSZBTc6l4k56DT6Yzl2e/3az2j57fYvNcDOKTgzutMOZ/sB1BaiKIIVQHUOovJLNY4nPaoF2oZ0aAUmYowzGeDRcBax+pqzE//7HUo5R0spXbE0dV/Okccx9x333187GMfI01T39NlLa997Wu56aabyvfmpWnp02k0H8BLxqFNkHPgrCWKI2LtwUn6CZsnz9A918cYi441qxsd1ves0FlpA34x+DAJDzCKTOzEXPQ4staxa08baxxZ5sYmM6qTX4B5yy23cNddd7G+vo61lizLuPPOOzly5AgXX3QxSZrMBNnhluqwmQlw0C+MhiGtMOkhrHVEkUK32mxtbvHw3Y/x8F1HefKRk2ye3ibpZ/7wOa2JV1rs2r/BC198ES+/6Wr2XLiGUREpguR9WZnYianKSWQzb0uH1H9RmNhx30op+v0+W1tb7Nu3jzg/cknEb4PZ3NzkkksuwSVzVJ6WFK65JDjcDsLZ3frWOtrtFltntrnjH7/CV//1fk4+eQaHoFoxEmlQEVb7oxn6XcMzj5zmoQdO8l+3/x+HX34IIxGZOERyG0w9CQYmrILpalPE91JrrYc2EMyjmgvJXZbGdlUi1fRjOJqqenJ/pd1u8Y0vPcTnPvjfHD92mni1Q7xrzeeYHRgqxxCicJEgsaKzqsiM48v//R3iTozTsd9iIopM2dyLXmzhFkmYkKlZf1me/yjAZS48oNWdpXbyX7VaEbff+j984aNfQbdi2ns3MBZSy2BfUNGyWgHaOsEZ//toLSZz+QZwfGdlKq6+BFfubXajwZLUYD1iBODzUfKbfXiZo9Vq8ekP/Af//vF7WN27hkVIzODk2PJAlR0SPDgyWAafKY5eQHIb7Ob2okcoFLiVkl+TunOsDQ59YMg0KmzuFz9xN1/4xL2s79sgdZRHH1VBK0+lKwGtnCo79JnBCbLei2YxCa4sTmvtxHlyzmGmfCWPtRZjDMaYkQPGi5afJpIhUAE4uLfM7IXjrKPVjnnk/sf5zIfvpL1nncQVIKpRYKtAyjD45dHA5XsDCU4XALh67845VlZWpn6+0+lMBGljYwOtNevr6xP/vtfr1bq/SRRBoR0CdVYWNIdWECVYY/nMrXeTWEVbRWSWHep22N7uvJZSXC4INQS6KEWmmTuT5e+9+hjefHzta1/j3nvvRSk1snBFhCzLOHfu3AjIIsKnPvUpDhw4MDbZYYzh8ssv5/rrr5+qBealaJD7bR7csiHdwSzPoVDN37jrKA9842naayskhTM1JJXDoA2kWZXqeGRByOBnUVJLgqvp0wLcRx99lHe84x1sbm5OVaVra2tDIRL4GPm2227DmPHtPUWs/P73v5+bb76Zbre7uLp2gdtmi73FdSpDd/7nYyROoUX7708oVbCMqFs7TlIr9thW7HHxnogiRWh14mIOZtCwalZKcfToUba2tti/f/9UKZv0u42NjYmxsNaaU6dO8eCDD/K6171ucX8o/7Mo9LdSz0s6UnS3ezz04Emk3SJ1+TlUOyW44jAN7PAO73nce7lkiygSgYMXreU3uvPGi8vk+1dKoZQiyzJ/wl1NmvU3zjm0XtDLh6FnaFSCCwffa+b5F45zjlhrnjrR5eRmiotj0h22cyjmnSTNU4At1LiIQrU0L75ynbI2WaU5Nv4XkjkLhElATlO5xeJZZOFUqZj7RttmpSx01wujXW6jz20ldDPQcVQJf8YAWwV9p5O1U31X1DhK0U3h0os7HLlijTS1w8dLzpn33bt3b5lTnlTlERE6nc5YVby9vT0RQK01Z8+eZe/evXPO3vD9+8vgfprti2aZyofzHq6KcKIHNnSMpFZtrKuq6RGJV0Of1VpxZsvw+hv2sbYa0e1m6Go3xowMUlFEOHz4MO985zu54447iKLxJ9s557j//vtJkmSkQPGSl7yEtbW1sY6WtZbLLruMN7zhDSRJUsvBGidakqZpMzp6iaqHr59qnn56m3f/+n/RTy3IGBtb8YZHJHnIuRp1wtCKbgIvuKDF3/7m5ax1lP92M5GF7r3dbk/9fZqmvPWtb+W73/0urVarXATGGD74wQ9y5ZVX4uz40iNAkiQTPe3RCZx8/81I8JJLxIcGlgsuWOHAwV186+FN2isRxjEZzDFqeDh8UkPSjAhbxvGrP/EC9mxEdLsGrWXh1Gy32x0/FbmnnSTJREez3+9jraXb7Y4FsOAxTymRGS3LjbTNNuGJW+totSJuuOFi7n7gDLGO8h30oynHcSp4vA32mSuU4vhZy7vfvJ+bfnCDbs+DW32GujStTXYWOEUqctmUZCVEn3yfC3PPmTcVZinlsz83v/oSLn/RHjZ7DhdFpPmmsTRvd80kwqg4b6TT5TWt/Fy8TxSToHl6S/jlN13IL75xL72eyVt8nt0OFU+LpYbrHPtYH+AK7yZPBRCBzDjWViPe+bZrUe0WZ1OBqABz8CrBVPnPqtLvrCJsFOF0xImuP4Hu93/2AO/60X30+hYRKb9e4bx8++lUWmz8OnuLFzttdsk2kkmkldDrGY5ctZvffddh1jY6PH0OMolxUYTRvrfZlNKs8y2cES4HNUVzqqs41Ve8+vvX+fi7L+anXrlOt2cQquA2fvvhF8xQGDSf9C9og8N1MmgFvV7KS4/s5q9+6zB/9skn+Je7zrJ5zqIjhY59IqA4mypzQpIJfePbY3evaW68rsNbXrnOjd/n21a7XZvbXAehjohi1Fx5bTEMRPHv2mthJIybj8H8APu5mZtxXRrsrPf2uNfLuOiCmN/5+ct5y9Eu/3rPWe56qMfRExmbXUdiBURYb2v2bmiuuKjFy76nzSuu7XDVQf9YvZ4FxIPrxseJzdz8IMFTPIvWmizLyLKMOI7L99M0zTNgNe9jwUaD50xfNAw/gFJCkjqcy7jmUJtrLlsBZ9ncspzZtvRTh1aw1lHsXlW028V2UEev5+VIi5RhROhadzXBY41lpbPC61//em699dZSkpMk4VWvehWHDh2aumFtHBXZvrogzEx0+AazwIepMN2mW5eHHyJo7W114Qhb5zAGsjzzJ8JC6cfFbj6X3Ans4zjm8ccfp9frISJorTl48GDZbblsEmMemgvgcqRAVEf1jNmp4vuVG+Bdm2ZUnor6cbUpoEiAzAvuNP7z0GSAQ678YoiAe4vznxZQavMMUFzmqCaP6faYd4xAp806kMKehEsIhJSsasXv2Y506+w/Kmmy1q9NY5ysqqv//AN3kR2K9fg/f7SaT4VKpWmsUAuhDgInPLhBfeU8NRuKd6PsnCPSEZEoQazsCKSfv5IbbITAPolrUi/jiyE60igRQVTYltmApz3k/Bc5/bnOAGFDrcZZ5icCiYjPRWuty9aThZyC2UOG98hDxrpB7735Yx+VUkSRd6/KVMpSXXwTqM5hIc85/q7wwsOaq6a5F7F3QSXARfG5aSl+NvcWNzBIQGr+2Mfi6IhqCnQoGaq1Zsirrj3CYKCQkoWbsbd4GfZDSYxw/JvmXdjdorBR0Ei2W0d6cQmecihmkxT06wdYoJQ3N+Mwe4sLcKuquaCx5YwoihbqFTofBe+w3qyrvAIMIc07VIVaHgcugLgpIxb7WOsMFpLCx9EQzLY0vDh9dU0Rt+KpDvJUgAtG1tqpWymez5Ibuhzqx2gWWBF/PlgR606jmQBXGVtj/Zc+Df2CcMcaFPxDwTvkCz4/sndaa+I4nttP+n9hTWtvzmLjqwAAAABJRU5ErkJggg==" alt="musica" />
+  <h1>musica 使い方ガイド</h1>
+  <p>音楽・動画でリスニング力を鍛えよう</p>
+  <div class="badge-row">
+    <span class="badge">📖 サンプル練習曲</span>
+    <span class="badge">🎬 お気に入り動画</span>
+    <span class="badge">🎙 音声認識</span>
+    <span class="badge">✏️ ディクテーション</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#start">はじめに</a>
+    <a href="#home">ホーム</a>
+    <a href="#player">再生</a>
+    <a href="#mv">動画</a>
+    <a href="#dictation">練習</a>
+    <a href="#tips">Tips</a>
+    <a href="#faq">FAQ</a>
+  </div>
+</nav>
+
+<!-- ── はじめに ── -->
+<section id="start">
+  <div class="container">
+    <div class="section-eyebrow">Getting Started</div>
+    <div class="section-title">musica でできること</div>
+    <p class="section-desc">音楽ファイルや YouTube 動画をリスニング練習素材として活用できるアプリです。</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🎵</div>
+        <h3>音楽ライブラリ</h3>
+        <p>iPhone に保存した音楽を使って再生速度調整・区間リピートで練習できます。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎬</div>
+        <h3>お気に入り動画</h3>
+        <p>YouTube の URL を登録して、字幕付きでディクテーション練習ができます。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎙</div>
+        <h3>AI 音声認識</h3>
+        <p>WhisperKit（端末内処理）で音声から自動的に歌詞・字幕を生成できます。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📖</div>
+        <h3>サンプル練習曲</h3>
+        <p>「使い方ガイド＆練習曲」でアプリの使い方を学びながらディクテーション体験ができます。</p>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>💡 まずはサンプルから</strong> ホームの「📖 使い方ガイド＆練習曲」ライブラリを開き、曲をタップして練習を体験してみてください。
+    </div>
+  </div>
+</section>
+
+<!-- ── ホームタブ ── -->
+<section id="home">
+  <div class="container">
+    <div class="section-eyebrow">Home Tab</div>
+    <div class="section-title">🏠 ホームタブ</div>
+    <p class="section-desc">音楽ライブラリと YouTube 動画の一覧が表示されます。</p>
+
+    <div class="tab-header">
+      <div class="tab-icon">📚</div>
+      <div>
+        <h2>ライブラリの並び順</h2>
+        <p>お気に入り動画 → サンプル練習曲 → 自分のライブラリ の順で表示されます</p>
+      </div>
+    </div>
+
+    <div class="tab-header">
+      <div class="tab-icon">➕</div>
+      <div>
+        <h2>ライブラリを追加する</h2>
+        <p>右上の「＋ ライブラリを追加する」ボタンから新しい音楽ライブラリを作成できます</p>
+      </div>
+    </div>
+
+    <div class="tab-header">
+      <div class="tab-icon">🎬</div>
+      <div>
+        <h2>お気に入り動画</h2>
+        <p>YouTube 動画を登録してディクテーション練習ができます。右上「＋」から URL を追加</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 音楽再生 ── -->
+<section id="player">
+  <div class="container">
+    <div class="section-eyebrow">Music Player</div>
+    <div class="section-title">▶️ 音楽再生画面</div>
+    <p class="section-desc">曲をタップすると再生画面に遷移します。</p>
+
+    <div class="tbl-wrap">
+      <table class="info-table">
+        <tr><td>再生速度</td><td>0.5× 〜 2.0× まで調整可能。右下「速度」ボタンからスライダーで細かく設定</td></tr>
+        <tr><td>区間リピート</td><td>右下「区間」ボタンで繰り返す範囲を設定できます</td></tr>
+        <tr><td>歌詞表示</td><td>右上のセグメントで「♩ / 歌詞」を切り替え</td></tr>
+        <tr><td>進捗バー</td><td>再生前でもドラッグでシーク位置を指定できます</td></tr>
+        <tr><td>シャッフル / リピート</td><td>ライブラリ内の曲をランダム再生・リピートできます</td></tr>
+      </table>
+    </div>
+
+    <div class="tip">
+      <strong>💡 ディクテーション練習のコツ</strong> まず 0.75× でゆっくり聴いて書き取り、慣れたら速度を上げていきましょう。
+    </div>
+  </div>
+</section>
+
+<!-- ── お気に入り動画 ── -->
+<section id="mv">
+  <div class="container">
+    <div class="section-eyebrow">Favorite Videos</div>
+    <div class="section-title">🎬 お気に入り動画</div>
+    <p class="section-desc">YouTube 動画を使ってディクテーション練習ができます。</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>動画を追加する</h4>
+          <p>お気に入り動画画面の右上「＋」をタップ。YouTube の URL を貼り付けて追加します。<br>「発見」タブから直接登録することも可能です。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>字幕（スクリプト）を登録する</h4>
+          <p>追加した動画をタップ → 下から出てくるシートの「ディクテーション練習」をタップ。<br>字幕入力画面でスクリプトを入力して保存してください。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>AI 音声認識で字幕を自動生成（任意）</h4>
+          <p>字幕入力画面の「音声認識で自動入力」をタップすると WhisperKit が端末内で文字起こしします（通信不要）。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>ディクテーション練習を始める</h4>
+          <p>字幕を登録した動画をタップして再生。速度を落として聴き、聞こえた言葉を書き取ったら字幕で答え合わせ！</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>💡 字幕のコピー元</strong> YouTube の字幕機能や動画概要欄からコピーするのがおすすめです。
+    </div>
+  </div>
+</section>
+
+<!-- ── ディクテーション練習 ── -->
+<section id="dictation">
+  <div class="container">
+    <div class="section-eyebrow">Dictation</div>
+    <div class="section-title">✏️ 歌詞・字幕の登録方法</div>
+    <p class="section-desc">歌詞・字幕の登録には 3 つの方法があります。</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🎙</div>
+        <h3>音声認識（WhisperKit）</h3>
+        <p>端末内 AI が音声を自動文字起こし。通信不要でプライバシー安全。精度が高くおすすめ。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📷</div>
+        <h3>OCR（カメラ読み取り）</h3>
+        <p>歌詞カードや楽譜をカメラで撮影してテキスト化。紙の素材があるときに便利。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⌨️</div>
+        <h3>手動入力</h3>
+        <p>テキストエリアに直接入力・ペースト。他のアプリからコピーしてきた場合に。</p>
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="info-table">
+        <tr><td>音声認識の精度</td><td>環境音が少ないクリアな音源ほど精度が上がります</td></tr>
+        <tr><td>処理時間</td><td>モデルのダウンロード（初回のみ）後、音声の長さに比例して数秒〜数十秒かかります</td></tr>
+        <tr><td>対応言語</td><td>英語・日本語を含む多言語対応（Whisper モデル依存）</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ── Tips ── -->
+<section id="tips">
+  <div class="container">
+    <div class="section-eyebrow">Tips</div>
+    <div class="section-title">💡 効果的な練習のコツ</div>
+    <p class="section-desc">リスニング力を伸ばすためのヒント。</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🐢</div>
+        <h3>最初はゆっくり</h3>
+        <p>0.75× や 0.5× から始めて、一言一句書き取ることに集中しましょう。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔁</div>
+        <h3>区間リピートを活用</h3>
+        <p>聞き取れなかった箇所だけを繰り返す「区間リピート」で効率的に練習できます。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📈</div>
+        <h3>徐々に速くする</h3>
+        <p>同じ素材で 0.75→1.0→1.25 と少しずつスピードアップしていくのが効果的です。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <h3>好きな素材を使う</h3>
+        <p>興味のある動画や好きな曲を使うほど継続しやすくなります。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section id="faq">
+  <div class="container">
+    <div class="section-eyebrow">FAQ</div>
+    <div class="section-title">よくある質問</div>
+    <p class="section-desc"></p>
+
+    <details>
+      <summary>音声認識がうまく動かない</summary>
+      <div class="faq-body">初回は AI モデルのダウンロードが必要です（Wi-Fi 推奨）。モデルのダウンロード完了後、再度お試しください。処理中はインジケーターが表示されます。</div>
+    </details>
+    <details>
+      <summary>2× より速い再生速度に設定できない</summary>
+      <div class="faq-body">iOS の AVAudioPlayer の仕様上、2× が上限となります。それ以上の速度は実際には反映されないため、0.5× 〜 2.0× の範囲で設定できます。</div>
+    </details>
+    <details>
+      <summary>YouTube 動画の広告が消えない</summary>
+      <div class="faq-body">プレミアムプランで削除できるのは musica アプリ内の広告です。YouTube 動画自体に挿入された広告は YouTube 側の仕様のため削除できません。</div>
+    </details>
+    <details>
+      <summary>サンプル練習曲を削除してしまった</summary>
+      <div class="faq-body">ライブラリの追加画面または設定からデータをリセットすると、サンプルデータが再表示される場合があります。</div>
+    </details>
+    <details>
+      <summary>プレミアムプランを機種変更後に復元したい</summary>
+      <div class="faq-body">オプションタブ →「広告の削除」→「過去の購入を復元する」をタップしてください。購入時と同じ Apple ID でログインしている必要があります。</div>
+    </details>
+  </div>
+</section>
+
+<footer>
+  musica<br>
+  ご意見・不具合はオプションタブの「お問い合わせ」からお送りください。
+</footer>
+
+</body>
+</html>
