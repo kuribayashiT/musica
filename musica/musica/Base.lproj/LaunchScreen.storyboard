@@ -27,7 +27,7 @@
                                 </constraints>
                             </imageView>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="backgroundColor" name="LaunchBackground"/>
                         <constraints>
                             <constraint firstItem="Zga-p0-ess" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="3gf-yZ-5t9"/>
                             <constraint firstItem="Zga-p0-ess" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="Ecc-qr-pTN"/>
