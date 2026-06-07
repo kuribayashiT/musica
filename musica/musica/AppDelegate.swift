@@ -24,7 +24,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
     let gcmMessageIDKey = "gcm.message_id"
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        
+        // ランチスクリーン → 最初のVCが描画されるまでの一瞬を白で埋める（暗いフラッシュ防止）
+        window?.backgroundColor = .white
+
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()
         }
