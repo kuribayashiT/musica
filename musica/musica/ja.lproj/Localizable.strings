@@ -132,8 +132,8 @@
 "setting_item_help_des" = "HELPの表示";
 "setting_item_cashclear" = "キャッシュのクリア";
 "setting_item_cashclear_des" = "youtubeのエラーの一部を解決します。";
-"setting_item_adclear" = "広告の削除";
-"setting_item_adclear_des" = "毎月のお支払い(月額200円)は自動更新となります。広告を削除しますか？";
+"setting_item_adclear" = "プレミアムプラン";
+"setting_item_adclear_des" = "ディクテーション・フラッシュカードが無制限に。広告なしで練習に集中できます。";
 "setting_item_cashclear_alert" = "キャッシュをクリアします";
 "setting_item_cashclear_alert_des" = "Youtubeの動画再生時に、キャッシュが原因でエラーになることがあります。キャッシュを削除することで、再生できるようになることがあります。";
 "setting_item_helpappear" = "「？」ボタンの表示/非表示を設定します。";
@@ -642,11 +642,13 @@
 /*******************************************************************
  ホームタブ
  *******************************************************************/
-"home_hide_ads" = "広告を非表示";
-"ad_reward_title" = "広告を3時間オフにする";
-"ad_reward_body" = "動画広告を最後まで見ると、3時間広告なしで利用できます。";
-"ad_reward_watch" = "広告を見る";
-"ad_reward_premium" = "プレミアムプランへ";
+"home_hide_ads" = "ディクテーション+1回";
+"ad_reward_title" = "ディクテーション+1回ゲット";
+"ad_reward_body" = "動画広告を最後まで見ると、今日のディクテーションを1回追加できます（1日1回まで）。";
+"ad_reward_watch" = "広告を見て+1回もらう";
+"ad_reward_premium" = "プレミアムで毎日無制限に練習する";
+"ad_reward_granted" = "ディクテーション+1回追加しました！\n練習タブからすぐに練習できます。";
+"ad_reward_already_used" = "本日のボーナスは使用済みです。\nプレミアムなら毎日無制限で練習できます。";
 
 /*******************************************************************
  お気に入り動画

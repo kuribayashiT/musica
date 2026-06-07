@@ -14,18 +14,21 @@ final class SubscriptionGate {
     static let shared = SubscriptionGate()
 
     // ── UserDefaults keys ──────────────────────────────────────────
-    private let kDictDateKey    = "sg_dict_date"
-    private let kDictCountKey   = "sg_dict_count"
-    private let kFlashDateKey   = "sg_flash_date"
-    private let kFlashCountKey  = "sg_flash_count"
-    private let kFirstDictDone  = "sg_first_dict_done"
-    private let kFirstFlashDone = "sg_first_flash_done"
-    private let kTotalSessions  = "sg_total_sessions"
-    private let kReviewRequested = "sg_review_requested"
+    private let kDictDateKey      = "sg_dict_date"
+    private let kDictCountKey     = "sg_dict_count"
+    private let kFlashDateKey     = "sg_flash_date"
+    private let kFlashCountKey    = "sg_flash_count"
+    private let kBonusDictDateKey = "sg_bonus_dict_date"
+    private let kBonusDictKey     = "sg_bonus_dict_count"
+    private let kFirstDictDone    = "sg_first_dict_done"
+    private let kFirstFlashDone   = "sg_first_flash_done"
+    private let kTotalSessions    = "sg_total_sessions"
+    private let kReviewRequested  = "sg_review_requested"
 
     // ── 無料ティア制限値 ─────────────────────────────────────────
-    let freeDictPerDay  = 3   // ディクテーション 1日3回まで
-    let freeFlashPerDay = 10  // フラッシュカード 1日10枚まで
+    let freeDictPerDay     = 3  // ディクテーション 1日3回まで
+    let freeFlashPerDay    = 10 // フラッシュカード 1日10枚まで
+    let maxBonusDictPerDay = 1  // リワード広告で追加できるボーナス上限
 
     private let defaults = UserDefaults.standard
     private init() {}
@@ -36,7 +39,8 @@ final class SubscriptionGate {
     var remainingDictations: Int {
         guard !KAKIN_FLG else { return Int.max }
         resetIfNewDay(dateKey: kDictDateKey, countKey: kDictCountKey)
-        return max(0, freeDictPerDay - defaults.integer(forKey: kDictCountKey))
+        let bonus = bonusDictationsToday
+        return max(0, freeDictPerDay + bonus - defaults.integer(forKey: kDictCountKey))
     }
 
     var canStartDictation: Bool { remainingDictations > 0 }
@@ -46,6 +50,27 @@ final class SubscriptionGate {
         guard !KAKIN_FLG else { return }
         resetIfNewDay(dateKey: kDictDateKey, countKey: kDictCountKey)
         defaults.set(defaults.integer(forKey: kDictCountKey) + 1, forKey: kDictCountKey)
+    }
+
+    // MARK: - Bonus Dictation (Reward Ad)
+
+    var bonusDictationsToday: Int {
+        resetIfNewDay(dateKey: kBonusDictDateKey, countKey: kBonusDictKey)
+        return defaults.integer(forKey: kBonusDictKey)
+    }
+
+    var canGrantBonusDictation: Bool {
+        guard !KAKIN_FLG else { return false }
+        return bonusDictationsToday < maxBonusDictPerDay
+    }
+
+    /// リワード広告視聴後に呼ぶ。true = 付与成功、false = 本日上限済み
+    @discardableResult
+    func grantBonusDictation() -> Bool {
+        guard canGrantBonusDictation else { return false }
+        resetIfNewDay(dateKey: kBonusDictDateKey, countKey: kBonusDictKey)
+        defaults.set(defaults.integer(forKey: kBonusDictKey) + 1, forKey: kBonusDictKey)
+        return true
     }
 
     // MARK: - FlashCard

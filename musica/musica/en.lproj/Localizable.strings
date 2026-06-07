@@ -132,8 +132,8 @@
 "setting_item_help_des" = "Display of HELP.";
 "setting_item_cashclear" = "Clear cache";
 "setting_item_cashclear_des" = "Solve some youtube errors.";
-"setting_item_adclear" = "Remove ads";
-"setting_item_adclear_des" = "Monthly payment ($ 1.99 per month) is automatically renewed. Do you want to delete the ad?";
+"setting_item_adclear" = "Premium Plan";
+"setting_item_adclear_des" = "Unlimited dictation & flashcards. Learn without ads.";
 "setting_item_cashclear_alert" = "Clear cache";
 "setting_item_cashclear_alert_des" = "When playing outube videos, an error may occur due to caching. You may be able to play by deleting the cache.";
 "setting_item_helpappear" = "Sets whether to display the ? Button.";
@@ -632,11 +632,13 @@
 "discover_segment_mv" = "Music Videos";
 "discover_load_error" = "Failed to load";
 
-"home_hide_ads" = "Hide Ads";
-"ad_reward_title" = "Mute Ads for 3 Hours";
-"ad_reward_body" = "Watch a video ad to the end and enjoy 3 hours ad-free.";
-"ad_reward_watch" = "Watch Ad";
-"ad_reward_premium" = "Go Premium";
+"home_hide_ads" = "+1 Dictation";
+"ad_reward_title" = "Get +1 Dictation Session";
+"ad_reward_body" = "Watch a short video ad to add one more dictation session today (once per day).";
+"ad_reward_watch" = "Watch Ad & Get +1";
+"ad_reward_premium" = "Go Premium for Unlimited Practice";
+"ad_reward_granted" = "+1 dictation session added!\nHead to the Practice tab to start now.";
+"ad_reward_already_used" = "You've already used today's bonus.\nGo Premium to practice without limits every day.";
 
 "mv_add_title" = "Add YouTube Video";
 "mv_add_message" = "Paste the YouTube URL";

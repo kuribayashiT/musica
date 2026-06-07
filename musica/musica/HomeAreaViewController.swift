@@ -756,14 +756,13 @@ class HomeAreaViewController: UIViewController, UITableViewDataSource, UITableVi
      ボタンタップ時処理
      *******************************************************************/
     @IBAction func rewardADBtnTapped(_ sender: Any) {
-        removeADAlertApear(vc:self,rewardedAd: rewardedAd) { [weak self] in
-            let now = NSDate()
-            let date1 = NSDate(timeInterval: TimeInterval(60 * 60 * 3), since: now as Date)
-            UserDefaults.standard.set(date1, forKey: "ADdate")
-            UserDefaults.standard.synchronize()
-            deleteAD()
-            self?.loadView()
-            self?.viewDidLoad()
+        removeADAlertApear(vc: self, rewardedAd: rewardedAd) { [weak self] in
+            guard let self = self else { return }
+            let granted = SubscriptionGate.shared.grantBonusDictation()
+            let key = granted ? "ad_reward_granted" : "ad_reward_already_used"
+            let alert = UIAlertController(title: nil, message: localText(key: key), preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
         }
     }
     // 「音楽ライブラリを作成する」ボタンタップ時
